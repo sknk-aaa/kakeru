@@ -33,15 +33,19 @@ export default function AuthPage() {
     setError(null);
 
     if (mode === "signup") {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: { emailRedirectTo: `${location.origin}/auth/callback` },
       });
       if (error) {
         setError(error.message);
+      } else if (data.session) {
+        // メール確認なしの設定の場合、即座にセッションが返る
+        router.push("/");
+        router.refresh();
       } else {
-        setMessage("確認メールを送りました。メールを確認してください。");
+        setMessage("確認メールを送りました。受信トレイ（迷惑メールフォルダも）をご確認ください。");
       }
     } else {
       const { error } = await supabase.auth.signInWithPassword({ email, password });

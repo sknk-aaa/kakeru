@@ -201,92 +201,82 @@ function RunPageInner() {
     );
   }
 
+  // 計測中はfixed全画面レイアウト（BottomNavはz-50で上に重なる）
   return (
-    <AppShell>
-      <div className="flex flex-col h-[calc(100vh-64px)]">
-        {/* 地図 */}
-        <div className="flex-1 relative min-h-0">
-          <RunMap points={gpsPoints} />
-          {phase === "paused" && (
-            <div className="absolute inset-0 bg-black/20 flex items-center justify-center rounded-xl">
-              <span className="text-white font-bold text-lg bg-black/60 px-4 py-2 rounded-full">一時停止中</span>
-            </div>
-          )}
-        </div>
-
-        {/* メトリクス */}
-        <div className="bg-white px-4 pt-4 pb-2">
-          {/* プログレスバー（目標あり） */}
-          {goalDistancePct !== null && (
-            <div className="mb-3">
-              <div className="flex justify-between text-xs text-[#888888] mb-1">
-                <span>{distanceKm.toFixed(2)}km</span>
-                <span>{goalInstance?.distance_km}km</span>
-              </div>
-              <div className="h-2 bg-[#F0F0F0] rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-[#FF6B00] rounded-full transition-all"
-                  style={{ width: `${goalDistancePct}%` }}
-                />
-              </div>
-            </div>
-          )}
-
-          <div className="grid grid-cols-3 gap-2 mb-4">
-            <div className="text-center">
-              <p className="metric-value text-[#FF6B00] text-3xl">{distanceKm.toFixed(2)}</p>
-              <p className="text-[10px] text-[#888888]">km</p>
-            </div>
-            <div className="text-center">
-              <p className="metric-value text-[#111111] text-3xl">{formatDuration(elapsedSec)}</p>
-              <p className="text-[10px] text-[#888888]">経過時間</p>
-            </div>
-            <div className="text-center">
-              <p className="metric-value text-[#111111] text-3xl">{formatPace(currentPace)}</p>
-              <p className="text-[10px] text-[#888888]">ペース/km</p>
-            </div>
+    <div
+      className="fixed inset-0 z-10 flex flex-col bg-white"
+      style={{ paddingBottom: "calc(56px + env(safe-area-inset-bottom))" }}
+    >
+      {/* 地図：残り全スペースを埋める */}
+      <div className="flex-1 min-h-0 relative">
+        <RunMap points={gpsPoints} />
+        {phase === "paused" && (
+          <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+            <span className="text-white font-bold text-lg bg-black/60 px-4 py-2 rounded-full">一時停止中</span>
           </div>
-
-          <div className="text-center mb-3">
-            <span className="text-[#888888] text-sm">{calories} kcal</span>
-          </div>
-
-          {/* コントロール */}
-          <div className="flex gap-3 pb-2">
-            <button
-              className="btn-secondary flex-1 gap-2"
-              onClick={handlePauseResume}
-            >
-              {phase === "paused"
-                ? <><Play size={16} />再開</>
-                : <><Pause size={16} />一時停止</>
-              }
-            </button>
-            <button
-              className="btn-primary flex-1 gap-2"
-              onClick={handleFinish}
-              disabled={!goalReached && !!goalInstance}
-              style={{
-                opacity: !goalReached && !!goalInstance ? 0.4 : 1,
-              }}
-            >
-              <Flag size={16} />
-              {goalReached ? "ゴール！" : "ゴール"}
-            </button>
-          </div>
-          {!goalReached && goalInstance && (
-            <p className="text-xs text-[#888888] text-center pb-1">目標達成後にゴールできます</p>
-          )}
-          {!goalInstance && (
-            <button
-              className="w-full text-[#888888] text-sm py-2"
-              onClick={handleFinish}
-            >
-              終了する
-            </button>
-          )}
-        </div>
+        )}
       </div>
-    </AppShell>
+
+      {/* メトリクスパネル：固定高さ */}
+      <div className="shrink-0 bg-white border-t border-[#E5E5E5] px-4 pt-3 pb-2">
+        {/* プログレスバー（目標距離あり） */}
+        {goalDistancePct !== null && (
+          <div className="mb-2">
+            <div className="flex justify-between text-xs text-[#888888] mb-1">
+              <span>{distanceKm.toFixed(2)}km</span>
+              <span>{goalInstance?.distance_km}km</span>
+            </div>
+            <div className="h-1.5 bg-[#F0F0F0] rounded-full overflow-hidden">
+              <div
+                className="h-full bg-[#FF6B00] rounded-full transition-all"
+                style={{ width: `${goalDistancePct}%` }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* 3つの数値 */}
+        <div className="grid grid-cols-3 gap-1 mb-2">
+          <div className="text-center">
+            <p className="metric-value text-[#FF6B00] text-3xl leading-none">{distanceKm.toFixed(2)}</p>
+            <p className="text-[10px] text-[#888888] mt-0.5">km</p>
+          </div>
+          <div className="text-center">
+            <p className="metric-value text-[#111111] text-3xl leading-none">{formatDuration(elapsedSec)}</p>
+            <p className="text-[10px] text-[#888888] mt-0.5">経過時間</p>
+          </div>
+          <div className="text-center">
+            <p className="metric-value text-[#111111] text-3xl leading-none">{formatPace(currentPace)}</p>
+            <p className="text-[10px] text-[#888888] mt-0.5">ペース/km</p>
+          </div>
+        </div>
+
+        <p className="text-center text-xs text-[#888888] mb-2">{calories} kcal</p>
+
+        {/* ボタン */}
+        <div className="flex gap-2">
+          <button className="btn-secondary flex-1 gap-1.5" style={{ minHeight: "44px" }} onClick={handlePauseResume}>
+            {phase === "paused" ? <><Play size={15} />再開</> : <><Pause size={15} />一時停止</>}
+          </button>
+          {goalInstance ? (
+            <button
+              className="btn-primary flex-1 gap-1.5"
+              style={{ minHeight: "44px", opacity: goalReached ? 1 : 0.35 }}
+              onClick={handleFinish}
+              disabled={!goalReached}
+            >
+              <Flag size={15} />{goalReached ? "ゴール！" : "ゴール"}
+            </button>
+          ) : (
+            <button className="btn-primary flex-1 gap-1.5" style={{ minHeight: "44px" }} onClick={handleFinish}>
+              <Flag size={15} />終了
+            </button>
+          )}
+        </div>
+        {!goalReached && goalInstance && (
+          <p className="text-[10px] text-[#888888] text-center mt-1">目標達成後にゴールできます</p>
+        )}
+      </div>
+    </div>
   );
 }

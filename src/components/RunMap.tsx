@@ -9,15 +9,20 @@ interface Props {
 
 export default function RunMap({ points }: Props) {
   const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<unknown>(null);
-  const polylineRef = useRef<unknown>(null);
-  const markerRef = useRef<unknown>(null);
+  const mapInstanceRef = useRef<any>(null);
+  const polylineRef = useRef<any>(null);
+  const markerRef = useRef<any>(null);
 
   useEffect(() => {
-    if (!mapRef.current || mapInstanceRef.current) return;
+    if (!mapRef.current) return;
+
+    let cancelled = false;
+    let map: any = null;
 
     import("leaflet").then((L) => {
-      const map = L.map(mapRef.current!, {
+      if (cancelled || !mapRef.current) return;
+
+      map = L.map(mapRef.current, {
         center: [35.6762, 139.6503],
         zoom: 16,
         zoomControl: false,
@@ -29,12 +34,18 @@ export default function RunMap({ points }: Props) {
       }).addTo(map);
 
       mapInstanceRef.current = map;
+
+      // flex-1コンテナのレイアウト確定後にサイズ再計算
+      setTimeout(() => { if (!cancelled) map.invalidateSize(); }, 100);
     });
 
     return () => {
-      if (mapInstanceRef.current) {
-        (mapInstanceRef.current as any).remove();
+      cancelled = true;
+      if (map) {
+        map.remove();
         mapInstanceRef.current = null;
+        polylineRef.current = null;
+        markerRef.current = null;
       }
     };
   }, []);
@@ -42,11 +53,12 @@ export default function RunMap({ points }: Props) {
   useEffect(() => {
     if (!mapInstanceRef.current || points.length === 0) return;
     import("leaflet").then((L) => {
-      const map = mapInstanceRef.current as any;
+      const map = mapInstanceRef.current;
+      if (!map) return;
       const latLngs = points.map((p) => [p.lat, p.lng] as [number, number]);
 
       if (polylineRef.current) {
-        (polylineRef.current as any).setLatLngs(latLngs);
+        polylineRef.current.setLatLngs(latLngs);
       } else {
         polylineRef.current = L.polyline(latLngs, {
           color: "#FF6B00",
@@ -57,7 +69,7 @@ export default function RunMap({ points }: Props) {
 
       const last = points[points.length - 1];
       if (markerRef.current) {
-        (markerRef.current as any).setLatLng([last.lat, last.lng]);
+        markerRef.current.setLatLng([last.lat, last.lng]);
       } else {
         const icon = L.divIcon({
           html: '<div style="width:12px;height:12px;background:#FF6B00;border:2px solid white;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,0.4)"></div>',
