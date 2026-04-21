@@ -5,12 +5,32 @@ export const dynamic = "force-dynamic";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { ChevronLeft, Calendar, Repeat } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import AppShell from "@/components/AppShell";
 
 const DAYS = ["日", "月", "火", "水", "木", "金", "土"];
 
 type GoalType = "recurring" | "oneoff";
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p style={{ fontSize: "12px", color: "#888888", fontWeight: 600, marginBottom: "8px", paddingLeft: "4px", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+      {children}
+    </p>
+  );
+}
+
+function ListRow({ label, children, last }: { label: string; children: React.ReactNode; last?: boolean }) {
+  return (
+    <>
+      <div style={{ display: "flex", alignItems: "center", padding: "14px 16px", gap: "12px" }}>
+        <span style={{ fontSize: "15px", color: "#111111", fontWeight: 500, width: "80px", flexShrink: 0 }}>{label}</span>
+        <div style={{ flex: 1 }}>{children}</div>
+      </div>
+      {!last && <div style={{ height: "1px", background: "#F2F2F2", marginLeft: "16px" }} />}
+    </>
+  );
+}
 
 export default function NewGoalPage() {
   const router = useRouter();
@@ -25,36 +45,16 @@ export default function NewGoalPage() {
   const [error, setError] = useState<string | null>(null);
 
   function toggleDay(day: number) {
-    setSelectedDays((prev) =>
-      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
-    );
+    setSelectedDays((prev) => prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]);
   }
 
   function validate() {
-    if (type === "recurring" && selectedDays.length === 0) {
-      setError("曜日を1つ以上選択してください");
-      return false;
-    }
-    if (type === "oneoff" && !scheduledDate) {
-      setError("日付を選択してください");
-      return false;
-    }
-    if (!distanceKm && !durationMinutes) {
-      setError("距離または時間のどちらかを入力してください");
-      return false;
-    }
-    if (distanceKm && parseFloat(distanceKm) < 0.1) {
-      setError("距離は0.1km以上で入力してください");
-      return false;
-    }
-    if (durationMinutes && parseInt(durationMinutes) < 1) {
-      setError("時間は1分以上で入力してください");
-      return false;
-    }
-    if (!penaltyAmount || parseInt(penaltyAmount) < 100) {
-      setError("罰金は100円以上で入力してください");
-      return false;
-    }
+    if (type === "recurring" && selectedDays.length === 0) { setError("曜日を1つ以上選択してください"); return false; }
+    if (type === "oneoff" && !scheduledDate) { setError("日付を選択してください"); return false; }
+    if (!distanceKm && !durationMinutes) { setError("距離または時間を入力してください"); return false; }
+    if (distanceKm && parseFloat(distanceKm) < 0.1) { setError("距離は0.1km以上で入力してください"); return false; }
+    if (durationMinutes && parseInt(durationMinutes) < 1) { setError("時間は1分以上で入力してください"); return false; }
+    if (!penaltyAmount || parseInt(penaltyAmount) < 100) { setError("罰金は100円以上で入力してください"); return false; }
     return true;
   }
 
@@ -62,133 +62,98 @@ export default function NewGoalPage() {
     setLoading(true);
     setError(null);
     const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const { data: { user } } = await supabase.auth.getUser();
     if (!user) { router.push("/auth"); return; }
 
     const today = new Date().toISOString().split("T")[0];
+    const { data: goal, error: goalError } = await supabase.from("goals").insert({
+      user_id: user.id,
+      type,
+      days_of_week: type === "recurring" ? selectedDays : null,
+      scheduled_date: type === "oneoff" ? scheduledDate : null,
+      distance_km: distanceKm ? parseFloat(distanceKm) : null,
+      duration_minutes: durationMinutes ? parseInt(durationMinutes) : null,
+      penalty_amount: parseInt(penaltyAmount),
+      is_active: true,
+    }).select().single();
 
-    const { data: goal, error: goalError } = await supabase
-      .from("goals")
-      .insert({
-        user_id: user.id,
-        type,
-        days_of_week: type === "recurring" ? selectedDays : null,
-        scheduled_date: type === "oneoff" ? scheduledDate : null,
-        distance_km: distanceKm ? parseFloat(distanceKm) : null,
-        duration_minutes: durationMinutes ? parseInt(durationMinutes) : null,
-        penalty_amount: parseInt(penaltyAmount),
-        is_active: true,
-      })
-      .select()
-      .single();
+    if (goalError || !goal) { setError("保存に失敗しました"); setLoading(false); return; }
 
-    if (goalError || !goal) {
-      setError("保存に失敗しました");
-      setLoading(false);
-      return;
-    }
-
-    // goal_instancesを生成
-    const instancesToCreate: {
-      goal_id: string;
-      user_id: string;
-      scheduled_date: string;
-      status: string;
-    }[] = [];
-
+    const instancesToCreate: { goal_id: string; user_id: string; scheduled_date: string; status: string }[] = [];
     if (type === "recurring") {
-      // 今日から4週間分を生成
       for (let i = 0; i < 28; i++) {
         const d = new Date();
         d.setDate(d.getDate() + i);
         if (selectedDays.includes(d.getDay())) {
-          instancesToCreate.push({
-            goal_id: goal.id,
-            user_id: user.id,
-            scheduled_date: d.toISOString().split("T")[0],
-            status: d.toISOString().split("T")[0] === today ? "pending" : "pending",
-          });
+          instancesToCreate.push({ goal_id: goal.id, user_id: user.id, scheduled_date: d.toISOString().split("T")[0], status: "pending" });
         }
       }
     } else {
-      instancesToCreate.push({
-        goal_id: goal.id,
-        user_id: user.id,
-        scheduled_date: scheduledDate,
-        status: "pending",
-      });
+      instancesToCreate.push({ goal_id: goal.id, user_id: user.id, scheduled_date: scheduledDate, status: "pending" });
     }
-
-    if (instancesToCreate.length > 0) {
-      await supabase.from("goal_instances").insert(instancesToCreate);
-    }
-
+    if (instancesToCreate.length > 0) await supabase.from("goal_instances").insert(instancesToCreate);
     router.push("/");
   }
 
-  const dayNames = type === "recurring" && selectedDays.length > 0
-    ? selectedDays.sort().map((d) => DAYS[d]).join("・")
-    : "";
+  const inputStyle = {
+    border: "none",
+    outline: "none",
+    fontSize: "15px",
+    color: "#111111",
+    background: "transparent",
+    width: "100%",
+    textAlign: "right" as const,
+  };
 
   if (step === "confirm") {
+    const summaryRows = [
+      { label: "種類", value: type === "recurring" ? "毎週" : "1回のみ" },
+      type === "recurring"
+        ? { label: "曜日", value: selectedDays.sort().map((d) => DAYS[d]).join("・") }
+        : { label: "日付", value: scheduledDate },
+      distanceKm ? { label: "距離", value: `${distanceKm}km` } : null,
+      durationMinutes ? { label: "時間", value: `${durationMinutes}分` } : null,
+      { label: "罰金", value: `¥${parseInt(penaltyAmount).toLocaleString()}`, danger: true },
+    ].filter(Boolean) as { label: string; value: string; danger?: boolean }[];
+
     return (
       <AppShell>
-        <div className="px-4 pt-12 pb-4">
-          <button className="flex items-center gap-1 text-[#888888] mb-6" onClick={() => setStep("form")}>
-            <ChevronLeft size={18} /> 戻る
-          </button>
-          <h1 className="text-2xl font-bold mb-6">確認</h1>
-
-          <div className="card mb-4">
-            <dl className="space-y-3">
-              <div className="flex justify-between">
-                <dt className="text-[#888888] text-sm">種類</dt>
-                <dd className="text-sm font-medium">{type === "recurring" ? "繰り返し" : "1回のみ"}</dd>
-              </div>
-              {type === "recurring" && (
-                <div className="flex justify-between">
-                  <dt className="text-[#888888] text-sm">曜日</dt>
-                  <dd className="text-sm font-medium">毎週 {dayNames}</dd>
-                </div>
-              )}
-              {type === "oneoff" && (
-                <div className="flex justify-between">
-                  <dt className="text-[#888888] text-sm">日付</dt>
-                  <dd className="text-sm font-medium">{scheduledDate}</dd>
-                </div>
-              )}
-              {distanceKm && (
-                <div className="flex justify-between">
-                  <dt className="text-[#888888] text-sm">距離</dt>
-                  <dd className="text-sm font-medium">{distanceKm}km</dd>
-                </div>
-              )}
-              {durationMinutes && (
-                <div className="flex justify-between">
-                  <dt className="text-[#888888] text-sm">時間</dt>
-                  <dd className="text-sm font-medium">{durationMinutes}分</dd>
-                </div>
-              )}
-              <div className="flex justify-between">
-                <dt className="text-[#888888] text-sm">罰金</dt>
-                <dd className="text-sm font-bold text-[#EF4444]">¥{parseInt(penaltyAmount).toLocaleString()}</dd>
-              </div>
-            </dl>
+        <div>
+          <div style={{ padding: "20px 20px 12px", display: "flex", alignItems: "center", gap: "8px" }}>
+            <button onClick={() => setStep("form")} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", color: "#FF6B00", fontSize: "15px", fontWeight: 500 }}>
+              <ChevronLeft size={20} color="#FF6B00" /> 戻る
+            </button>
           </div>
 
-          <div className="bg-[#FFF0E5] border border-[#FFDCC4] rounded-xl p-3 mb-6">
-            <p className="text-xs text-[#FF6B00] leading-relaxed">
-              ⚠️ 未達成の場合はクレジットカードから自動で引き落とされます
-            </p>
+          <div style={{ padding: "0 16px 24px" }}>
+            <h1 style={{ fontSize: "28px", fontWeight: 800, color: "#111111", marginBottom: "20px" }}>確認</h1>
+
+            {/* 確認内容 */}
+            <div style={{ background: "white", borderRadius: "16px", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", marginBottom: "12px" }}>
+              {summaryRows.map((row, idx) => (
+                <div key={row.label}>
+                  {idx > 0 && <div style={{ height: "1px", background: "#F2F2F2", marginLeft: "16px" }} />}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "15px 16px" }}>
+                    <span style={{ fontSize: "15px", color: "#888888" }}>{row.label}</span>
+                    <span style={{ fontSize: "15px", fontWeight: 600, color: row.danger ? "#EF4444" : "#111111" }}>{row.value}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* 警告 */}
+            <div style={{ background: "#FFF5EE", borderRadius: "12px", padding: "12px 14px", marginBottom: "20px", borderLeft: "3px solid #FF6B00" }}>
+              <p style={{ fontSize: "13px", color: "#FF6B00", lineHeight: 1.5 }}>
+                ⚠️ 未達成の場合はクレジットカードから自動で引き落とされます
+              </p>
+            </div>
+
+            {error && <p style={{ fontSize: "14px", color: "#EF4444", marginBottom: "12px" }}>{error}</p>}
+
+            <button className="btn-primary" style={{ width: "100%" }} onClick={handleSubmit} disabled={loading}>
+              {loading ? "設定中..." : "目標を設定する"}
+            </button>
           </div>
-
-          {error && <p className="text-[#EF4444] text-sm mb-4">{error}</p>}
-
-          <button className="btn-primary w-full" onClick={handleSubmit} disabled={loading}>
-            {loading ? "設定中..." : "目標を設定する"}
-          </button>
         </div>
       </AppShell>
     );
@@ -196,134 +161,144 @@ export default function NewGoalPage() {
 
   return (
     <AppShell>
-      <div className="px-4 pt-12 pb-4">
-        <button className="flex items-center gap-1 text-[#888888] mb-6" onClick={() => router.back()}>
-          <ChevronLeft size={18} /> 戻る
-        </button>
-        <h1 className="text-2xl font-bold mb-6">目標を設定</h1>
+      <div style={{ background: "#F2F2F7", minHeight: "100%" }}>
+        {/* ヘッダー */}
+        <div style={{ padding: "20px 20px 12px", display: "flex", alignItems: "center", gap: "4px" }}>
+          <button onClick={() => router.back()} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", color: "#FF6B00", fontSize: "15px", fontWeight: 500 }}>
+            <ChevronLeft size={20} color="#FF6B00" /> 戻る
+          </button>
+        </div>
 
-        {/* 種類選択 */}
-        <div className="mb-5">
-          <p className="text-sm font-semibold text-[#888888] mb-2">設定タイプ</p>
-          <div className="grid grid-cols-2 gap-2">
-            {[
-              { value: "recurring" as GoalType, label: "曜日を指定する", icon: Repeat },
-              { value: "oneoff" as GoalType, label: "特定の日を指定する", icon: Calendar },
-            ].map(({ value, label, icon: Icon }) => (
+        <div style={{ padding: "0 16px 24px" }}>
+          <h1 style={{ fontSize: "28px", fontWeight: 800, color: "#111111", marginBottom: "20px" }}>目標を設定</h1>
+
+          {/* タイプ選択：セグメントコントロール */}
+          <SectionLabel>設定タイプ</SectionLabel>
+          <div style={{ background: "#E4E4EB", borderRadius: "10px", padding: "2px", display: "flex", marginBottom: "20px" }}>
+            {([["recurring", "毎週繰り返す"], ["oneoff", "1回のみ"]] as [GoalType, string][]).map(([value, label]) => (
               <button
                 key={value}
                 onClick={() => setType(value)}
-                className="card flex items-center gap-2 py-3 transition-all"
                 style={{
-                  borderColor: type === value ? "#FF6B00" : "#E5E5E5",
-                  backgroundColor: type === value ? "#FFF5EE" : "white",
+                  flex: 1,
+                  padding: "8px 0",
+                  borderRadius: "8px",
+                  background: type === value ? "white" : "transparent",
+                  boxShadow: type === value ? "0 1px 3px rgba(0,0,0,0.12)" : "none",
+                  fontSize: "14px",
+                  fontWeight: type === value ? 600 : 500,
+                  color: type === value ? "#111111" : "#888888",
+                  border: "none",
+                  cursor: "pointer",
+                  transition: "all 0.15s",
                 }}
               >
-                <Icon size={16} color={type === value ? "#FF6B00" : "#888888"} />
-                <span
-                  className="text-sm font-medium"
-                  style={{ color: type === value ? "#FF6B00" : "#111111" }}
-                >
-                  {label}
-                </span>
+                {label}
               </button>
             ))}
           </div>
-        </div>
 
-        {/* 曜日選択 */}
-        {type === "recurring" && (
-          <div className="mb-5">
-            <p className="text-sm font-semibold text-[#888888] mb-2">実施する曜日</p>
-            <div className="flex gap-1.5">
-              {DAYS.map((day, i) => (
-                <button
-                  key={i}
-                  onClick={() => toggleDay(i)}
-                  className="flex-1 h-11 rounded-lg text-sm font-bold transition-all"
-                  style={{
-                    backgroundColor: selectedDays.includes(i) ? "#FF6B00" : "#F0F0F0",
-                    color: selectedDays.includes(i) ? "white" : "#888888",
-                  }}
-                >
-                  {day}
-                </button>
-              ))}
+          {/* 曜日選択 */}
+          {type === "recurring" && (
+            <div style={{ marginBottom: "20px" }}>
+              <SectionLabel>実施する曜日</SectionLabel>
+              <div style={{ display: "flex", gap: "6px" }}>
+                {DAYS.map((day, i) => (
+                  <button
+                    key={i}
+                    onClick={() => toggleDay(i)}
+                    style={{
+                      flex: 1,
+                      height: "44px",
+                      borderRadius: "10px",
+                      fontSize: "14px",
+                      fontWeight: 700,
+                      background: selectedDays.includes(i) ? "#FF6B00" : "white",
+                      color: selectedDays.includes(i) ? "white" : "#888888",
+                      border: "none",
+                      cursor: "pointer",
+                      boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+                      transition: "all 0.15s",
+                    }}
+                  >
+                    {day}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* 日付選択 */}
-        {type === "oneoff" && (
-          <div className="mb-5">
-            <p className="text-sm font-semibold text-[#888888] mb-2">実施する日</p>
-            <input
-              className="input"
-              type="date"
-              value={scheduledDate}
-              min={new Date().toISOString().split("T")[0]}
-              onChange={(e) => setScheduledDate(e.target.value)}
-            />
-          </div>
-        )}
+          {/* 日付選択 */}
+          {type === "oneoff" && (
+            <div style={{ marginBottom: "20px" }}>
+              <SectionLabel>実施する日</SectionLabel>
+              <div style={{ background: "white", borderRadius: "16px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
+                <div style={{ padding: "14px 16px" }}>
+                  <input
+                    type="date"
+                    value={scheduledDate}
+                    min={new Date().toISOString().split("T")[0]}
+                    onChange={(e) => setScheduledDate(e.target.value)}
+                    style={{ border: "none", outline: "none", fontSize: "15px", color: "#111111", background: "transparent", width: "100%" }}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
 
-        {/* 距離・時間 */}
-        <div className="grid grid-cols-2 gap-3 mb-5">
-          <div>
-            <p className="text-sm font-semibold text-[#888888] mb-2">距離（km）</p>
-            <input
-              className="input"
-              type="number"
-              inputMode="decimal"
-              placeholder="例: 5"
-              min="0.1"
-              step="0.1"
-              value={distanceKm}
-              onChange={(e) => setDistanceKm(e.target.value)}
-            />
+          {/* 距離・時間・罰金：リスト形式 */}
+          <SectionLabel>目標・罰金の設定</SectionLabel>
+          <div style={{ background: "white", borderRadius: "16px", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", marginBottom: "20px" }}>
+            <ListRow label="距離 (km)">
+              <input
+                type="number"
+                inputMode="decimal"
+                placeholder="例: 5"
+                min="0.1"
+                step="0.1"
+                value={distanceKm}
+                onChange={(e) => setDistanceKm(e.target.value)}
+                style={inputStyle}
+              />
+            </ListRow>
+            <ListRow label="時間 (分)">
+              <input
+                type="number"
+                inputMode="numeric"
+                placeholder="例: 30"
+                min="1"
+                value={durationMinutes}
+                onChange={(e) => setDurationMinutes(e.target.value)}
+                style={inputStyle}
+              />
+            </ListRow>
+            <ListRow label="罰金 (円)" last>
+              <input
+                type="number"
+                inputMode="numeric"
+                placeholder="500"
+                min="100"
+                step="100"
+                value={penaltyAmount}
+                onChange={(e) => setPenaltyAmount(e.target.value)}
+                style={{ ...inputStyle, color: "#EF4444" }}
+              />
+            </ListRow>
           </div>
-          <div>
-            <p className="text-sm font-semibold text-[#888888] mb-2">時間（分）</p>
-            <input
-              className="input"
-              type="number"
-              inputMode="numeric"
-              placeholder="例: 30"
-              min="1"
-              value={durationMinutes}
-              onChange={(e) => setDurationMinutes(e.target.value)}
-            />
-          </div>
+          <p style={{ fontSize: "12px", color: "#AAAAAA", marginBottom: "20px", paddingLeft: "4px" }}>
+            距離・時間はどちらか一方、または両方設定できます。罰金は最低100円。
+          </p>
+
+          {error && <p style={{ fontSize: "14px", color: "#EF4444", marginBottom: "12px" }}>{error}</p>}
+
+          <button
+            className="btn-primary"
+            style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
+            onClick={() => { setError(null); if (validate()) setStep("confirm"); }}
+          >
+            確認する <ChevronRight size={16} />
+          </button>
         </div>
-        <p className="text-xs text-[#888888] -mt-3 mb-5">どちらか一方でも両方でもOK</p>
-
-        {/* 罰金 */}
-        <div className="mb-6">
-          <p className="text-sm font-semibold text-[#888888] mb-2">罰金額（円）</p>
-          <input
-            className="input"
-            type="number"
-            inputMode="numeric"
-            placeholder="最低100円"
-            min="100"
-            step="100"
-            value={penaltyAmount}
-            onChange={(e) => setPenaltyAmount(e.target.value)}
-          />
-          <p className="text-xs text-[#888888] mt-1">最低100円</p>
-        </div>
-
-        {error && <p className="text-[#EF4444] text-sm mb-4">{error}</p>}
-
-        <button
-          className="btn-primary w-full"
-          onClick={() => {
-            setError(null);
-            if (validate()) setStep("confirm");
-          }}
-        >
-          確認する
-        </button>
       </div>
     </AppShell>
   );

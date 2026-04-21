@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { CheckCircle, XCircle, Clock, ChevronRight, Plus, SkipForward } from "lucide-react";
+import { CheckCircle, XCircle, SkipForward, Plus, ChevronRight, X } from "lucide-react";
 import { useState } from "react";
 
 interface GoalInstance {
@@ -34,11 +34,6 @@ interface Props {
 
 const DAY_NAMES = ["日", "月", "火", "水", "木", "金", "土"];
 
-function formatDate(dateStr: string) {
-  const d = new Date(dateStr + "T00:00:00");
-  return `${d.getMonth() + 1}/${d.getDate()}(${DAY_NAMES[d.getDay()]})`;
-}
-
 function formatGoal(goal: GoalInstance["goals"]) {
   if (!goal) return "";
   const parts: string[] = [];
@@ -57,186 +52,268 @@ export default function HomeClient({
   totalPenaltyMonth,
   achieveRate,
 }: Props) {
-  const [skipping, setSkipping] = useState<string | null>(null);
+  const [instances, setInstances] = useState(weekInstances);
+  const [confirmCancelId, setConfirmCancelId] = useState<string | null>(null);
+  const [skipTargetId, setSkipTargetId] = useState<string | null>(null);
+  const [processing, setProcessing] = useState(false);
+
   const skipRemaining = Math.max(0, 1 - (userProfile?.skip_count_this_month ?? 0));
 
+  async function handleCancelInstance(instanceId: string) {
+    setProcessing(true);
+    await fetch(`/api/goals/instances/${instanceId}/cancel`, { method: "POST" });
+    // 楽観的削除
+    setInstances((prev) => prev.filter((i) => i.id !== instanceId));
+    setConfirmCancelId(null);
+    setProcessing(false);
+  }
+
   async function handleSkip(instanceId: string) {
-    setSkipping(instanceId);
+    setProcessing(true);
     await fetch("/api/goals/skip", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ goalInstanceId: instanceId }),
     });
-    window.location.reload();
+    setInstances((prev) =>
+      prev.map((i) => i.id === instanceId ? { ...i, status: "skipped" } : i)
+    );
+    setSkipTargetId(null);
+    setProcessing(false);
   }
 
-  return (
-    <div className="px-4 pt-12 pb-4">
-      {/* ヘッダー */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="metric-value text-3xl text-[#111111]">カケル</h1>
-          <p className="text-[#888888] text-xs mt-0.5">今週の目標</p>
-        </div>
-        <Link href="/goals/new">
-          <button className="w-10 h-10 rounded-full bg-[#FF6B00] flex items-center justify-center">
-            <Plus size={20} color="white" strokeWidth={2.5} />
-          </button>
-        </Link>
-      </div>
+  const visibleInstances = instances.filter((i) => i.status !== "cancelled");
 
-      {/* 月間プログレス */}
-      {monthGoal > 0 && (
-        <div className="card mb-4">
-          <div className="flex justify-between items-baseline mb-2">
-            <span className="text-xs text-[#888888] font-medium">今月の目標距離</span>
-            <span className="text-xs text-[#888888]">
-              <span className="metric-value text-[#111111] text-lg">{totalDistanceMonth}</span>
-              /{monthGoal}km
-            </span>
+  return (
+    <div>
+
+      {/* スキップ確認モーダル */}
+      {skipTargetId && (
+        <div
+          style={{ position: "fixed", inset: 0, zIndex: 100, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "flex-end" }}
+          onClick={() => setSkipTargetId(null)}
+        >
+          <div
+            style={{ background: "white", borderRadius: "20px 20px 0 0", padding: "24px 20px calc(env(safe-area-inset-bottom) + 24px)", width: "100%" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ width: "36px", height: "4px", background: "#E5E5E5", borderRadius: "2px", margin: "0 auto 20px" }} />
+            <h2 style={{ fontSize: "20px", fontWeight: 800, color: "#111111", marginBottom: "8px" }}>スキップしますか？</h2>
+            <p style={{ fontSize: "14px", color: "#888888", lineHeight: 1.6, marginBottom: "6px" }}>
+              スキップすると罰金は発生しませんが、達成回数には含まれません。
+            </p>
+            <div style={{ background: skipRemaining <= 1 ? "#FFF5EE" : "#F2F2F7", borderRadius: "10px", padding: "10px 14px", marginBottom: "20px" }}>
+              <p style={{ fontSize: "14px", fontWeight: 600, color: skipRemaining <= 1 ? "#FF6B00" : "#111111" }}>
+                {skipRemaining === 1
+                  ? "⚠️ これが今月最後のスキップです"
+                  : `今月あと ${skipRemaining} 回使用できます`}
+              </p>
+            </div>
+            <div style={{ display: "flex", gap: "10px" }}>
+              <button
+                className="btn-secondary"
+                style={{ flex: 1, minHeight: "52px" }}
+                onClick={() => setSkipTargetId(null)}
+              >
+                キャンセル
+              </button>
+              <button
+                className="btn-primary"
+                style={{ flex: 1, minHeight: "52px" }}
+                onClick={() => handleSkip(skipTargetId)}
+                disabled={processing}
+              >
+                スキップする
+              </button>
+            </div>
           </div>
-          <div className="h-2 bg-[#F0F0F0] rounded-full overflow-hidden">
-            <div
-              className="h-full bg-[#FF6B00] rounded-full transition-all duration-500"
-              style={{ width: `${progressPct}%` }}
-            />
-          </div>
-          <p className="text-right text-xs text-[#888888] mt-1">{progressPct}%</p>
         </div>
       )}
 
-      {/* 今週の目標リスト */}
-      <div className="mb-4">
-        {weekInstances.length === 0 ? (
-          <div className="card flex flex-col items-center py-8 gap-3">
-            <p className="text-[#888888] text-sm">今週の目標がありません</p>
+      {/* ヘッダー */}
+      <div style={{ padding: "20px 20px 12px" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <h1 className="metric-value" style={{ fontSize: "30px", color: "#111111" }}>カケル</h1>
+          <Link href="/goals/new">
+            <button style={{ width: "36px", height: "36px", borderRadius: "50%", background: "#FF6B00", display: "flex", alignItems: "center", justifyContent: "center", border: "none", cursor: "pointer" }}>
+              <Plus size={18} color="white" strokeWidth={2.5} />
+            </button>
+          </Link>
+        </div>
+      </div>
+
+      <div style={{ padding: "0 16px 24px" }}>
+
+        {/* 統計カード */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px", marginBottom: "16px" }}>
+          {[
+            { value: String(totalDistanceMonth), unit: "km", label: "今月の距離", color: "#FF6B00" },
+            { value: String(achieveRate), unit: "%", label: "達成率", color: "#111111" },
+            {
+              value: totalPenaltyMonth >= 1000 ? `${(totalPenaltyMonth / 1000).toFixed(1)}k` : String(totalPenaltyMonth),
+              unit: "円", label: "今月の罰金", color: "#EF4444",
+            },
+          ].map((item, i) => (
+            <div key={i} style={{ background: "white", borderRadius: "16px", padding: "14px 10px", textAlign: "center", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
+              <p className="metric-value" style={{ fontSize: "28px", color: item.color, lineHeight: 1 }}>
+                {item.value}<span style={{ fontSize: "12px", color: item.color, marginLeft: "1px" }}>{item.unit}</span>
+              </p>
+              <p style={{ fontSize: "10px", color: "#888888", marginTop: "5px" }}>{item.label}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* 月間プログレス */}
+        {monthGoal > 0 && (
+          <div style={{ background: "white", borderRadius: "16px", padding: "16px", marginBottom: "16px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "10px" }}>
+              <span style={{ fontSize: "13px", color: "#888888", fontWeight: 500 }}>今月の目標距離</span>
+              <div>
+                <span className="metric-value" style={{ fontSize: "22px", color: "#111111" }}>{totalDistanceMonth}</span>
+                <span style={{ fontSize: "12px", color: "#888888" }}>/{monthGoal}km</span>
+              </div>
+            </div>
+            <div style={{ height: "6px", background: "#F0F0F0", borderRadius: "3px", overflow: "hidden" }}>
+              <div style={{ height: "100%", background: "#FF6B00", borderRadius: "3px", width: `${progressPct}%`, transition: "width 0.5s ease" }} />
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", marginTop: "6px" }}>
+              <span style={{ fontSize: "11px", color: "#FF6B00", fontWeight: 600 }}>{progressPct}%</span>
+              <span style={{ fontSize: "11px", color: "#888888" }}>残り {Math.max(0, monthGoal - totalDistanceMonth).toFixed(1)}km</span>
+            </div>
+          </div>
+        )}
+
+        {/* 今週の目標リスト */}
+        <p style={{ fontSize: "12px", color: "#888888", fontWeight: 600, marginBottom: "8px", paddingLeft: "4px", textTransform: "uppercase", letterSpacing: "0.04em" }}>今週の目標</p>
+
+        {visibleInstances.length === 0 ? (
+          <div style={{ background: "white", borderRadius: "16px", padding: "36px 20px", textAlign: "center", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", marginBottom: "16px" }}>
+            <p style={{ color: "#888888", fontSize: "14px", marginBottom: "16px" }}>今週の目標がありません</p>
             <Link href="/goals/new">
-              <button className="btn-primary px-6 text-sm" style={{ minHeight: "44px" }}>
-                目標を追加する
-              </button>
+              <button className="btn-primary" style={{ minHeight: "44px", padding: "0 24px" }}>目標を追加する</button>
             </Link>
           </div>
         ) : (
-          <div className="flex flex-col gap-2">
-            {weekInstances.map((instance) => {
+          <div style={{ background: "white", borderRadius: "16px", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", marginBottom: "8px" }}>
+            {visibleInstances.map((instance, idx) => {
               const isToday = instance.scheduled_date === todayStr;
-              const isPast = instance.scheduled_date < todayStr;
               const isFuture = instance.scheduled_date > todayStr;
+              const isPendingNotToday = instance.status === "pending" && !isToday;
+              const isConfirmingCancel = confirmCancelId === instance.id;
+              const d = new Date(instance.scheduled_date + "T00:00:00");
 
               return (
-                <div
-                  key={instance.id}
-                  className="card flex items-center gap-3"
-                  style={{
-                    opacity: isFuture ? 0.6 : 1,
-                    borderColor: instance.status === "achieved"
-                      ? "#22C55E"
-                      : instance.status === "failed"
-                      ? "#EF4444"
-                      : "#E5E5E5",
-                  }}
-                >
-                  <div className="shrink-0">
-                    {instance.status === "achieved" && (
-                      <CheckCircle size={22} color="#22C55E" />
-                    )}
-                    {instance.status === "failed" && (
-                      <XCircle size={22} color="#EF4444" />
-                    )}
-                    {instance.status === "skipped" && (
-                      <SkipForward size={22} color="#888888" />
-                    )}
-                    {(instance.status === "pending" || instance.status === "cancelled") && (
-                      <Clock
-                        size={22}
-                        color={isToday ? "#FF6B00" : "#CCCCCC"}
-                      />
-                    )}
-                  </div>
+                <div key={instance.id} style={{ transition: "opacity 0.2s" }}>
+                  {idx > 0 && <div style={{ height: "1px", background: "#F2F2F2", marginLeft: "72px" }} />}
 
-                  <div className="flex-1 min-w-0">
-                    <p
-                      className="text-sm font-semibold"
-                      style={{ color: isToday ? "#FF6B00" : "#111111" }}
-                    >
-                      {formatDate(instance.scheduled_date)}
-                      {isToday && (
-                        <span className="ml-2 text-xs bg-[#FF6B00] text-white px-1.5 py-0.5 rounded-full">
-                          今日
-                        </span>
-                      )}
-                    </p>
-                    <p className="text-xs text-[#888888] mt-0.5">
-                      {formatGoal(instance.goals)}
-                      {instance.goals && (
-                        <span className="ml-2">罰金¥{instance.goals.penalty_amount.toLocaleString()}</span>
-                      )}
-                    </p>
-                  </div>
+                  {/* 取消確認バー */}
+                  {isConfirmingCancel ? (
+                    <div style={{ display: "flex", alignItems: "center", padding: "12px 16px", gap: "12px", background: "#FFF5F5" }}>
+                      <p style={{ flex: 1, fontSize: "14px", color: "#EF4444", fontWeight: 500 }}>
+                        {d.getMonth() + 1}/{d.getDate()}({DAY_NAMES[d.getDay()]}) を取り消しますか？
+                      </p>
+                      <button
+                        style={{ fontSize: "13px", color: "#888888", background: "none", border: "none", cursor: "pointer", padding: "4px 8px" }}
+                        onClick={() => setConfirmCancelId(null)}
+                      >
+                        戻す
+                      </button>
+                      <button
+                        style={{ fontSize: "13px", color: "white", background: "#EF4444", border: "none", borderRadius: "8px", padding: "6px 14px", cursor: "pointer", fontWeight: 600 }}
+                        onClick={() => handleCancelInstance(instance.id)}
+                        disabled={processing}
+                      >
+                        取り消す
+                      </button>
+                    </div>
+                  ) : (
+                    <div style={{ display: "flex", alignItems: "center", padding: "14px 16px", opacity: isFuture && !isPendingNotToday ? 0.45 : 1 }}>
+                      {/* 日付 */}
+                      <div style={{ width: "44px", textAlign: "center", flexShrink: 0 }}>
+                        <p className="metric-value" style={{ fontSize: "30px", color: isToday ? "#FF6B00" : "#111111", lineHeight: 1 }}>
+                          {d.getDate()}
+                        </p>
+                        <p style={{ fontSize: "11px", color: isToday ? "#FF6B00" : "#888888", marginTop: "2px" }}>
+                          {DAY_NAMES[d.getDay()]}
+                        </p>
+                      </div>
 
-                  <div className="shrink-0 flex items-center gap-2">
-                    {instance.status === "pending" && isToday && (
-                      <>
-                        <Link href="/run">
-                          <button className="btn-primary text-xs px-3" style={{ minHeight: "36px" }}>
-                            走る
-                          </button>
-                        </Link>
-                        {skipRemaining > 0 && (
+                      <div style={{ width: "1px", height: "38px", background: "#EBEBEB", margin: "0 14px", flexShrink: 0 }} />
+
+                      {/* 目標内容 */}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                          <p style={{ fontSize: "15px", fontWeight: 600, color: "#111111" }}>
+                            {formatGoal(instance.goals) || "フリーラン"}
+                          </p>
+                          {isToday && (
+                            <span style={{ fontSize: "10px", background: "#FF6B00", color: "white", padding: "2px 7px", borderRadius: "99px", fontWeight: 700 }}>今日</span>
+                          )}
+                        </div>
+                        {instance.goals && (
+                          <p style={{ fontSize: "12px", color: "#EF4444", marginTop: "3px" }}>
+                            罰金 ¥{instance.goals.penalty_amount.toLocaleString()}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* アクション */}
+                      <div style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: "6px" }}>
+                        {instance.status === "achieved" && <CheckCircle size={22} color="#22C55E" />}
+                        {instance.status === "failed" && <XCircle size={22} color="#EF4444" />}
+                        {instance.status === "skipped" && (
+                          <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                            <SkipForward size={14} color="#AAAAAA" />
+                            <span style={{ fontSize: "12px", color: "#AAAAAA", fontWeight: 500 }}>スキップ済み</span>
+                          </div>
+                        )}
+
+                        {instance.status === "pending" && isToday && (
+                          <>
+                            <Link href="/run">
+                              <button className="btn-primary" style={{ minHeight: "36px", fontSize: "13px", padding: "0 14px" }}>走る</button>
+                            </Link>
+                            {skipRemaining > 0 && (
+                              <button
+                                className="btn-secondary"
+                                style={{ minHeight: "36px", fontSize: "13px", padding: "0 10px" }}
+                                onClick={() => setSkipTargetId(instance.id)}
+                              >
+                                スキップ
+                              </button>
+                            )}
+                          </>
+                        )}
+
+                        {/* 今日以外のpending：×ボタン */}
+                        {isPendingNotToday && (
                           <button
-                            className="btn-secondary text-xs px-3"
-                            style={{ minHeight: "36px" }}
-                            onClick={() => handleSkip(instance.id)}
-                            disabled={skipping === instance.id}
+                            onClick={() => setConfirmCancelId(instance.id)}
+                            style={{ width: "28px", height: "28px", borderRadius: "50%", background: "#F2F2F2", border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
                           >
-                            スキップ
+                            <X size={14} color="#AAAAAA" strokeWidth={2.5} />
                           </button>
                         )}
-                      </>
-                    )}
-                    {instance.status === "skipped" && (
-                      <span className="text-xs text-[#888888]">スキップ済</span>
-                    )}
-                  </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })}
           </div>
         )}
+
+        <p style={{ fontSize: "12px", color: "#AAAAAA", textAlign: "center", marginBottom: "16px" }}>
+          今月スキップ残り <span style={{ fontWeight: 700, color: "#888888" }}>{skipRemaining}回</span>
+        </p>
+
+        <Link href="/goals/new">
+          <div style={{ background: "white", borderRadius: "16px", padding: "16px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
+            <span style={{ fontSize: "15px", fontWeight: 600, color: "#111111" }}>新しい目標を追加</span>
+            <ChevronRight size={18} color="#AAAAAA" />
+          </div>
+        </Link>
       </div>
-
-      {/* スキップ残り */}
-      <p className="text-xs text-[#888888] text-center mb-4">
-        今月スキップ残り: <span className="font-bold text-[#111111]">{skipRemaining}回</span>
-      </p>
-
-      {/* 統計カード3つ */}
-      <div className="grid grid-cols-3 gap-2 mb-4">
-        <div className="card text-center py-4">
-          <p className="metric-value text-[#FF6B00] text-2xl">{totalDistanceMonth}</p>
-          <p className="text-[10px] text-[#888888] mt-1">km 今月</p>
-        </div>
-        <div className="card text-center py-4">
-          <p className="metric-value text-[#111111] text-2xl">{achieveRate}</p>
-          <p className="text-[10px] text-[#888888] mt-1">% 達成率</p>
-        </div>
-        <div className="card text-center py-4">
-          <p className="metric-value text-[#EF4444] text-2xl">
-            {totalPenaltyMonth >= 1000
-              ? `${(totalPenaltyMonth / 1000).toFixed(1)}k`
-              : totalPenaltyMonth}
-          </p>
-          <p className="text-[10px] text-[#888888] mt-1">円 罰金</p>
-        </div>
-      </div>
-
-      {/* 目標追加リンク */}
-      <Link href="/goals/new">
-        <div className="card flex items-center justify-between py-3">
-          <span className="text-sm font-medium text-[#111111]">新しい目標を追加</span>
-          <ChevronRight size={18} color="#888888" />
-        </div>
-      </Link>
     </div>
   );
 }

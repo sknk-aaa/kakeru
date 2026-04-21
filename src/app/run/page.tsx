@@ -214,8 +214,8 @@ function RunPageInner() {
         )}
       </div>
 
-      {/* 2. 地図エリア */}
-      <div style={{ flexShrink: 0, width: "100%", height: "40vh", overflow: "hidden", position: "relative" }}>
+      {/* 2. 地図エリア：残り全スペース */}
+      <div style={{ flex: 1, minHeight: 0, overflow: "hidden", position: "relative" }}>
         <RunMap points={gpsPoints} />
         {phase === "paused" && (
           <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -224,42 +224,44 @@ function RunPageInner() {
         )}
       </div>
 
-      {/* 3. プログレスバー */}
-      {goalDistancePct !== null && (
-        <div style={{ flexShrink: 0, padding: "8px 16px 0", background: "#ffffff" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#888888", marginBottom: "4px" }}>
-            <span>{distanceKm.toFixed(2)}km</span>
-            <span>{goalInstance?.distance_km}km</span>
-          </div>
-          <div style={{ height: "6px", background: "#F0F0F0", borderRadius: "3px", overflow: "hidden" }}>
-            <div style={{ height: "100%", background: "#FF6B00", borderRadius: "3px", width: `${goalDistancePct}%`, transition: "width 0.5s ease" }} />
-          </div>
-        </div>
-      )}
+      {/* 3. 統計 + プログレスバー + ボタン */}
+      <div style={{ flexShrink: 0, background: "#ffffff", borderTop: "1px solid #E5E5E5" }}>
 
-      {/* 4. 統計エリア */}
-      <div style={{ flexShrink: 0, padding: "16px 16px 8px", background: "#ffffff" }}>
-        {/* 距離（大きく） */}
-        <div style={{ textAlign: "center", marginBottom: "12px" }}>
-          <span className="metric-value" style={{ fontSize: "64px", color: "#FF6B00", lineHeight: 1 }}>{distanceKm.toFixed(2)}</span>
-          <span style={{ fontSize: "18px", color: "#888888", marginLeft: "6px" }}>km</span>
-        </div>
-        {/* 時間・ペース */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginBottom: "8px" }}>
-          <div style={{ textAlign: "center", background: "#F8F8F8", borderRadius: "10px", padding: "10px 8px" }}>
-            <p className="metric-value" style={{ fontSize: "26px", color: "#111111", lineHeight: 1 }}>{formatDuration(elapsedSec)}</p>
-            <p style={{ fontSize: "10px", color: "#888888", marginTop: "3px" }}>経過時間</p>
+        {/* プログレスバー */}
+        {goalDistancePct !== null && (
+          <div style={{ padding: "6px 16px 0" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "10px", color: "#888888", marginBottom: "3px" }}>
+              <span>{distanceKm.toFixed(2)}km</span>
+              <span>{goalInstance?.distance_km}km</span>
+            </div>
+            <div style={{ height: "4px", background: "#F0F0F0", borderRadius: "2px", overflow: "hidden" }}>
+              <div style={{ height: "100%", background: "#FF6B00", borderRadius: "2px", width: `${goalDistancePct}%`, transition: "width 0.5s ease" }} />
+            </div>
           </div>
-          <div style={{ textAlign: "center", background: "#F8F8F8", borderRadius: "10px", padding: "10px 8px" }}>
-            <p className="metric-value" style={{ fontSize: "26px", color: "#111111", lineHeight: 1 }}>{formatPace(currentPace)}</p>
-            <p style={{ fontSize: "10px", color: "#888888", marginTop: "3px" }}>ペース/km</p>
-          </div>
-        </div>
-        <p style={{ textAlign: "center", fontSize: "12px", color: "#888888" }}>{calories} kcal</p>
-      </div>
+        )}
 
-      {/* 5. ボタンエリア */}
-      <div style={{ flexShrink: 0, padding: `12px 16px calc(env(safe-area-inset-bottom) + 12px)`, background: "#ffffff", borderTop: "1px solid #E5E5E5" }}>
+        {/* 統計 */}
+        <div style={{ padding: "8px 16px 6px" }}>
+          {/* 経過時間：上部に大きく */}
+          <div style={{ textAlign: "center", marginBottom: "6px" }}>
+            <p className="metric-value" style={{ fontSize: "52px", color: "#111111", lineHeight: 1 }}>{formatDuration(elapsedSec)}</p>
+            <p style={{ fontSize: "11px", color: "#888888", marginTop: "3px" }}>経過時間</p>
+          </div>
+          {/* km・カロリー：下部に2列 */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px" }}>
+            <div style={{ textAlign: "center" }}>
+              <p className="metric-value" style={{ fontSize: "32px", color: "#FF6B00", lineHeight: 1 }}>{distanceKm.toFixed(2)}</p>
+              <p style={{ fontSize: "11px", color: "#888888", marginTop: "3px" }}>km</p>
+            </div>
+            <div style={{ textAlign: "center" }}>
+              <p className="metric-value" style={{ fontSize: "32px", color: "#111111", lineHeight: 1 }}>{calories}</p>
+              <p style={{ fontSize: "11px", color: "#888888", marginTop: "3px" }}>kcal</p>
+            </div>
+          </div>
+        </div>
+
+      {/* ボタンエリア */}
+      <div style={{ padding: `0 12px calc(env(safe-area-inset-bottom) + 8px)` }}>
         <div style={{ display: "flex", gap: "10px" }}>
           <button className="btn-secondary" style={{ flex: 1, minHeight: "52px", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }} onClick={handlePauseResume}>
             {phase === "paused" ? <><Play size={16} />再開</> : <><Pause size={16} />一時停止</>}
@@ -280,10 +282,11 @@ function RunPageInner() {
           )}
         </div>
         {!goalReached && goalInstance && (
-          <p style={{ fontSize: "11px", color: "#888888", textAlign: "center", marginTop: "6px" }}>目標達成後にゴールできます</p>
+          <p style={{ fontSize: "11px", color: "#888888", textAlign: "center", marginTop: "4px" }}>目標達成後にゴールできます</p>
         )}
       </div>
 
+      </div>
     </div>
   );
 }
