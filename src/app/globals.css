@@ -114,10 +114,45 @@ body {
 }
 .input:focus { border-color: #FF6B00; }
 
-/* Leaflet地図 */
-.leaflet-container {
-  width: 100%;
-  height: 100%;
-  border-radius: 12px;
-  z-index: 0;
+/* 現在地マーカー（Googleマップ風パルス） */
+@keyframes gmap-pulse {
+  0%   { transform: scale(1);   opacity: 0.6; }
+  100% { transform: scale(3.5); opacity: 0; }
 }
+.gmap-marker {
+  position: relative;
+  width: 20px;
+  height: 20px;
+}
+.gmap-pulse {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(66, 133, 244, 0.4);
+  animation: gmap-pulse 1.8s ease-out infinite;
+}
+.gmap-dot {
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  background: #4285F4;
+  border: 2.5px solid white;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.35);
+}
+
+/* Leaflet ズームコントロール（右下） */
+.leaflet-control-zoom {
+  border: none !important;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2) !important;
+}
+.leaflet-control-zoom a {
+  width: 36px !important;
+  height: 36px !important;
+  line-height: 36px !important;
+  font-size: 18px !important;
+  color: #444 !important;
+  background: white !important;
+}
+.leaflet-control-zoom-in  { border-radius: 8px 8px 0 0 !important; }
+.leaflet-control-zoom-out { border-radius: 0 0 8px 8px !important; }
+
