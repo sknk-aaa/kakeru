@@ -1,26 +1,123 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-accent: #FF6B00;
+  --color-accent-hover: #E55F00;
+  --color-success: #22C55E;
+  --color-danger: #EF4444;
+  --color-text-main: #111111;
+  --color-text-sub: #888888;
+  --color-border: #E5E5E5;
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+  --font-jp: var(--font-jp);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ピンチズーム禁止 */
+html {
+  touch-action: manipulation;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: #ffffff;
+  color: #111111;
+  font-family: var(--font-body), var(--font-jp), sans-serif;
+  padding-bottom: env(safe-area-inset-bottom);
+  overscroll-behavior: none;
+}
+
+/* 縦スクロール固定 */
+.screen {
+  position: fixed;
+  inset: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* スコアボード風の大きな数字 */
+.metric-value {
+  font-family: var(--font-display), sans-serif;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+/* オレンジ塗りボタン */
+.btn-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  min-width: 44px;
+  padding: 0 24px;
+  background-color: #FF6B00;
+  color: white;
+  font-size: 16px;
+  font-weight: 700;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s, transform 0.1s;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+.btn-primary:hover { background-color: #E55F00; }
+.btn-primary:active { transform: scale(0.97); }
+.btn-primary:disabled {
+  background-color: #E5E5E5;
+  color: #888888;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* アウトラインボタン */
+.btn-secondary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  padding: 0 24px;
+  background-color: white;
+  color: #111111;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 8px;
+  border: 1.5px solid #E5E5E5;
+  cursor: pointer;
+  transition: background-color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-secondary:hover { background-color: #F5F5F5; }
+
+/* カード */
+.card {
+  background: white;
+  border: 1.5px solid #E5E5E5;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+/* フォーム入力 */
+.input {
+  width: 100%;
+  height: 52px;
+  padding: 0 16px;
+  font-size: 16px;
+  border: 1.5px solid #E5E5E5;
+  border-radius: 8px;
+  outline: none;
+  background: white;
+  transition: border-color 0.15s;
+  font-family: var(--font-body), var(--font-jp), sans-serif;
+}
+.input:focus { border-color: #FF6B00; }
+
+/* Leaflet地図 */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  z-index: 0;
 }
