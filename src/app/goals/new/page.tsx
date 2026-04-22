@@ -43,6 +43,8 @@ export default function NewGoalPage() {
   const [step, setStep] = useState<"form" | "confirm">("form");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [overlapDays, setOverlapDays] = useState<string[]>([]);
+  const [showOverlapConfirm, setShowOverlapConfirm] = useState(false);
 
   function toggleDay(day: number) {
     setSelectedDays((prev) => prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]);
@@ -56,6 +58,56 @@ export default function NewGoalPage() {
     if (durationMinutes && parseInt(durationMinutes) < 1) { setError("時間は1分以上で入力してください"); return false; }
     if (!penaltyAmount || parseInt(penaltyAmount) < 100) { setError("罰金は100円以上で入力してください"); return false; }
     return true;
+  }
+
+  async function handleCheckOverlap() {
+    setError(null);
+    if (!validate()) return;
+
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { router.push("/auth"); return; }
+
+    const { data: existingGoals } = await supabase
+      .from("goals")
+      .select("type, days_of_week, scheduled_date")
+      .eq("user_id", user.id)
+      .eq("is_active", true);
+
+    const overlaps: string[] = [];
+    if (type === "recurring") {
+      for (const g of existingGoals ?? []) {
+        if (g.type === "recurring" && Array.isArray(g.days_of_week)) {
+          for (const d of selectedDays) {
+            if ((g.days_of_week as number[]).includes(d) && !overlaps.includes(DAYS[d])) {
+              overlaps.push(DAYS[d]);
+            }
+          }
+        }
+      }
+    } else {
+      const targetDate = new Date(scheduledDate + "T00:00:00");
+      const targetDayOfWeek = targetDate.getDay();
+      for (const g of existingGoals ?? []) {
+        if (g.type === "oneoff" && g.scheduled_date === scheduledDate) {
+          overlaps.push(scheduledDate);
+          break;
+        }
+        if (g.type === "recurring" && Array.isArray(g.days_of_week)) {
+          if ((g.days_of_week as number[]).includes(targetDayOfWeek)) {
+            overlaps.push(DAYS[targetDayOfWeek]);
+            break;
+          }
+        }
+      }
+    }
+
+    if (overlaps.length > 0) {
+      setOverlapDays(overlaps);
+      setShowOverlapConfirm(true);
+    } else {
+      setStep("confirm");
+    }
   }
 
   async function handleSubmit() {
@@ -294,10 +346,42 @@ export default function NewGoalPage() {
           <button
             className="btn-primary"
             style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
-            onClick={() => { setError(null); if (validate()) setStep("confirm"); }}
+            onClick={handleCheckOverlap}
           >
             確認する <ChevronRight size={16} />
           </button>
+
+          {/* 重複確認モーダル */}
+          {showOverlapConfirm && (
+            <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 100, display: "flex", alignItems: "flex-end" }}>
+              <div style={{ background: "white", borderRadius: "20px 20px 0 0", padding: "24px 20px calc(env(safe-area-inset-bottom) + 24px)", width: "100%" }}>
+                <p style={{ fontSize: "18px", fontWeight: 700, color: "#111111", marginBottom: "12px" }}>
+                  ⚠️ 目標が重複しています
+                </p>
+                <p style={{ fontSize: "14px", color: "#555555", lineHeight: 1.6, marginBottom: "8px" }}>
+                  <strong style={{ color: "#FF6B00" }}>{overlapDays.join("・")}</strong> に既に目標が設定されています。
+                </p>
+                <p style={{ fontSize: "13px", color: "#888888", lineHeight: 1.6, marginBottom: "24px" }}>
+                  同じ日に複数の目標がある場合、それぞれ別のランで達成する必要があります（1回のランで同時達成はできません）。
+                </p>
+                <div style={{ display: "flex", gap: "10px" }}>
+                  <button
+                    style={{ flex: 1, padding: "14px", borderRadius: "12px", background: "#F2F2F7", border: "none", fontSize: "15px", fontWeight: 600, color: "#111111", cursor: "pointer" }}
+                    onClick={() => setShowOverlapConfirm(false)}
+                  >
+                    キャンセル
+                  </button>
+                  <button
+                    className="btn-primary"
+                    style={{ flex: 1 }}
+                    onClick={() => { setShowOverlapConfirm(false); setStep("confirm"); }}
+                  >
+                    このまま追加する
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </AppShell>

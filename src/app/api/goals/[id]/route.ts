@@ -36,13 +36,13 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
     .eq("user_id", user.id);
   if (goalError) return NextResponse.json({ error: goalError.message }, { status: 500 });
 
-  // 今日以降のpendingインスタンスをキャンセル
+  // 明日以降のpendingインスタンスをキャンセル（今日分は残す）
   await supabase
     .from("goal_instances")
     .update({ status: "cancelled" })
     .eq("goal_id", id)
     .eq("status", "pending")
-    .gte("scheduled_date", today);
+    .gt("scheduled_date", today);
 
   return NextResponse.json({ ok: true });
 }

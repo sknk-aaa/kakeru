@@ -9,7 +9,11 @@ export default async function RecordsPage() {
   const user = await requireUser();
   const supabase = await createClient();
 
-  const [{ data: allRuns }, { data: allPenalties }] = await Promise.all([
+  const nowJst = new Date(Date.now() + 9 * 60 * 60 * 1000);
+  const startOfMonth = `${nowJst.getUTCFullYear()}-${String(nowJst.getUTCMonth() + 1).padStart(2, "0")}-01`;
+
+  const [{ data: userProfile }, { data: allRuns }, { data: allPenalties }] = await Promise.all([
+    supabase.from("users").select("monthly_distance_goal_km").eq("id", user.id).single(),
     supabase
       .from("runs")
       .select("*")
@@ -21,6 +25,13 @@ export default async function RecordsPage() {
       .eq("user_id", user.id)
       .eq("status", "charged"),
   ]);
+
+  const monthGoal = userProfile?.monthly_distance_goal_km ?? 0;
+  const monthDistanceKm = Math.round(
+    (allRuns ?? [])
+      .filter((r) => r.started_at >= `${startOfMonth}T00:00:00`)
+      .reduce((sum, r) => sum + (r.distance_km ?? 0), 0) * 10
+  ) / 10;
 
   const bestPace = (allRuns ?? []).reduce(
     (best, r) => (r.pace_seconds_per_km && r.pace_seconds_per_km < best ? r.pace_seconds_per_km : best),
@@ -41,6 +52,8 @@ export default async function RecordsPage() {
         longestRunKm={longestRun}
         totalDurationSec={totalDurationSec}
         totalCalories={totalCalories}
+        monthGoal={monthGoal}
+        monthDistanceKm={monthDistanceKm}
       />
     </AppShell>
   );

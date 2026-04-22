@@ -26,7 +26,7 @@ function RunPageInner() {
   const searchParams = useSearchParams();
   const urlInstanceId = searchParams.get("goalInstanceId");
 
-  const [phase, setPhase] = useState<"idle" | "gpsPrompt" | "running" | "paused">("idle");
+  const [phase, setPhase] = useState<"idle" | "goalSelect" | "gpsPrompt" | "running" | "paused">("idle");
   const [gpsPoints, setGpsPoints] = useState<GpsPoint[]>([]);
   const [distanceKm, setDistanceKm] = useState(0);
   const [elapsedSec, setElapsedSec] = useState(0);
@@ -39,6 +39,7 @@ function RunPageInner() {
   const [weightKg, setWeightKg] = useState(60);
   const [goalReached, setGoalReached] = useState(false);
   const [startedAt, setStartedAt] = useState<Date | null>(null);
+  const [todayGoals, setTodayGoals] = useState<{ id: string; goals: { distance_km: number | null; duration_minutes: number | null; penalty_amount: number } | null }[]>([]);
 
   const watchIdRef = useRef<number | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -66,18 +67,21 @@ function RunPageInner() {
             if (data?.goals) setGoalInstance(data.goals as unknown as { distance_km: number | null; duration_minutes: number | null });
           });
       } else {
-        // BottomNav経由の直接遷移：今日のpendingインスタンスを自動取得
+        // BottomNav経由の直接遷移：今日のpendingインスタンスを全件取得
         supabase
           .from("goal_instances")
-          .select("id, goals(distance_km, duration_minutes)")
+          .select("id, goals(distance_km, duration_minutes, penalty_amount)")
           .eq("scheduled_date", todayStr)
           .eq("status", "pending")
-          .limit(1)
-          .single()
           .then(({ data }) => {
-            if (data) {
-              setEffectiveInstanceId(data.id);
-              if (data.goals) setGoalInstance(data.goals as unknown as { distance_km: number | null; duration_minutes: number | null });
+            const goals = (data ?? []).map((d) => ({
+              id: d.id as string,
+              goals: d.goals as unknown as { distance_km: number | null; duration_minutes: number | null; penalty_amount: number } | null,
+            }));
+            setTodayGoals(goals);
+            if (goals.length === 1) {
+              setEffectiveInstanceId(goals[0].id);
+              if (goals[0].goals) setGoalInstance(goals[0].goals);
             }
           });
       }
@@ -157,12 +161,28 @@ function RunPageInner() {
       finished_at: finishedAt.toISOString(),
     }).select().single();
 
-    if (effectiveInstanceId && goalReached) {
-      await supabase.from("goal_instances").update({ status: "achieved" }).eq("id", effectiveInstanceId);
+    // 今日の累積ランを取得して目標達成を判定（複数回に分けて走る対応）
+    let cumulativeGoalReached = false;
+    if (effectiveInstanceId && goalInstance) {
+      const d = new Date();
+      const todayStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      const { data: todayRuns } = await supabase
+        .from("runs")
+        .select("distance_km, duration_seconds")
+        .eq("user_id", user.id)
+        .gte("started_at", `${todayStr}T00:00:00`);
+      const totalDist = (todayRuns ?? []).reduce((sum, r) => sum + (r.distance_km ?? 0), 0);
+      const totalSec = (todayRuns ?? []).reduce((sum, r) => sum + (r.duration_seconds ?? 0), 0);
+      const distOk = !goalInstance.distance_km || totalDist >= goalInstance.distance_km;
+      const timeOk = !goalInstance.duration_minutes || totalSec >= goalInstance.duration_minutes * 60;
+      cumulativeGoalReached = distOk && timeOk;
+      if (cumulativeGoalReached) {
+        await supabase.from("goal_instances").update({ status: "achieved" }).eq("id", effectiveInstanceId);
+      }
     }
 
     router.push(
-      `/run/result?runId=${run?.id ?? ""}&distanceKm=${distanceKm.toFixed(2)}&durationSec=${elapsedSec}&pace=${Math.round(avgPace)}&calories=${calories}&goalReached=${goalReached}`
+      `/run/result?runId=${run?.id ?? ""}&distanceKm=${distanceKm.toFixed(2)}&durationSec=${elapsedSec}&pace=${Math.round(avgPace)}&calories=${calories}&goalReached=${cumulativeGoalReached}`
     );
   }
 
@@ -175,7 +195,7 @@ function RunPageInner() {
     : null;
 
   // 開始前画面
-  if (phase === "idle" || phase === "gpsPrompt") {
+  if (phase === "idle" || phase === "gpsPrompt" || phase === "goalSelect") {
     return (
       <AppShell>
         <div className="flex flex-col items-center justify-center min-h-[calc(100vh-64px)] px-6 text-center">
@@ -194,12 +214,66 @@ function RunPageInner() {
               </p>
             </div>
           )}
-          <button className="btn-primary w-full max-w-xs" onClick={() => setPhase("gpsPrompt")}>
+          <button
+            className="btn-primary w-full max-w-xs"
+            onClick={() => {
+              if (!urlInstanceId && todayGoals.length >= 2) {
+                setPhase("goalSelect");
+              } else {
+                setPhase("gpsPrompt");
+              }
+            }}
+          >
             走る
           </button>
         </div>
         {phase === "gpsPrompt" && (
           <GpsPermissionModal onAllow={startGps} onClose={() => setPhase("idle")} />
+        )}
+        {phase === "goalSelect" && (
+          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 60, display: "flex", alignItems: "flex-end" }}>
+            <div style={{ background: "white", borderRadius: "20px 20px 0 0", padding: "24px 20px calc(env(safe-area-inset-bottom) + 24px)", width: "100%" }}>
+              <p style={{ fontSize: "18px", fontWeight: 700, color: "#111111", marginBottom: "6px" }}>どの目標で走りますか？</p>
+              <p style={{ fontSize: "13px", color: "#888888", marginBottom: "20px" }}>今日の目標が複数あります</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                {todayGoals.map((g) => {
+                  const distLabel = g.goals?.distance_km ? `${g.goals.distance_km}km` : null;
+                  const timeLabel = g.goals?.duration_minutes ? `${g.goals.duration_minutes}分` : null;
+                  const mainLabel = [distLabel, timeLabel].filter(Boolean).join("・") || "フリーラン";
+                  return (
+                    <button
+                      key={g.id}
+                      style={{ width: "100%", padding: "14px 16px", borderRadius: "14px", background: "#FFF5EE", border: "2px solid #FF6B00", cursor: "pointer", textAlign: "left" }}
+                      onClick={() => {
+                        setEffectiveInstanceId(g.id);
+                        if (g.goals) setGoalInstance(g.goals);
+                        setPhase("gpsPrompt");
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        <span style={{ fontSize: "17px", fontWeight: 700, color: "#FF6B00" }}>🏃 {mainLabel}</span>
+                        {g.goals?.penalty_amount && (
+                          <span style={{ fontSize: "13px", fontWeight: 600, color: "#EF4444", background: "#FEE2E2", padding: "3px 9px", borderRadius: "99px" }}>
+                            罰金 ¥{g.goals.penalty_amount.toLocaleString()}
+                          </span>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+                <button
+                  style={{ width: "100%", padding: "16px", borderRadius: "14px", background: "#F2F2F7", border: "none", fontSize: "15px", fontWeight: 600, color: "#888888", cursor: "pointer" }}
+                  onClick={() => {
+                    setEffectiveInstanceId(null);
+                    setGoalInstance(null);
+                    setPhase("gpsPrompt");
+                  }}
+                >
+                  フリーランで走る
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </AppShell>
     );
@@ -294,28 +368,14 @@ function RunPageInner() {
             >
               {phase === "paused" ? <><Play size={16} />再開</> : <><Pause size={16} />一時停止</>}
             </button>
-            {goalInstance ? (
-              <button
-                className="btn-primary"
-                style={{ flex: 1, minHeight: "52px", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", opacity: goalReached ? 1 : 0.35 }}
-                onClick={handleFinish}
-                disabled={!goalReached}
-              >
-                <Flag size={16} />{goalReached ? "ゴール！" : "ゴール"}
-              </button>
-            ) : (
-              <button
-                className="btn-primary"
-                style={{ flex: 1, minHeight: "52px", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
-                onClick={handleFinish}
-              >
-                <Flag size={16} />終了
-              </button>
-            )}
+            <button
+              className="btn-primary"
+              style={{ flex: 1, minHeight: "52px", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
+              onClick={handleFinish}
+            >
+              <Flag size={16} />{goalReached ? "ゴール！" : "終了"}
+            </button>
           </div>
-          {!goalReached && goalInstance && (
-            <p style={{ fontSize: "11px", color: "#888888", textAlign: "center", marginTop: "4px" }}>目標達成後にゴールできます</p>
-          )}
         </div>
 
       </div>

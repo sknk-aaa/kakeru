@@ -21,6 +21,8 @@ interface Props {
   longestRunKm: number;
   totalDurationSec: number;
   totalCalories: number;
+  monthGoal: number;
+  monthDistanceKm: number;
 }
 
 function formatHoursMin(seconds: number) {
@@ -31,7 +33,7 @@ function formatHoursMin(seconds: number) {
 
 const PERIOD_LABELS: Record<Period, string> = { month: "今月", prev: "先月", all: "全期間" };
 
-export default function RecordsClient({ runs, bestPaceSecPerKm, longestRunKm, totalDurationSec, totalCalories }: Props) {
+export default function RecordsClient({ runs, bestPaceSecPerKm, longestRunKm, totalDurationSec, totalCalories, monthGoal, monthDistanceKm }: Props) {
   const [period, setPeriod] = useState<Period>("month");
 
   const now = new Date();
@@ -121,6 +123,26 @@ export default function RecordsClient({ runs, bestPaceSecPerKm, longestRunKm, to
             <span style={{ fontSize: "18px", color: "#888888", fontWeight: 600 }}>{filteredRuns.length}回</span>
           </div>
         </div>
+
+        {/* 月間目標プログレス */}
+        {period === "month" && monthGoal > 0 && (
+          <div style={{ background: "white", borderRadius: "16px", padding: "20px", marginBottom: "12px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "12px" }}>
+              <span style={{ fontSize: "13px", color: "#888888", fontWeight: 500 }}>今月の目標距離</span>
+              <div>
+                <span className="metric-value" style={{ fontSize: "24px", color: "#111111" }}>{monthDistanceKm}</span>
+                <span style={{ fontSize: "13px", color: "#888888" }}>/{monthGoal}km</span>
+              </div>
+            </div>
+            <div style={{ height: "7px", background: "#F0F0F0", borderRadius: "4px", overflow: "hidden" }}>
+              <div style={{ height: "100%", background: "#FF6B00", borderRadius: "4px", width: `${Math.min((monthDistanceKm / monthGoal) * 100, 100)}%`, transition: "width 0.5s ease" }} />
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", marginTop: "8px" }}>
+              <span style={{ fontSize: "12px", color: "#FF6B00", fontWeight: 600 }}>{Math.round((monthDistanceKm / monthGoal) * 100)}%</span>
+              <span style={{ fontSize: "12px", color: "#888888" }}>残り {Math.max(0, monthGoal - monthDistanceKm).toFixed(1)}km</span>
+            </div>
+          </div>
+        )}
 
         {/* 週別グラフ */}
         <div style={{ background: "white", borderRadius: "16px", padding: "16px", marginBottom: "12px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>

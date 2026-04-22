@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { CheckCircle, XCircle, SkipForward, Plus, ChevronRight, X, Route, Trophy, CreditCard, MapPin, Clock, CalendarDays } from "lucide-react";
+import { CheckCircle, XCircle, SkipForward, Plus, ChevronRight, ChevronDown, ChevronUp, X, Route, Trophy, CreditCard, MapPin, Clock, CalendarDays } from "lucide-react";
 import { useState } from "react";
 
 interface GoalInstance {
@@ -26,10 +26,11 @@ interface Props {
   weekInstances: GoalInstance[];
   todayStr: string;
   totalDistanceMonth: number;
-  monthGoal: number;
-  progressPct: number;
   totalPenaltyMonth: number;
   achieveRate: number;
+  todayGoalInstances: GoalInstance[];
+  todayRunDistanceKm: number;
+  todayRunDurationSec: number;
 }
 
 const DAY_NAMES = ["日", "月", "火", "水", "木", "金", "土"];
@@ -47,15 +48,17 @@ export default function HomeClient({
   weekInstances,
   todayStr,
   totalDistanceMonth,
-  monthGoal,
-  progressPct,
   totalPenaltyMonth,
   achieveRate,
+  todayGoalInstances,
+  todayRunDistanceKm,
+  todayRunDurationSec,
 }: Props) {
   const [instances, setInstances] = useState(weekInstances);
   const [confirmCancelId, setConfirmCancelId] = useState<string | null>(null);
   const [skipTargetId, setSkipTargetId] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
 
   const skipRemaining = Math.max(0, 1 - (userProfile?.skip_count_this_month ?? 0));
 
@@ -83,6 +86,8 @@ export default function HomeClient({
   }
 
   const visibleInstances = instances.filter((i) => i.status !== "cancelled");
+  const pendingInstances = visibleInstances.filter((i) => i.status === "pending");
+  const historyInstances = visibleInstances.filter((i) => i.status !== "pending");
 
   return (
     <div>
@@ -151,6 +156,57 @@ export default function HomeClient({
 
       <div style={{ padding: "12px 16px 24px" }}>
 
+        {/* 今日の目標カード（複数対応） */}
+        {todayGoalInstances.length > 0 && (
+          <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "16px" }}>
+            {todayGoalInstances.map((instance) => {
+              if (!instance.goals) return null;
+              const { distance_km, duration_minutes, penalty_amount } = instance.goals;
+              return (
+                <div key={instance.id} style={{ background: "white", borderRadius: "16px", padding: "18px 20px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "10px" }}>
+                    <span style={{ fontSize: "12px", color: "#888888", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>今日の目標</span>
+                    <Link href={`/run?goalInstanceId=${instance.id}`}>
+                      <button className="btn-primary" style={{ minHeight: "32px", fontSize: "12px", padding: "0 14px" }}>走る</button>
+                    </Link>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: "10px", marginBottom: "12px" }}>
+                    <p style={{ fontSize: "18px", fontWeight: 700, color: "#111111" }}>
+                      {[
+                        distance_km && `${distance_km}km`,
+                        duration_minutes && `${duration_minutes}分`,
+                      ].filter(Boolean).join("・") || "フリーラン"}
+                    </p>
+                    <span style={{ fontSize: "12px", color: "#EF4444", fontWeight: 600 }}>罰金 ¥{penalty_amount.toLocaleString()}</span>
+                  </div>
+                  {distance_km && distance_km > 0 && (
+                    <div style={{ marginBottom: "8px" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", marginBottom: "4px" }}>
+                        <span style={{ color: "#FF6B00", fontWeight: 600 }}>{todayRunDistanceKm.toFixed(2)} km</span>
+                        <span style={{ color: "#888888" }}>目標 {distance_km} km</span>
+                      </div>
+                      <div style={{ height: "6px", background: "#F0F0F0", borderRadius: "3px", overflow: "hidden" }}>
+                        <div style={{ height: "100%", background: "#FF6B00", borderRadius: "3px", width: `${Math.min((todayRunDistanceKm / distance_km) * 100, 100)}%`, transition: "width 0.4s ease" }} />
+                      </div>
+                    </div>
+                  )}
+                  {duration_minutes && duration_minutes > 0 && (
+                    <div>
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", marginBottom: "4px" }}>
+                        <span style={{ color: "#FF6B00", fontWeight: 600 }}>{Math.floor(todayRunDurationSec / 60)} 分</span>
+                        <span style={{ color: "#888888" }}>目標 {duration_minutes} 分</span>
+                      </div>
+                      <div style={{ height: "6px", background: "#F0F0F0", borderRadius: "3px", overflow: "hidden" }}>
+                        <div style={{ height: "100%", background: "#FF6B00", borderRadius: "3px", width: `${Math.min((todayRunDurationSec / (duration_minutes * 60)) * 100, 100)}%`, transition: "width 0.4s ease" }} />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
         {/* 統計カード */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px", marginBottom: "20px" }}>
           {[
@@ -171,26 +227,6 @@ export default function HomeClient({
           ))}
         </div>
 
-        {/* 月間プログレス */}
-        {monthGoal > 0 && (
-          <div style={{ background: "white", borderRadius: "16px", padding: "20px", marginBottom: "20px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "12px" }}>
-              <span style={{ fontSize: "13px", color: "#888888", fontWeight: 500 }}>今月の目標距離</span>
-              <div>
-                <span className="metric-value" style={{ fontSize: "24px", color: "#111111" }}>{totalDistanceMonth}</span>
-                <span style={{ fontSize: "13px", color: "#888888" }}>/{monthGoal}km</span>
-              </div>
-            </div>
-            <div style={{ height: "7px", background: "#F0F0F0", borderRadius: "4px", overflow: "hidden" }}>
-              <div style={{ height: "100%", background: "#FF6B00", borderRadius: "4px", width: `${progressPct}%`, transition: "width 0.5s ease" }} />
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-between", marginTop: "8px" }}>
-              <span style={{ fontSize: "12px", color: "#FF6B00", fontWeight: 600 }}>{progressPct}%</span>
-              <span style={{ fontSize: "12px", color: "#888888" }}>残り {Math.max(0, monthGoal - totalDistanceMonth).toFixed(1)}km</span>
-            </div>
-          </div>
-        )}
-
         {/* 今週の目標リスト */}
         <div style={{ display: "flex", alignItems: "center", gap: "5px", marginBottom: "10px", paddingLeft: "4px" }}>
           <CalendarDays size={13} color="#888888" />
@@ -206,7 +242,12 @@ export default function HomeClient({
           </div>
         ) : (
           <div style={{ background: "white", borderRadius: "16px", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", marginBottom: "12px" }}>
-            {visibleInstances.map((instance, idx) => {
+            {pendingInstances.length === 0 && (
+              <div style={{ padding: "24px 20px", textAlign: "center" }}>
+                <p style={{ fontSize: "14px", color: "#888888" }}>今週の予定はすべて完了しました</p>
+              </div>
+            )}
+            {pendingInstances.map((instance, idx) => {
               const isToday = instance.scheduled_date === todayStr;
               const isFuture = instance.scheduled_date > todayStr;
               const isPendingNotToday = instance.status === "pending" && !isToday;
@@ -323,6 +364,66 @@ export default function HomeClient({
                 </div>
               );
             })}
+
+            {/* 今週の記録トグル */}
+            {historyInstances.length > 0 && (
+              <>
+                <div style={{ height: "1px", background: "#F2F2F2" }} />
+                <button
+                  onClick={() => setShowHistory((v) => !v)}
+                  style={{ width: "100%", minHeight: "44px", display: "flex", alignItems: "center", justifyContent: "center", gap: "5px", background: "none", border: "none", cursor: "pointer", padding: "10px 16px" }}
+                >
+                  <span style={{ fontSize: "12px", color: "#AAAAAA", fontWeight: 600 }}>
+                    今週の記録（{historyInstances.length}件）
+                  </span>
+                  {showHistory ? <ChevronUp size={14} color="#AAAAAA" /> : <ChevronDown size={14} color="#AAAAAA" />}
+                </button>
+
+                {showHistory && historyInstances.map((instance, idx) => {
+                  const isToday = instance.scheduled_date === todayStr;
+                  const d = new Date(instance.scheduled_date + "T00:00:00");
+                  return (
+                    <div key={instance.id} style={{ opacity: 0.6 }}>
+                      <div style={{ height: "1px", background: "#F2F2F2", marginLeft: "72px" }} />
+                      <div style={{ display: "flex", alignItems: "center", padding: "14px 16px" }}>
+                        <div style={{ width: "44px", textAlign: "center", flexShrink: 0 }}>
+                          <p className="metric-value" style={{ fontSize: "32px", color: isToday ? "#FF6B00" : "#111111", lineHeight: 1 }}>{d.getDate()}</p>
+                          <p style={{ fontSize: "12px", color: isToday ? "#FF6B00" : "#888888", marginTop: "3px" }}>{DAY_NAMES[d.getDay()]}</p>
+                        </div>
+                        <div style={{ width: "1px", height: "42px", background: "#EBEBEB", margin: "0 14px", flexShrink: 0 }} />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                            {instance.goals?.distance_km && (
+                              <span style={{ display: "flex", alignItems: "center", gap: "3px", fontSize: "15px", fontWeight: 600, color: "#111111" }}>
+                                <MapPin size={13} color="#FF6B00" strokeWidth={2.5} />{instance.goals.distance_km}km
+                              </span>
+                            )}
+                            {instance.goals?.duration_minutes && (
+                              <span style={{ display: "flex", alignItems: "center", gap: "3px", fontSize: "15px", fontWeight: 600, color: "#111111" }}>
+                                <Clock size={13} color="#888888" strokeWidth={2.5} />{instance.goals.duration_minutes}分
+                              </span>
+                            )}
+                            {!instance.goals?.distance_km && !instance.goals?.duration_minutes && (
+                              <span style={{ fontSize: "15px", fontWeight: 600, color: "#111111" }}>フリーラン</span>
+                            )}
+                          </div>
+                        </div>
+                        <div style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: "6px" }}>
+                          {instance.status === "achieved" && <CheckCircle size={22} color="#22C55E" />}
+                          {instance.status === "failed" && <XCircle size={22} color="#EF4444" />}
+                          {instance.status === "skipped" && (
+                            <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                              <SkipForward size={14} color="#AAAAAA" />
+                              <span style={{ fontSize: "12px", color: "#AAAAAA", fontWeight: 500 }}>スキップ済み</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </>
+            )}
           </div>
         )}
 

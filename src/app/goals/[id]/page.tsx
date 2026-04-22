@@ -47,9 +47,13 @@ export default function GoalEditPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+  const [hasTodayInstance, setHasTodayInstance] = useState(false);
 
   useEffect(() => {
     const supabase = createClient();
+    const d = new Date();
+    const todayStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
     supabase.from("goals").select("*").eq("id", id).single().then(({ data }) => {
       if (!data) return;
       setGoal(data as Goal);
@@ -58,6 +62,14 @@ export default function GoalEditPage() {
       setPenaltyAmount(String(data.penalty_amount));
       setSelectedDays(data.days_of_week ?? []);
     });
+
+    supabase.from("goal_instances")
+      .select("id")
+      .eq("goal_id", id)
+      .eq("scheduled_date", todayStr)
+      .eq("status", "pending")
+      .maybeSingle()
+      .then(({ data }) => setHasTodayInstance(!!data));
   }, [id]);
 
   function toggleDay(day: number) {
@@ -197,9 +209,19 @@ export default function GoalEditPage() {
           ) : (
             <div style={{ background: "white", borderRadius: "16px", padding: "16px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
               <p style={{ fontSize: "14px", color: "#111111", fontWeight: 600, marginBottom: "6px" }}>本当に停止しますか？</p>
-              <p style={{ fontSize: "13px", color: "#888888", marginBottom: "14px" }}>
-                今日以降のスケジュールがすべてキャンセルされます。過去の記録は残ります。
+              <p style={{ fontSize: "13px", color: "#888888", lineHeight: 1.6, marginBottom: hasTodayInstance ? "8px" : "14px" }}>
+                明日以降のスケジュールがキャンセルされます。過去の記録は残ります。
               </p>
+              {hasTodayInstance && (
+                <div style={{ background: "#FFF5EE", borderRadius: "10px", padding: "10px 12px", marginBottom: "14px", borderLeft: "3px solid #FF6B00" }}>
+                  <p style={{ fontSize: "13px", color: "#FF6B00", fontWeight: 600 }}>
+                    ⚠️ 今日の目標は残ります
+                  </p>
+                  <p style={{ fontSize: "12px", color: "#888888", marginTop: "2px" }}>
+                    今日分はスキップか達成が必要です
+                  </p>
+                </div>
+              )}
               <div style={{ display: "flex", gap: "8px" }}>
                 <button
                   className="btn-secondary"

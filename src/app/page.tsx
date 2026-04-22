@@ -19,7 +19,7 @@ export default async function HomePage() {
 
   const startOfMonth = `${nowJst.getUTCFullYear()}-${String(nowJst.getUTCMonth() + 1).padStart(2, "0")}-01`;
 
-  const [{ data: userProfile }, { data: weekInstances }, { data: monthRuns }, { data: monthPenalties }] =
+  const [{ data: userProfile }, { data: weekInstances }, { data: monthRuns }, { data: monthPenalties }, { data: todayRuns }] =
     await Promise.all([
       supabase.from("users").select("*").eq("id", user.id).single(),
       supabase
@@ -40,6 +40,11 @@ export default async function HomePage() {
         .eq("user_id", user.id)
         .gte("charged_at", `${startOfMonth}T00:00:00`)
         .eq("status", "charged"),
+      supabase
+        .from("runs")
+        .select("distance_km, duration_seconds")
+        .eq("user_id", user.id)
+        .gte("started_at", `${todayStr}T00:00:00`),
     ]);
 
   const totalDistanceMonth = (monthRuns ?? []).reduce(
@@ -58,6 +63,14 @@ export default async function HomePage() {
   const totalCount = allInstances.filter((i) => i.status !== "cancelled").length;
   const achieveRate = totalCount > 0 ? Math.round((achievedCount / totalCount) * 100) : 0;
 
+  const todayGoalInstances = allInstances.filter(
+    (i) => i.scheduled_date === todayStr && i.status === "pending" && i.goals
+  );
+  const todayRunDistanceKm = Math.round(
+    (todayRuns ?? []).reduce((sum, r) => sum + (r.distance_km ?? 0), 0) * 100
+  ) / 100;
+  const todayRunDurationSec = (todayRuns ?? []).reduce((sum, r) => sum + (r.duration_seconds ?? 0), 0);
+
   return (
     <AppShell>
       <HomeClient
@@ -65,10 +78,11 @@ export default async function HomePage() {
         weekInstances={allInstances}
         todayStr={todayStr}
         totalDistanceMonth={Math.round(totalDistanceMonth * 10) / 10}
-        monthGoal={monthGoal}
-        progressPct={Math.round(progressPct)}
         totalPenaltyMonth={totalPenaltyMonth}
         achieveRate={achieveRate}
+        todayGoalInstances={todayGoalInstances}
+        todayRunDistanceKm={todayRunDistanceKm}
+        todayRunDurationSec={todayRunDurationSec}
       />
     </AppShell>
   );
