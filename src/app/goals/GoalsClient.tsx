@@ -15,7 +15,15 @@ interface Goal {
   created_at: string;
 }
 
+interface Instance {
+  goal_id: string;
+  scheduled_date: string;
+  status: "pending" | "achieved" | "failed" | "skipped" | "cancelled";
+}
+
 const DAY_NAMES = ["日", "月", "火", "水", "木", "金", "土"];
+// 月〜日の順で並べるための順序
+const WEEK_ORDER = [1, 2, 3, 4, 5, 6, 0];
 
 function formatGoalSummary(goal: Goal) {
   const parts: string[] = [];
@@ -26,7 +34,7 @@ function formatGoalSummary(goal: Goal) {
 
 function formatSchedule(goal: Goal) {
   if (goal.type === "recurring" && goal.days_of_week) {
-    return "毎週 " + [...goal.days_of_week].sort().map((d) => DAY_NAMES[d]).join("・");
+    return "毎週 " + [...goal.days_of_week].sort((a, b) => WEEK_ORDER.indexOf(a) - WEEK_ORDER.indexOf(b)).map((d) => DAY_NAMES[d]).join("・");
   }
   if (goal.type === "oneoff" && goal.scheduled_date) {
     const d = new Date(goal.scheduled_date + "T00:00:00");
@@ -35,53 +43,167 @@ function formatSchedule(goal: Goal) {
   return "";
 }
 
-export default function GoalsClient({ goals }: { goals: Goal[] }) {
+type DotType = "orange-filled" | "orange-outline" | "gray-outline" | "gray-filled";
+
+function Dot({ type }: { type: DotType }) {
+  const isOrange = type === "orange-filled" || type === "orange-outline";
+  const isFilled = type === "orange-filled" || type === "gray-filled";
+  return (
+    <div style={{
+      width: "9px",
+      height: "9px",
+      borderRadius: "50%",
+      background: isFilled ? (isOrange ? "#FF6B00" : "#CCCCCC") : "transparent",
+      border: isFilled ? "none" : `1.5px solid ${isOrange ? "#FF6B00" : "#CCCCCC"}`,
+      flexShrink: 0,
+    }} />
+  );
+}
+
+function WeekDots({ goal, instances, todayStr }: { goal: Goal; instances: Instance[]; todayStr: string }) {
+  if (!goal.days_of_week || goal.days_of_week.length === 0) return null;
+
+  const today = new Date(todayStr + "T00:00:00");
+  const dayOfWeek = today.getDay();
+  const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+  const monday = new Date(today);
+  monday.setDate(today.getDate() + mondayOffset);
+
+  const sortedDays = [...goal.days_of_week].sort((a, b) => WEEK_ORDER.indexOf(a) - WEEK_ORDER.indexOf(b));
+
+  const dots = sortedDays.map((dayNum) => {
+    const offset = dayNum === 0 ? 6 : dayNum - 1;
+    const targetDate = new Date(monday);
+    targetDate.setDate(monday.getDate() + offset);
+    const y = targetDate.getFullYear();
+    const mo = String(targetDate.getMonth() + 1).padStart(2, "0");
+    const dd = String(targetDate.getDate()).padStart(2, "0");
+    const targetDateStr = `${y}-${mo}-${dd}`;
+
+    const instance = instances.find((i) => i.goal_id === goal.id && i.scheduled_date === targetDateStr);
+    const isToday = targetDateStr === todayStr;
+    const isPast = targetDateStr < todayStr;
+
+    let dotType: DotType;
+    if (instance?.status === "achieved") {
+      dotType = "orange-filled";
+    } else if (isToday) {
+      dotType = "orange-outline";
+    } else if (isPast) {
+      dotType = "gray-filled";
+    } else {
+      dotType = "gray-outline";
+    }
+
+    return { dayNum, dayName: DAY_NAMES[dayNum], dotType };
+  });
+
+  return (
+    <div style={{ display: "flex", gap: "10px", marginTop: "8px", alignItems: "center" }}>
+      {dots.map(({ dayNum, dayName, dotType }) => {
+        const isOrange = dotType === "orange-filled" || dotType === "orange-outline";
+        return (
+          <div key={dayNum} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+            <span style={{ fontSize: "10px", color: isOrange ? "#FF6B00" : "#BBBBBB", fontWeight: 600, lineHeight: 1 }}>
+              {dayName}
+            </span>
+            <Dot type={dotType} />
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function OneoffDot({ goal, instances, todayStr }: { goal: Goal; instances: Instance[]; todayStr: string }) {
+  if (!goal.scheduled_date) return null;
+  const instance = instances.find((i) => i.goal_id === goal.id);
+  const isToday = goal.scheduled_date === todayStr;
+  const isPast = goal.scheduled_date < todayStr;
+
+  let dotType: DotType;
+  if (instance?.status === "achieved") {
+    dotType = "orange-filled";
+  } else if (isToday) {
+    dotType = "orange-outline";
+  } else if (isPast) {
+    dotType = "gray-filled";
+  } else {
+    dotType = "gray-outline";
+  }
+
+  return (
+    <div style={{ display: "flex", gap: "6px", marginTop: "8px", alignItems: "center" }}>
+      <Dot type={dotType} />
+    </div>
+  );
+}
+
+export default function GoalsClient({
+  goals,
+  instances,
+  todayStr,
+}: {
+  goals: Goal[];
+  instances: Instance[];
+  todayStr: string;
+}) {
   const recurringGoals = goals.filter((g) => g.type === "recurring");
   const oneoffGoals = goals.filter((g) => g.type === "oneoff");
 
   return (
     <div>
-      <div style={{ padding: "20px 20px 12px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <h1 className="metric-value" style={{ fontSize: "30px", color: "#111111" }}>目標</h1>
-        <Link href="/goals/new">
-          <button style={{ width: "36px", height: "36px", borderRadius: "50%", background: "#FF6B00", display: "flex", alignItems: "center", justifyContent: "center", border: "none", cursor: "pointer" }}>
-            <Plus size={18} color="white" strokeWidth={2.5} />
-          </button>
-        </Link>
+      <div style={{
+        position: "sticky", top: 0, zIndex: 10,
+        background: "rgba(255,255,255,0.92)", backdropFilter: "blur(12px)",
+        borderBottom: "1px solid #E5E5E5",
+        padding: "0 16px", height: "54px",
+        display: "flex", alignItems: "center",
+      }}>
+        <div style={{ flex: 1 }} />
+        <h1 style={{ fontSize: "17px", fontWeight: 700, color: "#111111" }}>目標</h1>
+        <div style={{ flex: 1, display: "flex", justifyContent: "flex-end" }}>
+          <Link href="/goals/new">
+            <button style={{ width: "34px", height: "34px", borderRadius: "50%", background: "#FF6B00", display: "flex", alignItems: "center", justifyContent: "center", border: "none", cursor: "pointer" }}>
+              <Plus size={18} color="white" strokeWidth={2.5} />
+            </button>
+          </Link>
+        </div>
       </div>
 
       <div style={{ padding: "0 16px 24px" }}>
 
         {goals.length === 0 && (
-          <div style={{ background: "white", borderRadius: "16px", padding: "40px 20px", textAlign: "center", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
-            <p style={{ color: "#AAAAAA", fontSize: "14px", marginBottom: "16px" }}>設定中の目標がありません</p>
+          <div style={{ background: "white", borderRadius: "16px", padding: "48px 20px", textAlign: "center", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
+            <p style={{ color: "#AAAAAA", fontSize: "15px", marginBottom: "16px" }}>設定中の目標がありません</p>
             <Link href="/goals/new">
-              <button className="btn-primary" style={{ minHeight: "44px", padding: "0 24px" }}>目標を追加する</button>
+              <button className="btn-primary" style={{ minHeight: "48px", padding: "0 28px" }}>目標を追加する</button>
             </Link>
           </div>
         )}
 
         {recurringGoals.length > 0 && (
-          <div style={{ marginBottom: "16px" }}>
-            <p style={{ fontSize: "12px", color: "#888888", fontWeight: 600, marginBottom: "8px", paddingLeft: "4px", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+          <div style={{ marginBottom: "20px" }}>
+            <p style={{ fontSize: "12px", color: "#888888", fontWeight: 600, marginBottom: "10px", paddingLeft: "4px", textTransform: "uppercase", letterSpacing: "0.04em" }}>
               毎週の目標
             </p>
             <div style={{ background: "white", borderRadius: "16px", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
               {recurringGoals.map((goal, idx) => (
                 <div key={goal.id}>
-                  {idx > 0 && <div style={{ height: "1px", background: "#F2F2F2", marginLeft: "56px" }} />}
+                  {idx > 0 && <div style={{ height: "1px", background: "#F2F2F2", marginLeft: "68px" }} />}
                   <Link href={`/goals/${goal.id}`}>
-                    <div style={{ display: "flex", alignItems: "center", padding: "14px 16px", gap: "12px" }}>
-                      <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "#FFF0E5", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                        <Repeat size={16} color="#FF6B00" />
+                    <div style={{ display: "flex", alignItems: "center", padding: "16px 16px", gap: "14px" }}>
+                      <div style={{ width: "44px", height: "44px", borderRadius: "12px", background: "#FFF0E5", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                        <Repeat size={20} color="#FF6B00" />
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ fontSize: "15px", fontWeight: 600, color: "#111111" }}>{formatGoalSummary(goal)}</p>
+                        <p style={{ fontSize: "16px", fontWeight: 700, color: "#111111" }}>{formatGoalSummary(goal)}</p>
                         <p style={{ fontSize: "12px", color: "#888888", marginTop: "2px" }}>{formatSchedule(goal)}</p>
+                        <WeekDots goal={goal} instances={instances} todayStr={todayStr} />
                       </div>
-                      <div style={{ flexShrink: 0, textAlign: "right" }}>
-                        <p style={{ fontSize: "13px", color: "#EF4444", fontWeight: 600 }}>¥{goal.penalty_amount.toLocaleString()}</p>
-                        <ChevronRight size={16} color="#CCCCCC" style={{ marginTop: "2px" }} />
+                      <div style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: "8px" }}>
+                        <p style={{ fontSize: "13px", color: "#888888", fontWeight: 600 }}>¥{goal.penalty_amount.toLocaleString()}</p>
+                        <ChevronRight size={18} color="#CCCCCC" />
                       </div>
                     </div>
                   </Link>
@@ -92,26 +214,27 @@ export default function GoalsClient({ goals }: { goals: Goal[] }) {
         )}
 
         {oneoffGoals.length > 0 && (
-          <div style={{ marginBottom: "16px" }}>
-            <p style={{ fontSize: "12px", color: "#888888", fontWeight: 600, marginBottom: "8px", paddingLeft: "4px", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+          <div style={{ marginBottom: "20px" }}>
+            <p style={{ fontSize: "12px", color: "#888888", fontWeight: 600, marginBottom: "10px", paddingLeft: "4px", textTransform: "uppercase", letterSpacing: "0.04em" }}>
               1回のみの目標
             </p>
             <div style={{ background: "white", borderRadius: "16px", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
               {oneoffGoals.map((goal, idx) => (
                 <div key={goal.id}>
-                  {idx > 0 && <div style={{ height: "1px", background: "#F2F2F2", marginLeft: "56px" }} />}
+                  {idx > 0 && <div style={{ height: "1px", background: "#F2F2F2", marginLeft: "68px" }} />}
                   <Link href={`/goals/${goal.id}`}>
-                    <div style={{ display: "flex", alignItems: "center", padding: "14px 16px", gap: "12px" }}>
-                      <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "#F0F5FF", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                        <Calendar size={16} color="#4285F4" />
+                    <div style={{ display: "flex", alignItems: "center", padding: "16px 16px", gap: "14px" }}>
+                      <div style={{ width: "44px", height: "44px", borderRadius: "12px", background: "#F0F5FF", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                        <Calendar size={20} color="#4285F4" />
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ fontSize: "15px", fontWeight: 600, color: "#111111" }}>{formatGoalSummary(goal)}</p>
+                        <p style={{ fontSize: "16px", fontWeight: 700, color: "#111111" }}>{formatGoalSummary(goal)}</p>
                         <p style={{ fontSize: "12px", color: "#888888", marginTop: "2px" }}>{formatSchedule(goal)}</p>
+                        <OneoffDot goal={goal} instances={instances} todayStr={todayStr} />
                       </div>
-                      <div style={{ flexShrink: 0, textAlign: "right" }}>
-                        <p style={{ fontSize: "13px", color: "#EF4444", fontWeight: 600 }}>¥{goal.penalty_amount.toLocaleString()}</p>
-                        <ChevronRight size={16} color="#CCCCCC" style={{ marginTop: "2px" }} />
+                      <div style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: "8px" }}>
+                        <p style={{ fontSize: "13px", color: "#888888", fontWeight: 600 }}>¥{goal.penalty_amount.toLocaleString()}</p>
+                        <ChevronRight size={18} color="#CCCCCC" />
                       </div>
                     </div>
                   </Link>
@@ -120,13 +243,6 @@ export default function GoalsClient({ goals }: { goals: Goal[] }) {
             </div>
           </div>
         )}
-
-        <Link href="/goals/new">
-          <div style={{ background: "white", borderRadius: "16px", padding: "16px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
-            <span style={{ fontSize: "15px", fontWeight: 600, color: "#111111" }}>新しい目標を追加</span>
-            <ChevronRight size={18} color="#AAAAAA" />
-          </div>
-        </Link>
 
       </div>
     </div>

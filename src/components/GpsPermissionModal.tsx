@@ -9,10 +9,10 @@ interface Props {
 
 export default function GpsPermissionModal({ onAllow, onClose }: Props) {
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40">
+    <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/40">
       <div
-        className="w-full max-w-md bg-white rounded-t-2xl p-6 pb-8"
-        style={{ paddingBottom: "calc(32px + env(safe-area-inset-bottom))" }}
+        className="w-full max-w-md bg-white rounded-t-2xl p-6"
+        style={{ paddingBottom: "calc(80px + env(safe-area-inset-bottom))" }}
       >
         <div className="flex justify-center mb-4">
           <div className="w-14 h-14 rounded-full bg-[#FFF0E5] flex items-center justify-center">

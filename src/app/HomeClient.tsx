@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { CheckCircle, XCircle, SkipForward, Plus, ChevronRight, X } from "lucide-react";
+import { CheckCircle, XCircle, SkipForward, Plus, ChevronRight, X, Route, Trophy, CreditCard, MapPin, Clock, CalendarDays } from "lucide-react";
 import { useState } from "react";
 
 interface GoalInstance {
@@ -131,60 +131,71 @@ export default function HomeClient({
       )}
 
       {/* ヘッダー */}
-      <div style={{ padding: "20px 20px 12px" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <h1 className="metric-value" style={{ fontSize: "30px", color: "#111111" }}>カケル</h1>
+      <div style={{
+        position: "sticky", top: 0, zIndex: 10,
+        background: "rgba(255,255,255,0.92)", backdropFilter: "blur(12px)",
+        borderBottom: "1px solid #E5E5E5",
+        padding: "0 16px", height: "54px",
+        display: "flex", alignItems: "center",
+      }}>
+        <div style={{ flex: 1 }} />
+        <h1 style={{ fontSize: "17px", fontWeight: 700, color: "#111111" }}>ホーム</h1>
+        <div style={{ flex: 1, display: "flex", justifyContent: "flex-end" }}>
           <Link href="/goals/new">
-            <button style={{ width: "36px", height: "36px", borderRadius: "50%", background: "#FF6B00", display: "flex", alignItems: "center", justifyContent: "center", border: "none", cursor: "pointer" }}>
-              <Plus size={18} color="white" strokeWidth={2.5} />
+            <button style={{ width: "34px", height: "34px", borderRadius: "50%", background: "#FF6B00", display: "flex", alignItems: "center", justifyContent: "center", border: "none", cursor: "pointer" }}>
+              <Plus size={16} color="white" strokeWidth={2.5} />
             </button>
           </Link>
         </div>
       </div>
 
-      <div style={{ padding: "0 16px 24px" }}>
+      <div style={{ padding: "12px 16px 24px" }}>
 
         {/* 統計カード */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px", marginBottom: "16px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px", marginBottom: "20px" }}>
           {[
-            { value: String(totalDistanceMonth), unit: "km", label: "今月の距離", color: "#FF6B00" },
-            { value: String(achieveRate), unit: "%", label: "達成率", color: "#111111" },
+            { value: String(totalDistanceMonth), unit: "km", label: "今月の距離", color: "#FF6B00", icon: Route },
+            { value: String(achieveRate), unit: "%", label: "達成率", color: "#111111", icon: Trophy },
             {
               value: totalPenaltyMonth >= 1000 ? `${(totalPenaltyMonth / 1000).toFixed(1)}k` : String(totalPenaltyMonth),
-              unit: "円", label: "今月の罰金", color: "#EF4444",
+              unit: "円", label: "今月の罰金", color: "#EF4444", icon: CreditCard,
             },
           ].map((item, i) => (
-            <div key={i} style={{ background: "white", borderRadius: "16px", padding: "14px 10px", textAlign: "center", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
-              <p className="metric-value" style={{ fontSize: "28px", color: item.color, lineHeight: 1 }}>
-                {item.value}<span style={{ fontSize: "12px", color: item.color, marginLeft: "1px" }}>{item.unit}</span>
+            <div key={i} style={{ background: "white", borderRadius: "16px", padding: "16px 10px 18px", textAlign: "center", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
+              <item.icon size={16} color={item.color} style={{ margin: "0 auto 8px" }} />
+              <p className="metric-value" style={{ fontSize: "30px", color: item.color, lineHeight: 1 }}>
+                {item.value}<span style={{ fontSize: "13px", color: item.color, marginLeft: "1px" }}>{item.unit}</span>
               </p>
-              <p style={{ fontSize: "10px", color: "#888888", marginTop: "5px" }}>{item.label}</p>
+              <p style={{ fontSize: "11px", color: "#888888", marginTop: "7px" }}>{item.label}</p>
             </div>
           ))}
         </div>
 
         {/* 月間プログレス */}
         {monthGoal > 0 && (
-          <div style={{ background: "white", borderRadius: "16px", padding: "16px", marginBottom: "16px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "10px" }}>
+          <div style={{ background: "white", borderRadius: "16px", padding: "20px", marginBottom: "20px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "12px" }}>
               <span style={{ fontSize: "13px", color: "#888888", fontWeight: 500 }}>今月の目標距離</span>
               <div>
-                <span className="metric-value" style={{ fontSize: "22px", color: "#111111" }}>{totalDistanceMonth}</span>
-                <span style={{ fontSize: "12px", color: "#888888" }}>/{monthGoal}km</span>
+                <span className="metric-value" style={{ fontSize: "24px", color: "#111111" }}>{totalDistanceMonth}</span>
+                <span style={{ fontSize: "13px", color: "#888888" }}>/{monthGoal}km</span>
               </div>
             </div>
-            <div style={{ height: "6px", background: "#F0F0F0", borderRadius: "3px", overflow: "hidden" }}>
-              <div style={{ height: "100%", background: "#FF6B00", borderRadius: "3px", width: `${progressPct}%`, transition: "width 0.5s ease" }} />
+            <div style={{ height: "7px", background: "#F0F0F0", borderRadius: "4px", overflow: "hidden" }}>
+              <div style={{ height: "100%", background: "#FF6B00", borderRadius: "4px", width: `${progressPct}%`, transition: "width 0.5s ease" }} />
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between", marginTop: "6px" }}>
-              <span style={{ fontSize: "11px", color: "#FF6B00", fontWeight: 600 }}>{progressPct}%</span>
-              <span style={{ fontSize: "11px", color: "#888888" }}>残り {Math.max(0, monthGoal - totalDistanceMonth).toFixed(1)}km</span>
+            <div style={{ display: "flex", justifyContent: "space-between", marginTop: "8px" }}>
+              <span style={{ fontSize: "12px", color: "#FF6B00", fontWeight: 600 }}>{progressPct}%</span>
+              <span style={{ fontSize: "12px", color: "#888888" }}>残り {Math.max(0, monthGoal - totalDistanceMonth).toFixed(1)}km</span>
             </div>
           </div>
         )}
 
         {/* 今週の目標リスト */}
-        <p style={{ fontSize: "12px", color: "#888888", fontWeight: 600, marginBottom: "8px", paddingLeft: "4px", textTransform: "uppercase", letterSpacing: "0.04em" }}>今週の目標</p>
+        <div style={{ display: "flex", alignItems: "center", gap: "5px", marginBottom: "10px", paddingLeft: "4px" }}>
+          <CalendarDays size={13} color="#888888" />
+          <p style={{ fontSize: "12px", color: "#888888", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>今週の目標</p>
+        </div>
 
         {visibleInstances.length === 0 ? (
           <div style={{ background: "white", borderRadius: "16px", padding: "36px 20px", textAlign: "center", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", marginBottom: "16px" }}>
@@ -194,7 +205,7 @@ export default function HomeClient({
             </Link>
           </div>
         ) : (
-          <div style={{ background: "white", borderRadius: "16px", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", marginBottom: "8px" }}>
+          <div style={{ background: "white", borderRadius: "16px", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", marginBottom: "12px" }}>
             {visibleInstances.map((instance, idx) => {
               const isToday = instance.scheduled_date === todayStr;
               const isFuture = instance.scheduled_date > todayStr;
@@ -227,31 +238,43 @@ export default function HomeClient({
                       </button>
                     </div>
                   ) : (
-                    <div style={{ display: "flex", alignItems: "center", padding: "14px 16px", opacity: isFuture && !isPendingNotToday ? 0.45 : 1 }}>
+                    <div style={{ display: "flex", alignItems: "center", padding: "18px 16px", opacity: isFuture && !isPendingNotToday ? 0.45 : 1 }}>
                       {/* 日付 */}
                       <div style={{ width: "44px", textAlign: "center", flexShrink: 0 }}>
-                        <p className="metric-value" style={{ fontSize: "30px", color: isToday ? "#FF6B00" : "#111111", lineHeight: 1 }}>
+                        <p className="metric-value" style={{ fontSize: "32px", color: isToday ? "#FF6B00" : "#111111", lineHeight: 1 }}>
                           {d.getDate()}
                         </p>
-                        <p style={{ fontSize: "11px", color: isToday ? "#FF6B00" : "#888888", marginTop: "2px" }}>
+                        <p style={{ fontSize: "12px", color: isToday ? "#FF6B00" : "#888888", marginTop: "3px" }}>
                           {DAY_NAMES[d.getDay()]}
                         </p>
                       </div>
 
-                      <div style={{ width: "1px", height: "38px", background: "#EBEBEB", margin: "0 14px", flexShrink: 0 }} />
+                      <div style={{ width: "1px", height: "42px", background: "#EBEBEB", margin: "0 14px", flexShrink: 0 }} />
 
                       {/* 目標内容 */}
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                          <p style={{ fontSize: "15px", fontWeight: 600, color: "#111111" }}>
-                            {formatGoal(instance.goals) || "フリーラン"}
-                          </p>
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                          {instance.goals?.distance_km && (
+                            <span style={{ display: "flex", alignItems: "center", gap: "3px", fontSize: "15px", fontWeight: 600, color: "#111111" }}>
+                              <MapPin size={13} color="#FF6B00" strokeWidth={2.5} />
+                              {instance.goals.distance_km}km
+                            </span>
+                          )}
+                          {instance.goals?.duration_minutes && (
+                            <span style={{ display: "flex", alignItems: "center", gap: "3px", fontSize: "15px", fontWeight: 600, color: "#111111" }}>
+                              <Clock size={13} color="#888888" strokeWidth={2.5} />
+                              {instance.goals.duration_minutes}分
+                            </span>
+                          )}
+                          {!instance.goals?.distance_km && !instance.goals?.duration_minutes && (
+                            <span style={{ fontSize: "15px", fontWeight: 600, color: "#111111" }}>フリーラン</span>
+                          )}
                           {isToday && (
                             <span style={{ fontSize: "10px", background: "#FF6B00", color: "white", padding: "2px 7px", borderRadius: "99px", fontWeight: 700 }}>今日</span>
                           )}
                         </div>
                         {instance.goals && (
-                          <p style={{ fontSize: "12px", color: "#EF4444", marginTop: "3px" }}>
+                          <p style={{ fontSize: "12px", color: "#EF4444", marginTop: "4px" }}>
                             罰金 ¥{instance.goals.penalty_amount.toLocaleString()}
                           </p>
                         )}
@@ -303,12 +326,12 @@ export default function HomeClient({
           </div>
         )}
 
-        <p style={{ fontSize: "12px", color: "#AAAAAA", textAlign: "center", marginBottom: "16px" }}>
+        <p style={{ fontSize: "12px", color: "#AAAAAA", textAlign: "center", marginBottom: "20px" }}>
           今月スキップ残り <span style={{ fontWeight: 700, color: "#888888" }}>{skipRemaining}回</span>
         </p>
 
         <Link href="/goals/new">
-          <div style={{ background: "white", borderRadius: "16px", padding: "16px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
+          <div style={{ background: "white", borderRadius: "16px", padding: "20px", display: "flex", alignItems: "center", justifyContent: "space-between", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
             <span style={{ fontSize: "15px", fontWeight: 600, color: "#111111" }}>新しい目標を追加</span>
             <ChevronRight size={18} color="#AAAAAA" />
           </div>

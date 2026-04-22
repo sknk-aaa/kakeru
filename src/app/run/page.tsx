@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import dynamicImport from "next/dynamic";
 import { Pause, Play, Flag, Navigation } from "lucide-react";
 import GpsPermissionModal from "@/components/GpsPermissionModal";
-import { haversineDistance, speedKmh, calcCalories, formatPace, formatDuration, type GpsPoint } from "@/lib/haversine";
+import { haversineDistance, speedKmh, calcCalories, formatDuration, type GpsPoint } from "@/lib/haversine";
 import AppShell from "@/components/AppShell";
 import { createClient } from "@/lib/supabase/client";
 
@@ -24,18 +24,18 @@ export default function RunPage() {
 function RunPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const goalInstanceId = searchParams.get("goalInstanceId");
+  const urlInstanceId = searchParams.get("goalInstanceId");
 
   const [phase, setPhase] = useState<"idle" | "gpsPrompt" | "running" | "paused">("idle");
   const [gpsPoints, setGpsPoints] = useState<GpsPoint[]>([]);
   const [distanceKm, setDistanceKm] = useState(0);
   const [elapsedSec, setElapsedSec] = useState(0);
-  const [currentPace, setCurrentPace] = useState(0);
   const [calories, setCalories] = useState(0);
   const [goalInstance, setGoalInstance] = useState<{
     distance_km: number | null;
     duration_minutes: number | null;
   } | null>(null);
+  const [effectiveInstanceId, setEffectiveInstanceId] = useState<string | null>(urlInstanceId);
   const [weightKg, setWeightKg] = useState(60);
   const [goalReached, setGoalReached] = useState(false);
   const [startedAt, setStartedAt] = useState<Date | null>(null);
@@ -46,23 +46,43 @@ function RunPageInner() {
 
   useEffect(() => {
     const supabase = createClient();
+    const d = new Date();
+    const todayStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) return;
+
       supabase.from("users").select("weight_kg").eq("id", user.id).single().then(({ data }) => {
         if (data?.weight_kg) setWeightKg(data.weight_kg);
       });
-      if (goalInstanceId) {
+
+      if (urlInstanceId) {
         supabase
           .from("goal_instances")
           .select("goals(distance_km, duration_minutes)")
-          .eq("id", goalInstanceId)
+          .eq("id", urlInstanceId)
           .single()
           .then(({ data }) => {
             if (data?.goals) setGoalInstance(data.goals as unknown as { distance_km: number | null; duration_minutes: number | null });
           });
+      } else {
+        // BottomNav経由の直接遷移：今日のpendingインスタンスを自動取得
+        supabase
+          .from("goal_instances")
+          .select("id, goals(distance_km, duration_minutes)")
+          .eq("scheduled_date", todayStr)
+          .eq("status", "pending")
+          .limit(1)
+          .single()
+          .then(({ data }) => {
+            if (data) {
+              setEffectiveInstanceId(data.id);
+              if (data.goals) setGoalInstance(data.goals as unknown as { distance_km: number | null; duration_minutes: number | null });
+            }
+          });
       }
     });
-  }, [goalInstanceId]);
+  }, [urlInstanceId]);
 
   const startGps = useCallback(() => {
     setPhase("running");
@@ -77,10 +97,12 @@ function RunPageInner() {
     watchIdRef.current = navigator.geolocation.watchPosition(
       (pos) => {
         if (isPausedRef.current) return;
+        if (pos.coords.accuracy > 30) return;
         const newPoint: GpsPoint = {
           lat: pos.coords.latitude,
           lng: pos.coords.longitude,
           timestamp: Date.now(),
+          accuracy: pos.coords.accuracy,
         };
         setGpsPoints((prev) => {
           const last = prev[prev.length - 1];
@@ -89,25 +111,14 @@ function RunPageInner() {
             if (speed > 30) return prev;
           }
           const newPoints = [...prev, newPoint];
-          const dist = newPoints.slice(1).reduce((acc, p, i) => {
-            return acc + haversineDistance(newPoints[i], p);
-          }, 0);
+          const dist = newPoints.slice(1).reduce((acc, p, i) => acc + haversineDistance(newPoints[i], p), 0);
           setDistanceKm(dist);
-
-          if (last) {
-            const segDist = haversineDistance(last, newPoint);
-            const segSec = (newPoint.timestamp - last.timestamp) / 1000;
-            if (segDist > 0 && segSec > 0) {
-              setCurrentPace(Math.min(segSec / segDist, 1800));
-            }
-          }
-
           setCalories(calcCalories(dist, weightKg));
           return newPoints;
         });
       },
       (err) => console.error("GPS error:", err),
-      { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
     );
   }, [weightKg]);
 
@@ -135,7 +146,7 @@ function RunPageInner() {
     const avgPace = distanceKm > 0 ? elapsedSec / distanceKm : 0;
 
     const { data: run } = await supabase.from("runs").insert({
-      goal_instance_id: goalInstanceId || null,
+      goal_instance_id: effectiveInstanceId || null,
       user_id: user.id,
       distance_km: Math.round(distanceKm * 100) / 100,
       duration_seconds: elapsedSec,
@@ -146,11 +157,8 @@ function RunPageInner() {
       finished_at: finishedAt.toISOString(),
     }).select().single();
 
-    if (goalInstanceId && goalReached) {
-      await supabase
-        .from("goal_instances")
-        .update({ status: "achieved" })
-        .eq("id", goalInstanceId);
+    if (effectiveInstanceId && goalReached) {
+      await supabase.from("goal_instances").update({ status: "achieved" }).eq("id", effectiveInstanceId);
     }
 
     router.push(
@@ -158,10 +166,13 @@ function RunPageInner() {
     );
   }
 
-  const goalDistancePct =
-    goalInstance?.distance_km && distanceKm > 0
-      ? Math.min((distanceKm / goalInstance.distance_km) * 100, 100)
-      : null;
+  // プログレス計算
+  const distPct = goalInstance?.distance_km && goalInstance.distance_km > 0
+    ? Math.min((distanceKm / goalInstance.distance_km) * 100, 100)
+    : null;
+  const timePct = goalInstance?.duration_minutes && goalInstance.duration_minutes > 0
+    ? Math.min((elapsedSec / (goalInstance.duration_minutes * 60)) * 100, 100)
+    : null;
 
   // 開始前画面
   if (phase === "idle" || phase === "gpsPrompt") {
@@ -198,7 +209,7 @@ function RunPageInner() {
   return (
     <div style={{ height: "100dvh", display: "flex", flexDirection: "column", background: "#ffffff", overflow: "hidden" }}>
 
-      {/* 1. ヘッダー */}
+      {/* ヘッダー */}
       <div style={{ flexShrink: 0, background: "#111111", padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <span style={{ color: "#888888", fontSize: "12px" }}>計測中</span>
         {goalInstance && (
@@ -214,7 +225,7 @@ function RunPageInner() {
         )}
       </div>
 
-      {/* 2. 地図エリア：残り全スペース */}
+      {/* 地図 */}
       <div style={{ flex: 1, minHeight: 0, overflow: "hidden", position: "relative" }}>
         <RunMap points={gpsPoints} />
         {phase === "paused" && (
@@ -224,30 +235,43 @@ function RunPageInner() {
         )}
       </div>
 
-      {/* 3. 統計 + プログレスバー + ボタン */}
+      {/* 統計 + ボタン */}
       <div style={{ flexShrink: 0, background: "#ffffff", borderTop: "1px solid #E5E5E5" }}>
 
-        {/* プログレスバー */}
-        {goalDistancePct !== null && (
-          <div style={{ padding: "6px 16px 0" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "10px", color: "#888888", marginBottom: "3px" }}>
-              <span>{distanceKm.toFixed(2)}km</span>
-              <span>{goalInstance?.distance_km}km</span>
-            </div>
-            <div style={{ height: "4px", background: "#F0F0F0", borderRadius: "2px", overflow: "hidden" }}>
-              <div style={{ height: "100%", background: "#FF6B00", borderRadius: "2px", width: `${goalDistancePct}%`, transition: "width 0.5s ease" }} />
-            </div>
+        {/* 目標プログレス */}
+        {(distPct !== null || timePct !== null) && (
+          <div style={{ padding: "10px 16px 0", display: "flex", flexDirection: "column", gap: "6px" }}>
+            {distPct !== null && (
+              <div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "10px", color: "#888888", marginBottom: "3px" }}>
+                  <span style={{ color: "#FF6B00", fontWeight: 600 }}>{distanceKm.toFixed(2)}km</span>
+                  <span>目標 {goalInstance?.distance_km}km（{Math.round(distPct)}%）</span>
+                </div>
+                <div style={{ height: "5px", background: "#F0F0F0", borderRadius: "3px", overflow: "hidden" }}>
+                  <div style={{ height: "100%", background: "#FF6B00", borderRadius: "3px", width: `${distPct}%`, transition: "width 0.5s ease" }} />
+                </div>
+              </div>
+            )}
+            {timePct !== null && (
+              <div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "10px", color: "#888888", marginBottom: "3px" }}>
+                  <span style={{ color: "#FF6B00", fontWeight: 600 }}>{formatDuration(elapsedSec)}</span>
+                  <span>目標 {goalInstance?.duration_minutes}分（{Math.round(timePct)}%）</span>
+                </div>
+                <div style={{ height: "5px", background: "#F0F0F0", borderRadius: "3px", overflow: "hidden" }}>
+                  <div style={{ height: "100%", background: "#FF6B00", borderRadius: "3px", width: `${timePct}%`, transition: "width 0.5s ease" }} />
+                </div>
+              </div>
+            )}
           </div>
         )}
 
-        {/* 統計 */}
+        {/* 統計数値 */}
         <div style={{ padding: "8px 16px 6px" }}>
-          {/* 経過時間：上部に大きく */}
           <div style={{ textAlign: "center", marginBottom: "6px" }}>
             <p className="metric-value" style={{ fontSize: "52px", color: "#111111", lineHeight: 1 }}>{formatDuration(elapsedSec)}</p>
             <p style={{ fontSize: "11px", color: "#888888", marginTop: "3px" }}>経過時間</p>
           </div>
-          {/* km・カロリー：下部に2列 */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px" }}>
             <div style={{ textAlign: "center" }}>
               <p className="metric-value" style={{ fontSize: "32px", color: "#FF6B00", lineHeight: 1 }}>{distanceKm.toFixed(2)}</p>
@@ -260,31 +284,39 @@ function RunPageInner() {
           </div>
         </div>
 
-      {/* ボタンエリア */}
-      <div style={{ padding: `0 12px calc(env(safe-area-inset-bottom) + 8px)` }}>
-        <div style={{ display: "flex", gap: "10px" }}>
-          <button className="btn-secondary" style={{ flex: 1, minHeight: "52px", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }} onClick={handlePauseResume}>
-            {phase === "paused" ? <><Play size={16} />再開</> : <><Pause size={16} />一時停止</>}
-          </button>
-          {goalInstance ? (
+        {/* ボタン */}
+        <div style={{ padding: `0 12px calc(env(safe-area-inset-bottom) + 8px)` }}>
+          <div style={{ display: "flex", gap: "10px" }}>
             <button
-              className="btn-primary"
-              style={{ flex: 1, minHeight: "52px", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", opacity: goalReached ? 1 : 0.35 }}
-              onClick={handleFinish}
-              disabled={!goalReached}
+              className="btn-secondary"
+              style={{ flex: 1, minHeight: "52px", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
+              onClick={handlePauseResume}
             >
-              <Flag size={16} />{goalReached ? "ゴール！" : "ゴール"}
+              {phase === "paused" ? <><Play size={16} />再開</> : <><Pause size={16} />一時停止</>}
             </button>
-          ) : (
-            <button className="btn-primary" style={{ flex: 1, minHeight: "52px", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }} onClick={handleFinish}>
-              <Flag size={16} />終了
-            </button>
+            {goalInstance ? (
+              <button
+                className="btn-primary"
+                style={{ flex: 1, minHeight: "52px", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", opacity: goalReached ? 1 : 0.35 }}
+                onClick={handleFinish}
+                disabled={!goalReached}
+              >
+                <Flag size={16} />{goalReached ? "ゴール！" : "ゴール"}
+              </button>
+            ) : (
+              <button
+                className="btn-primary"
+                style={{ flex: 1, minHeight: "52px", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
+                onClick={handleFinish}
+              >
+                <Flag size={16} />終了
+              </button>
+            )}
+          </div>
+          {!goalReached && goalInstance && (
+            <p style={{ fontSize: "11px", color: "#888888", textAlign: "center", marginTop: "4px" }}>目標達成後にゴールできます</p>
           )}
         </div>
-        {!goalReached && goalInstance && (
-          <p style={{ fontSize: "11px", color: "#888888", textAlign: "center", marginTop: "4px" }}>目標達成後にゴールできます</p>
-        )}
-      </div>
 
       </div>
     </div>

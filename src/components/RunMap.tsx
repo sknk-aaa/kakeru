@@ -2,6 +2,7 @@
 
 import "leaflet/dist/leaflet.css";
 import { useEffect, useRef } from "react";
+import type { Map, Polyline, Marker, Circle } from "leaflet";
 import type { GpsPoint } from "@/lib/haversine";
 
 interface Props {
@@ -10,16 +11,17 @@ interface Props {
 
 export default function RunMap({ points }: Props) {
   const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<any>(null);
-  const polylineRef = useRef<any>(null);
-  const polylineBorderRef = useRef<any>(null);
-  const markerRef = useRef<any>(null);
+  const mapInstanceRef = useRef<Map | null>(null);
+  const polylineRef = useRef<Polyline | null>(null);
+  const polylineBorderRef = useRef<Polyline | null>(null);
+  const markerRef = useRef<Marker | null>(null);
+  const accuracyCircleRef = useRef<Circle | null>(null);
 
   useEffect(() => {
     if (!mapRef.current) return;
 
     let cancelled = false;
-    let map: any = null;
+    let map: Map | null = null;
 
     import("leaflet").then((L) => {
       if (cancelled || !mapRef.current) return;
@@ -31,17 +33,19 @@ export default function RunMap({ points }: Props) {
         attributionControl: false,
       });
 
-      // CartoDB Voyager: Googleマップに近いクリーンなデザイン
-      L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
-        attribution: "© OpenStreetMap © CartoDB",
-        maxZoom: 19,
-      }).addTo(map);
+      L.tileLayer(
+        "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
+        {
+          attribution: "© OpenStreetMap © CARTO",
+          maxZoom: 19,
+          subdomains: "abcd",
+        }
+      ).addTo(map);
 
-      // ズームコントロールを右下に
       L.control.zoom({ position: "bottomright" }).addTo(map);
 
       mapInstanceRef.current = map;
-      setTimeout(() => { if (!cancelled) map.invalidateSize(); }, 100);
+      setTimeout(() => { if (!cancelled) map?.invalidateSize(); }, 100);
     });
 
     return () => {
@@ -52,6 +56,7 @@ export default function RunMap({ points }: Props) {
         polylineRef.current = null;
         polylineBorderRef.current = null;
         markerRef.current = null;
+        accuracyCircleRef.current = null;
       }
     };
   }, []);
@@ -63,10 +68,9 @@ export default function RunMap({ points }: Props) {
       if (!map) return;
       const latLngs = points.map((p) => [p.lat, p.lng] as [number, number]);
 
-      // 白縁（下レイヤー）+ オレンジ線（上レイヤー）でナビ線っぽく
       if (polylineBorderRef.current) {
         polylineBorderRef.current.setLatLngs(latLngs);
-        polylineRef.current.setLatLngs(latLngs);
+        polylineRef.current?.setLatLngs(latLngs);
       } else {
         polylineBorderRef.current = L.polyline(latLngs, {
           color: "white",
@@ -81,27 +85,43 @@ export default function RunMap({ points }: Props) {
       }
 
       const last = points[points.length - 1];
+      const latlng: [number, number] = [last.lat, last.lng];
+
+      if (last.accuracy) {
+        if (accuracyCircleRef.current) {
+          accuracyCircleRef.current.setLatLng(latlng).setRadius(last.accuracy);
+        } else {
+          accuracyCircleRef.current = L.circle(latlng, {
+            radius: last.accuracy,
+            color: "#22C55E",
+            fillColor: "#22C55E",
+            fillOpacity: 0.08,
+            weight: 1,
+            opacity: 0.4,
+          }).addTo(map);
+        }
+      }
+
       if (markerRef.current) {
-        markerRef.current.setLatLng([last.lat, last.lng]);
+        markerRef.current.setLatLng(latlng);
       } else {
-        // Googleマップ風の青いパルスドット
         const icon = L.divIcon({
           html: '<div class="gmap-marker"><div class="gmap-pulse"></div><div class="gmap-dot"></div></div>',
           className: "",
           iconSize: [20, 20],
           iconAnchor: [10, 10],
         });
-        markerRef.current = L.marker([last.lat, last.lng], { icon }).addTo(map);
+        markerRef.current = L.marker(latlng, { icon }).addTo(map);
       }
 
-      map.setView([last.lat, last.lng], map.getZoom());
+      map.setView(latlng, map.getZoom());
     });
   }, [points]);
 
   return (
     <div
       ref={mapRef}
-      style={{ width: "100%", height: "100%", background: "#e8e0d8" }}
+      style={{ width: "100%", height: "100%", background: "#e8e4dc" }}
     />
   );
 }

@@ -9,16 +9,15 @@ export default async function HomePage() {
   const user = await requireUser();
   const supabase = await createClient();
 
-  const today = new Date();
-  const todayStr = today.toISOString().split("T")[0];
-  const startOfWeek = new Date(today);
-  startOfWeek.setDate(today.getDate() - today.getDay());
+  // JSTで日付を計算（サーバーはUTCで動くため+9時間補正）
+  const nowJst = new Date(Date.now() + 9 * 60 * 60 * 1000);
+  const todayStr = nowJst.toISOString().split("T")[0];
+  const startOfWeek = new Date(nowJst);
+  startOfWeek.setUTCDate(nowJst.getUTCDate() - nowJst.getUTCDay());
   const endOfWeek = new Date(startOfWeek);
-  endOfWeek.setDate(startOfWeek.getDate() + 6);
+  endOfWeek.setUTCDate(startOfWeek.getUTCDate() + 6);
 
-  const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
-    .toISOString()
-    .split("T")[0];
+  const startOfMonth = `${nowJst.getUTCFullYear()}-${String(nowJst.getUTCMonth() + 1).padStart(2, "0")}-01`;
 
   const [{ data: userProfile }, { data: weekInstances }, { data: monthRuns }, { data: monthPenalties }] =
     await Promise.all([

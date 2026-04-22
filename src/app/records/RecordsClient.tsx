@@ -70,8 +70,14 @@ export default function RecordsClient({ runs, bestPaceSecPerKm, longestRunKm, to
   return (
     <div>
       {/* ヘッダー */}
-      <div style={{ padding: "20px 20px 12px" }}>
-        <h1 className="metric-value" style={{ fontSize: "30px", color: "#111111" }}>記録</h1>
+      <div style={{
+        position: "sticky", top: 0, zIndex: 10,
+        background: "rgba(255,255,255,0.92)", backdropFilter: "blur(12px)",
+        borderBottom: "1px solid #E5E5E5",
+        padding: "0 16px", height: "54px",
+        display: "flex", alignItems: "center", justifyContent: "center",
+      }}>
+        <h1 style={{ fontSize: "17px", fontWeight: 700, color: "#111111" }}>記録</h1>
       </div>
 
       <div style={{ padding: "0 16px 24px" }}>

@@ -114,9 +114,9 @@ body {
 }
 .input:focus { border-color: #FF6B00; }
 
-/* 現在地マーカー（Googleマップ風パルス） */
+/* 現在地マーカー */
 @keyframes gmap-pulse {
-  0%   { transform: scale(1);   opacity: 0.6; }
+  0%   { transform: scale(1);   opacity: 0.5; }
   100% { transform: scale(3.5); opacity: 0; }
 }
 .gmap-marker {
@@ -128,14 +128,14 @@ body {
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  background: rgba(66, 133, 244, 0.4);
+  background: rgba(34, 197, 94, 0.4);
   animation: gmap-pulse 1.8s ease-out infinite;
 }
 .gmap-dot {
   position: absolute;
   inset: 3px;
   border-radius: 50%;
-  background: #4285F4;
+  background: #22C55E;
   border: 2.5px solid white;
   box-shadow: 0 1px 4px rgba(0,0,0,0.35);
 }

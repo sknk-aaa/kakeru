@@ -59,8 +59,18 @@ export default function SettingsPage() {
 
   return (
     <AppShell>
-      <div className="px-4 pt-12 pb-4">
-        <h1 className="metric-value text-3xl text-[#111111] mb-6">設定</h1>
+      <div
+        style={{
+          position: "sticky", top: 0, zIndex: 10,
+          background: "rgba(255,255,255,0.92)", backdropFilter: "blur(12px)",
+          borderBottom: "1px solid #E5E5E5",
+          padding: "0 16px", height: "54px",
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }}
+      >
+        <h1 style={{ fontSize: "17px", fontWeight: 700, color: "#111111" }}>設定</h1>
+      </div>
+      <div className="px-4 pt-4 pb-4">
 
         {/* プロフィール */}
         <div className="mb-4">

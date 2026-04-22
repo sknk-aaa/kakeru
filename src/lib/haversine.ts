@@ -2,6 +2,7 @@ export interface GpsPoint {
   lat: number;
   lng: number;
   timestamp: number;
+  accuracy?: number;
 }
 
 export function haversineDistance(a: GpsPoint, b: GpsPoint): number {
