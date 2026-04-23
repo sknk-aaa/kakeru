@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import AppShell from "@/components/AppShell";
-import { User, Weight, Target, CreditCard, LogOut, ChevronRight, Check, CheckCircle } from "lucide-react";
+import { User, Weight, Target, CreditCard, LogOut, ChevronRight, Check, CheckCircle, KeyRound } from "lucide-react";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -15,6 +15,12 @@ export default function SettingsPage() {
   const [monthlyGoal, setMonthlyGoal] = useState("");
   const [hasCard, setHasCard] = useState(false);
   const [cardInfo, setCardInfo] = useState<{ brand: string; last4: string } | null>(null);
+  const [isEmailUser, setIsEmailUser] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [changingPw, setChangingPw] = useState(false);
+  const [pwSaved, setPwSaved] = useState(false);
+  const [pwError, setPwError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -24,6 +30,7 @@ export default function SettingsPage() {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) return;
       setEmail(user.email ?? "");
+      setIsEmailUser(user.app_metadata?.provider === "email");
       supabase
         .from("users")
         .select("weight_kg, monthly_distance_goal_km, stripe_payment_method_id")
@@ -58,6 +65,23 @@ export default function SettingsPage() {
     setTimeout(() => setSaved(false), 2000);
   }
 
+  async function handleChangePassword() {
+    if (newPassword.length < 8) { setPwError("8文字以上で入力してください"); return; }
+    if (newPassword !== confirmPassword) { setPwError("パスワードが一致しません"); return; }
+    setChangingPw(true);
+    setPwError(null);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) {
+      setPwError(error.message);
+    } else {
+      setPwSaved(true);
+      setNewPassword("");
+      setConfirmPassword("");
+      setTimeout(() => setPwSaved(false), 2000);
+    }
+    setChangingPw(false);
+  }
+
   async function handleLogout() {
     await supabase.auth.signOut();
     router.push("/auth");
@@ -86,6 +110,41 @@ export default function SettingsPage() {
           <div className="card">
             <p className="text-sm text-[#888888]">メールアドレス</p>
             <p className="text-[15px] font-medium text-[#111111] mt-0.5">{email}</p>
+            {isEmailUser && (
+              <>
+                <div className="border-t border-[#F2F2F2] mt-4 pt-4">
+                  <p className="text-sm text-[#888888] flex items-center gap-1.5 mb-3">
+                    <KeyRound size={13} /> パスワード変更
+                  </p>
+                  <div className="flex flex-col gap-2">
+                    <input
+                      className="input"
+                      type="password"
+                      placeholder="新しいパスワード（8文字以上）"
+                      value={newPassword}
+                      onChange={(e) => { setNewPassword(e.target.value); setPwError(null); }}
+                      autoComplete="new-password"
+                    />
+                    <input
+                      className="input"
+                      type="password"
+                      placeholder="新しいパスワード（確認）"
+                      value={confirmPassword}
+                      onChange={(e) => { setConfirmPassword(e.target.value); setPwError(null); }}
+                      autoComplete="new-password"
+                    />
+                  </div>
+                  {pwError && <p className="text-[#EF4444] text-sm mt-2">{pwError}</p>}
+                  <button
+                    className="btn-primary w-full mt-3 gap-2"
+                    onClick={handleChangePassword}
+                    disabled={changingPw || !newPassword || !confirmPassword}
+                  >
+                    {pwSaved ? <><Check size={16} />変更しました</> : changingPw ? "変更中..." : "パスワードを変更する"}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
