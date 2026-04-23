@@ -37,6 +37,11 @@ export const metadata: Metadata = {
     title: "Kakeru(カケル)｜サボると課金されるランニングアプリ",
     description: "走らなければ、ペナルティ。本気で習慣化したい人のランニングアプリ。",
   },
+  icons: {
+    icon: "/favicon.png",
+    shortcut: "/favicon.png",
+    apple: "/icon-192.png",
+  },
   alternates: {
     canonical: "https://www.kakeruapp.com",
   },
