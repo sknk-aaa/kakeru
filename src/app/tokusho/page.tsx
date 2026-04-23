@@ -10,7 +10,7 @@ const ROWS = [
   { label: "所在地", value: "※請求があった場合は遅滞なく開示します" },
   { label: "電話番号", value: "※請求があった場合は遅滞なく開示します" },
   { label: "メールアドレス", value: CONTACT_EMAIL },
-  { label: "販売価格", value: "各目標に対してユーザーが設定した罰金額（100円以上、上限なし）\n※目標未達成時のみ課金されます" },
+  { label: "販売価格", value: "各目標に対してユーザーが設定した課金額（100円以上、上限なし）\n※目標未達成時のみ課金されます" },
   { label: "販売価格以外の費用", value: "インターネット接続に必要な通信費はお客様のご負担となります" },
   { label: "支払方法", value: "クレジットカード（Visa・Mastercard・JCB・American Express・Diners Club）" },
   { label: "支払時期", value: "目標が未達成と判定された翌日以降に自動引き落とし" },
