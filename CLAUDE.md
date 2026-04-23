@@ -1,6 +1,7 @@
 @AGENTS.md
 
 ## Rules
+コードを変更したら、pushするかを聞いてください。その際、する/しないのボタンを押すことで選択できるようにしてください。
 
 ## Next.js 16 固有の注意
 - Supabase を使うページには必ず `export const dynamic = "force-dynamic"` を先頭に追加する

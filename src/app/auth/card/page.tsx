@@ -162,7 +162,8 @@ function StripeCardForm({
     });
 
     if (!res.ok) {
-      setError("カード情報の保存に失敗しました。もう一度お試しください。");
+      const data = await res.json().catch(() => ({}));
+      setError(`保存エラー (${res.status}): ${data.error ?? "不明なエラー"}`);
       setLoading(false);
       return;
     }

@@ -28,11 +28,15 @@ export async function POST(request: Request) {
   const Stripe = (await import("stripe")).default;
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-  // SetupIntent の confirm 時点で PM はカスタマーにアタッチ済みのため attach() は不要。
-  // デフォルト支払い方法として設定するだけでよい。
-  await stripe.customers.update(userData.stripe_customer_id, {
-    invoice_settings: { default_payment_method: paymentMethodId },
-  });
+  try {
+    await stripe.customers.update(userData.stripe_customer_id, {
+      invoice_settings: { default_payment_method: paymentMethodId },
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("Stripe customers.update failed:", message);
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 
   await admin
     .from("users")
