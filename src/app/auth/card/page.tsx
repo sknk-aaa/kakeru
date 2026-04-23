@@ -19,6 +19,8 @@ export default function CardPage() {
       .then((data) => {
         if (data.error === "Stripe not configured") {
           setStripeAvailable(false);
+        } else if (data.error) {
+          setError("初期化エラー: " + data.error);
         } else {
           setClientSecret(data.clientSecret);
         }
@@ -71,7 +73,7 @@ export default function CardPage() {
             loading={loading}
             setLoading={setLoading}
           />
-        ) : (
+        ) : error ? null : (
           <div className="h-12 bg-[#F5F5F5] rounded-lg animate-pulse" />
         )}
         {error && <p className="text-[#EF4444] text-sm mt-3">{error}</p>}
@@ -105,13 +107,19 @@ function StripeCardForm({
 
   useEffect(() => {
     const pk = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
-    if (!pk) return;
+    if (!pk) {
+      setError("Stripe 公開キーが設定されていません");
+      return;
+    }
 
     import("@stripe/stripe-js").then(({ loadStripe }) => {
       loadStripe(pk).then((stripe) => {
-        if (!stripe) return;
+        if (!stripe) {
+          setError("Stripe の読み込みに失敗しました");
+          return;
+        }
 
-        // clientSecret を渡さずに elements() を初期化（Card Element の正しい使い方）
+        // clientSecret なしで elements() を初期化（Card Element の正しい使い方）
         const elements = stripe.elements();
         const cardElement = elements.create("card", {
           style: {
@@ -129,6 +137,7 @@ function StripeCardForm({
         setStripeLoaded(true);
       });
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -139,12 +148,12 @@ function StripeCardForm({
     setLoading(true);
     setError(null);
 
-    const { error, setupIntent } = await stripe.confirmCardSetup(clientSecret, {
+    const { error: confirmError, setupIntent } = await stripe.confirmCardSetup(clientSecret, {
       payment_method: { card: cardElement },
     });
 
-    if (error) {
-      setError(error.message ?? "エラーが発生しました");
+    if (confirmError) {
+      setError(confirmError.message ?? "カードの確認に失敗しました");
       setLoading(false);
       return;
     }
@@ -155,14 +164,21 @@ function StripeCardForm({
       return;
     }
 
+    // payment_method は string か PaymentMethod オブジェクト
+    const paymentMethodId =
+      typeof setupIntent.payment_method === "string"
+        ? setupIntent.payment_method
+        : setupIntent.payment_method.id;
+
     const res = await fetch("/api/stripe/save-payment-method", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ paymentMethodId: setupIntent.payment_method }),
+      body: JSON.stringify({ paymentMethodId }),
     });
 
+    const data = await res.json().catch(() => ({}));
+
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
       setError(`保存エラー (${res.status}): ${data.error ?? "不明なエラー"}`);
       setLoading(false);
       return;
