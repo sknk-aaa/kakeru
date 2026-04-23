@@ -26,10 +26,6 @@ export default function CardPage() {
       .catch(() => setStripeAvailable(false));
   }, []);
 
-  async function handleSkip() {
-    router.push("/");
-  }
-
   if (!stripeAvailable) {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center px-6">
@@ -41,7 +37,7 @@ export default function CardPage() {
           Stripeのキーが設定されていません。<br />
           環境変数を設定後にカードを登録してください。
         </p>
-        <button className="btn-primary w-full" onClick={handleSkip}>
+        <button className="btn-primary w-full" onClick={() => router.push("/")}>
           スキップして進む（開発用）
         </button>
       </div>
@@ -102,7 +98,10 @@ function StripeCardForm({
   setLoading: (v: boolean) => void;
 }) {
   const [stripeLoaded, setStripeLoaded] = useState(false);
-  const [elements, setElements] = useState<unknown>(null);
+  const [stripeInstance, setStripeInstance] = useState<{
+    stripe: import("@stripe/stripe-js").Stripe;
+    cardElement: import("@stripe/stripe-js").StripeCardElement;
+  } | null>(null);
 
   useEffect(() => {
     const pk = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
@@ -111,27 +110,32 @@ function StripeCardForm({
     import("@stripe/stripe-js").then(({ loadStripe }) => {
       loadStripe(pk).then((stripe) => {
         if (!stripe) return;
-        const els = (stripe as any).elements({ clientSecret });
-        const cardElement = els.create("card", {
+
+        // clientSecret を渡さずに elements() を初期化（Card Element の正しい使い方）
+        const elements = stripe.elements();
+        const cardElement = elements.create("card", {
           style: {
             base: {
               fontSize: "16px",
               color: "#111111",
               fontFamily: "sans-serif",
+              "::placeholder": { color: "#AAAAAA" },
             },
+            invalid: { color: "#EF4444" },
           },
         });
         cardElement.mount("#card-element");
-        setElements({ stripe, els, cardElement });
+        setStripeInstance({ stripe, cardElement });
         setStripeLoaded(true);
       });
     });
-  }, [clientSecret]);
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!elements) return;
-    const { stripe, els, cardElement } = elements as any;
+    if (!stripeInstance) return;
+    const { stripe, cardElement } = stripeInstance;
+
     setLoading(true);
     setError(null);
 
@@ -145,11 +149,23 @@ function StripeCardForm({
       return;
     }
 
-    await fetch("/api/stripe/save-payment-method", {
+    if (!setupIntent?.payment_method) {
+      setError("カードの登録に失敗しました。もう一度お試しください。");
+      setLoading(false);
+      return;
+    }
+
+    const res = await fetch("/api/stripe/save-payment-method", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ paymentMethodId: setupIntent.payment_method }),
     });
+
+    if (!res.ok) {
+      setError("カード情報の保存に失敗しました。もう一度お試しください。");
+      setLoading(false);
+      return;
+    }
 
     onSuccess();
   }
