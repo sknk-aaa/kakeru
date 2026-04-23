@@ -21,8 +21,23 @@ const notoSansJP = Noto_Sans_JP({
 });
 
 export const metadata: Metadata = {
-  title: "カケル — ランニング罰金アプリ",
-  description: "目標を設定し、走らなければ課金される。",
+  title: "Kakeru(カケル)｜サボると課金されるランニングアプリ",
+  description: "走らなければ、ペナルティ。ランニング目標を設定して達成できなければ課金されてしまう。本気で習慣化したい人のランニングアプリ。",
+  keywords: ["ランニング", "習慣化", "罰金", "ペナルティ", "ランニングアプリ", "目標管理", "Kakeru", "カケル"],
+  openGraph: {
+    title: "Kakeru(カケル)｜サボると課金されるランニングアプリ",
+    description: "走らなければ、ペナルティ。ランニング目標を設定して達成できなければ課金されてしまう。本気で習慣化したい人のランニングアプリ。",
+    url: "https://www.kakeruapp.com",
+    siteName: "カケル",
+    locale: "ja_JP",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "Kakeru(カケル)｜サボると課金されるランニングアプリ",
+    description: "走らなければ、ペナルティ。本気で習慣化したい人のランニングアプリ。",
+  },
+  metadataBase: new URL("https://www.kakeruapp.com"),
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
