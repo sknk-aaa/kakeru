@@ -7,19 +7,20 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const admin = createAdminClient();
-  const today = new Date().toISOString().split("T")[0];
+  // JSTで「今日」を計算（Vercel サーバーは UTC）
+  const nowJst = new Date(Date.now() + 9 * 60 * 60 * 1000);
+  const today = nowJst.toISOString().split("T")[0];
 
-  // 今日のpending goal_instancesを取得
+  const admin = createAdminClient();
+
   const { data: pendingInstances } = await admin
     .from("goal_instances")
-    .select("id, user_id, goal_id, goals(penalty_amount)")
+    .select("id, user_id, goals(penalty_amount)")
     .eq("scheduled_date", today)
     .eq("status", "pending") as {
       data: Array<{
         id: string;
         user_id: string;
-        goal_id: string;
         goals: { penalty_amount: number } | null;
       }> | null;
     };
@@ -28,78 +29,77 @@ export async function GET(request: Request) {
     return NextResponse.json({ processed: 0 });
   }
 
+  const Stripe = process.env.STRIPE_SECRET_KEY
+    ? (await import("stripe")).default
+    : null;
+  const stripe = Stripe ? new Stripe(process.env.STRIPE_SECRET_KEY!) : null;
+
   let charged = 0;
-  let failed = 0;
+  let skipped = 0;
 
   for (const instance of pendingInstances) {
-    const goal = instance.goals as { penalty_amount: number } | null;
-    const penaltyAmount = goal?.penalty_amount ?? 0;
+    const penaltyAmount = (instance.goals as { penalty_amount: number } | null)?.penalty_amount ?? 0;
 
+    // インスタンスを失敗に更新
     await admin
       .from("goal_instances")
       .update({ status: "failed" })
       .eq("id", instance.id);
 
-    if (penaltyAmount > 0) {
-      const { data: userData } = await admin
-        .from("users")
-        .select("stripe_customer_id, stripe_payment_method_id, email")
-        .eq("id", instance.user_id)
-        .single();
+    if (penaltyAmount <= 0 || !stripe) {
+      skipped++;
+      continue;
+    }
 
-      const penaltyRecord = await admin.from("penalties").insert({
+    const { data: userData } = await admin
+      .from("users")
+      .select("stripe_customer_id, stripe_payment_method_id")
+      .eq("id", instance.user_id)
+      .single();
+
+    if (!userData?.stripe_payment_method_id) {
+      skipped++;
+      continue;
+    }
+
+    // penaltyレコードを作成（statusはpending、Webhookが charged/failed に更新する）
+    const { data: penaltyRecord } = await admin
+      .from("penalties")
+      .insert({
         user_id: instance.user_id,
         goal_instance_id: instance.id,
         amount: penaltyAmount,
         status: "pending",
-      }).select().single();
+      })
+      .select()
+      .single();
 
-      if (userData?.stripe_payment_method_id && process.env.STRIPE_SECRET_KEY) {
-        try {
-          const Stripe = (await import("stripe")).default;
-          const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+    try {
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: penaltyAmount,
+        currency: "jpy",
+        customer: userData.stripe_customer_id ?? undefined,
+        payment_method: userData.stripe_payment_method_id,
+        confirm: true,
+        off_session: true,
+      });
 
-          const paymentIntent = await stripe.paymentIntents.create({
-            amount: penaltyAmount,
-            currency: "jpy",
-            customer: userData.stripe_customer_id ?? undefined,
-            payment_method: userData.stripe_payment_method_id,
-            confirm: true,
-            off_session: true,
-          });
+      // payment_intent_idを保存（ステータス更新はWebhookが行う）
+      await admin
+        .from("penalties")
+        .update({ stripe_payment_intent_id: paymentIntent.id })
+        .eq("id", penaltyRecord?.id);
 
-          await admin
-            .from("penalties")
-            .update({
-              stripe_payment_intent_id: paymentIntent.id,
-              status: "charged",
-              charged_at: new Date().toISOString(),
-            })
-            .eq("id", penaltyRecord.data?.id);
-
-          // 課金通知メール
-          if (userData.email && process.env.RESEND_API_KEY) {
-            const { Resend } = await import("resend");
-            const resend = new Resend(process.env.RESEND_API_KEY);
-            await resend.emails.send({
-              from: "カケル <noreply@kakeru-project.vercel.app>",
-              to: userData.email,
-              subject: `¥${penaltyAmount.toLocaleString()}が課金されました`,
-              text: `${today}の目標が未達成のため、¥${penaltyAmount.toLocaleString()}が課金されました。`,
-            });
-          }
-          charged++;
-        } catch (err) {
-          console.error("Stripe charge failed:", err);
-          await admin
-            .from("penalties")
-            .update({ status: "failed" })
-            .eq("id", penaltyRecord.data?.id);
-          failed++;
-        }
-      }
+      charged++;
+    } catch (err) {
+      console.error("Stripe charge failed:", err);
+      // Stripeが同期エラーを返した場合はWebhookが来ないので直接failedに
+      await admin
+        .from("penalties")
+        .update({ status: "failed" })
+        .eq("id", penaltyRecord?.id);
     }
   }
 
-  return NextResponse.json({ processed: pendingInstances.length, charged, failed });
+  return NextResponse.json({ processed: pendingInstances.length, charged, skipped });
 }

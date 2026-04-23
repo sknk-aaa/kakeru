@@ -32,7 +32,7 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // 認証不要パス
-  const publicPaths = ["/auth", "/auth/callback"];
+  const publicPaths = ["/auth", "/auth/callback", "/privacy", "/terms", "/tokusho"];
   const isPublicPath = publicPaths.some((p) => pathname.startsWith(p));
   const isApiPath = pathname.startsWith("/api");
 
