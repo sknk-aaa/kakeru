@@ -36,8 +36,7 @@ export async function POST() {
     customerId = customer.id;
     await admin
       .from("users")
-      .update({ stripe_customer_id: customerId })
-      .eq("id", user.id);
+      .upsert({ id: user.id, stripe_customer_id: customerId }, { onConflict: "id" });
   }
 
   const setupIntent = await stripe.setupIntents.create({

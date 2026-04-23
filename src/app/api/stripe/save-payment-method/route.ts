@@ -60,10 +60,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: message }, { status: 500 });
   }
 
-  await admin
+  const { error: dbError } = await admin
     .from("users")
-    .update({ stripe_customer_id: customerId, stripe_payment_method_id: paymentMethodId })
-    .eq("id", user.id);
+    .upsert(
+      { id: user.id, stripe_customer_id: customerId, stripe_payment_method_id: paymentMethodId },
+      { onConflict: "id" }
+    );
+
+  if (dbError) {
+    console.error("DB upsert failed:", dbError.message);
+    return NextResponse.json({ error: "DB保存に失敗しました: " + dbError.message }, { status: 500 });
+  }
 
   return NextResponse.json({ success: true });
 }
