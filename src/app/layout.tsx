@@ -33,9 +33,12 @@ export const metadata: Metadata = {
     type: "website",
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "Kakeru(カケル)｜サボると課金されるランニングアプリ",
     description: "走らなければ、ペナルティ。本気で習慣化したい人のランニングアプリ。",
+  },
+  alternates: {
+    canonical: "https://www.kakeruapp.com",
   },
   metadataBase: new URL("https://www.kakeruapp.com"),
   appleWebApp: {
