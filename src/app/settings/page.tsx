@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import AppShell from "@/components/AppShell";
-import { User, Weight, Target, CreditCard, LogOut, ChevronRight, Check } from "lucide-react";
+import { User, Weight, Target, CreditCard, LogOut, ChevronRight, Check, CheckCircle } from "lucide-react";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -14,6 +14,7 @@ export default function SettingsPage() {
   const [weightKg, setWeightKg] = useState("");
   const [monthlyGoal, setMonthlyGoal] = useState("");
   const [hasCard, setHasCard] = useState(false);
+  const [cardInfo, setCardInfo] = useState<{ brand: string; last4: string } | null>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -31,7 +32,12 @@ export default function SettingsPage() {
         .then(({ data }) => {
           if (data?.weight_kg) setWeightKg(String(data.weight_kg));
           if (data?.monthly_distance_goal_km) setMonthlyGoal(String(data.monthly_distance_goal_km));
-          setHasCard(!!data?.stripe_payment_method_id);
+          if (data?.stripe_payment_method_id) {
+            setHasCard(true);
+            fetch("/api/stripe/payment-method")
+              .then((r) => r.json())
+              .then((d) => { if (d.card) setCardInfo(d.card); });
+          }
         });
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -142,18 +148,45 @@ export default function SettingsPage() {
           <p className="text-xs text-[#888888] font-medium mb-2 flex items-center gap-1.5">
             <CreditCard size={13} /> 支払い方法
           </p>
-          <button
-            className="card w-full flex items-center justify-between py-3"
-            onClick={() => router.push("/auth/card")}
-          >
-            <div className="flex items-center gap-3">
-              <CreditCard size={18} color={hasCard ? "#22C55E" : "#888888"} />
-              <span className="text-sm font-medium">
-                {hasCard ? "クレジットカード登録済み" : "クレジットカードを登録する"}
-              </span>
+          {hasCard ? (
+            <div style={{ background: "white", borderRadius: "16px", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
+              {/* 登録済み表示 */}
+              <div style={{ background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)", borderRadius: "14px", margin: "12px", padding: "18px 20px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "20px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                    <CheckCircle size={15} color="#22C55E" />
+                    <span style={{ fontSize: "11px", color: "#22C55E", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>登録済み</span>
+                  </div>
+                  <CreditCard size={22} color="rgba(255,255,255,0.5)" />
+                </div>
+                <p style={{ fontSize: "20px", color: "white", fontWeight: 600, letterSpacing: "0.12em", fontFamily: "monospace" }}>
+                  •••• •••• •••• {cardInfo?.last4 ?? "····"}
+                </p>
+                <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.5)", marginTop: "6px", textTransform: "capitalize" }}>
+                  {cardInfo?.brand ?? ""}
+                </p>
+              </div>
+              {/* 変更ボタン */}
+              <button
+                style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 20px", background: "none", border: "none", cursor: "pointer", borderTop: "1px solid #F2F2F2" }}
+                onClick={() => router.push("/auth/card")}
+              >
+                <span style={{ fontSize: "14px", color: "#888888" }}>カードを変更する</span>
+                <ChevronRight size={16} color="#CCCCCC" />
+              </button>
             </div>
-            <ChevronRight size={16} color="#888888" />
-          </button>
+          ) : (
+            <button
+              className="card w-full flex items-center justify-between py-3"
+              onClick={() => router.push("/auth/card")}
+            >
+              <div className="flex items-center gap-3">
+                <CreditCard size={18} color="#888888" />
+                <span className="text-sm font-medium">クレジットカードを登録する</span>
+              </div>
+              <ChevronRight size={16} color="#888888" />
+            </button>
+          )}
         </div>
 
         {/* ログアウト */}

@@ -64,7 +64,7 @@ export async function GET(request: Request) {
     }
 
     await resend.emails.send({
-      from: "カケル <noreply@kakeru-project.vercel.app>",
+      from: "カケル <noreply@kakeruapp.com>",
       to: user.email,
       subject,
       text,
