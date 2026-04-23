@@ -14,22 +14,33 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Stripe not configured" }, { status: 503 });
   }
 
+  const Stripe = (await import("stripe")).default;
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
   const admin = createAdminClient();
+
   const { data: userData } = await admin
     .from("users")
-    .select("stripe_customer_id")
+    .select("stripe_customer_id, email")
     .eq("id", user.id)
     .single();
 
-  if (!userData?.stripe_customer_id) {
-    return NextResponse.json({ error: "Customer not found" }, { status: 400 });
+  let customerId = userData?.stripe_customer_id;
+
+  // 顧客がまだ作成されていない場合はここで作成する
+  if (!customerId) {
+    const customer = await stripe.customers.create({
+      email: userData?.email ?? user.email ?? undefined,
+      metadata: { supabase_user_id: user.id },
+    });
+    customerId = customer.id;
+    await admin
+      .from("users")
+      .update({ stripe_customer_id: customerId })
+      .eq("id", user.id);
   }
 
-  const Stripe = (await import("stripe")).default;
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-
   try {
-    await stripe.customers.update(userData.stripe_customer_id, {
+    await stripe.customers.update(customerId, {
       invoice_settings: { default_payment_method: paymentMethodId },
     });
   } catch (err) {
