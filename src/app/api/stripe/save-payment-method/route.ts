@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -16,7 +15,6 @@ export async function POST(request: Request) {
 
   const Stripe = (await import("stripe")).default;
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-  const admin = createAdminClient();
 
   // PM が実際に attach されている顧客を Stripe から取得する
   let pm;
@@ -30,18 +28,18 @@ export async function POST(request: Request) {
   let customerId = pm.customer as string | null | undefined;
 
   if (!customerId) {
-    // SetupIntent なしで PM が作られた場合のフォールバック
-    const { data: userData } = await admin
+    // PM が顧客に attach されていない場合のフォールバック
+    const { data: userData } = await supabase
       .from("users")
-      .select("stripe_customer_id, email")
+      .select("stripe_customer_id")
       .eq("id", user.id)
       .single();
 
-    customerId = userData?.stripe_customer_id;
+    customerId = userData?.stripe_customer_id ?? null;
 
     if (!customerId) {
       const customer = await stripe.customers.create({
-        email: userData?.email ?? user.email ?? undefined,
+        email: user.email ?? undefined,
         metadata: { supabase_user_id: user.id },
       });
       customerId = customer.id;
@@ -60,7 +58,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: message }, { status: 500 });
   }
 
-  const { error: dbError } = await admin
+  // ユーザー自身の auth セッションで書き込む（RLS: auth.uid() = id を通る）
+  const { error: dbError } = await supabase
     .from("users")
     .upsert(
       { id: user.id, stripe_customer_id: customerId, stripe_payment_method_id: paymentMethodId },
