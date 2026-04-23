@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
           from: "カケル <noreply@kakeruapp.com>",
           to: userData.email,
           subject: `¥${penalty.amount.toLocaleString()}が課金されました`,
-          text: `目標が未達成のため、¥${penalty.amount.toLocaleString()}が課金されました。\n\n引き続きランニングを頑張りましょう！\nhttps://kakeruapp.com`,
+          text: `目標が未達成のため、¥${penalty.amount.toLocaleString()}が課金されました。\n\n引き続きランニングを頑張りましょう！\nhttps://www.kakeruapp.com`,
         });
       }
     }
@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
           from: "カケル <noreply@kakeruapp.com>",
           to: userData.email,
           subject: "【重要】課金処理に失敗しました",
-          text: `¥${penalty.amount.toLocaleString()}の課金処理に失敗しました。\n\nクレジットカード情報を更新してください。\nhttps://kakeruapp.com/settings`,
+          text: `¥${penalty.amount.toLocaleString()}の課金処理に失敗しました。\n\nクレジットカード情報を更新してください。\nhttps://www.kakeruapp.com/settings`,
         });
       }
     }
