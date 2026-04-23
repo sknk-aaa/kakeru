@@ -7,9 +7,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // JSTで「今日」を計算（Vercel サーバーは UTC）
-  const nowJst = new Date(Date.now() + 9 * 60 * 60 * 1000);
-  const today = nowJst.toISOString().split("T")[0];
+  const today = new Date().toLocaleDateString("sv-SE"); // YYYY-MM-DD in local TZ (JST after TZ=Asia/Tokyo)
 
   const admin = createAdminClient();
 

@@ -14,9 +14,8 @@ export async function GET(request: Request) {
   const { Resend } = await import("resend");
   const resend = new Resend(process.env.RESEND_API_KEY);
   const admin = createAdminClient();
-  const today = new Date().toISOString().split("T")[0];
-
-  const hour = new Date().getUTCHours() + 9; // JST
+  const today = new Date().toLocaleDateString("sv-SE"); // YYYY-MM-DD in local TZ (JST after TZ=Asia/Tokyo)
+  const hour = new Date().getHours(); // JST after TZ=Asia/Tokyo
 
   const { data: todayInstances } = await admin
     .from("goal_instances")
