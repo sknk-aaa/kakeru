@@ -18,25 +18,36 @@ export async function POST(request: Request) {
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
   const admin = createAdminClient();
 
-  const { data: userData } = await admin
-    .from("users")
-    .select("stripe_customer_id, email")
-    .eq("id", user.id)
-    .single();
+  // PM が実際に attach されている顧客を Stripe から取得する
+  let pm;
+  try {
+    pm = await stripe.paymentMethods.retrieve(paymentMethodId);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return NextResponse.json({ error: message }, { status: 400 });
+  }
 
-  let customerId = userData?.stripe_customer_id;
+  let customerId = pm.customer as string | null | undefined;
 
-  // 顧客がまだ作成されていない場合はここで作成する
   if (!customerId) {
-    const customer = await stripe.customers.create({
-      email: userData?.email ?? user.email ?? undefined,
-      metadata: { supabase_user_id: user.id },
-    });
-    customerId = customer.id;
-    await admin
+    // SetupIntent なしで PM が作られた場合のフォールバック
+    const { data: userData } = await admin
       .from("users")
-      .update({ stripe_customer_id: customerId })
-      .eq("id", user.id);
+      .select("stripe_customer_id, email")
+      .eq("id", user.id)
+      .single();
+
+    customerId = userData?.stripe_customer_id;
+
+    if (!customerId) {
+      const customer = await stripe.customers.create({
+        email: userData?.email ?? user.email ?? undefined,
+        metadata: { supabase_user_id: user.id },
+      });
+      customerId = customer.id;
+    }
+
+    await stripe.paymentMethods.attach(paymentMethodId, { customer: customerId });
   }
 
   try {
@@ -51,7 +62,7 @@ export async function POST(request: Request) {
 
   await admin
     .from("users")
-    .update({ stripe_payment_method_id: paymentMethodId })
+    .update({ stripe_customer_id: customerId, stripe_payment_method_id: paymentMethodId })
     .eq("id", user.id);
 
   return NextResponse.json({ success: true });
