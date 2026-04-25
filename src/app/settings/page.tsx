@@ -16,6 +16,7 @@ export default function SettingsPage() {
   const [hasCard, setHasCard] = useState(false);
   const [cardInfo, setCardInfo] = useState<{ brand: string; last4: string } | null>(null);
   const [isEmailUser, setIsEmailUser] = useState(false);
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [changingPw, setChangingPw] = useState(false);
@@ -77,7 +78,10 @@ export default function SettingsPage() {
       setPwSaved(true);
       setNewPassword("");
       setConfirmPassword("");
-      setTimeout(() => setPwSaved(false), 2000);
+      setTimeout(() => {
+        setPwSaved(false);
+        setShowPasswordForm(false);
+      }, 1500);
     }
     setChangingPw(false);
   }
@@ -111,39 +115,56 @@ export default function SettingsPage() {
             <p className="text-sm text-[#888888]">メールアドレス</p>
             <p className="text-[15px] font-medium text-[#111111] mt-0.5">{email}</p>
             {isEmailUser && (
-              <>
-                <div className="border-t border-[#F2F2F2] mt-4 pt-4">
-                  <p className="text-sm text-[#888888] flex items-center gap-1.5 mb-3">
-                    <KeyRound size={13} /> パスワード変更
-                  </p>
-                  <div className="flex flex-col gap-2">
-                    <input
-                      className="input"
-                      type="password"
-                      placeholder="新しいパスワード（8文字以上）"
-                      value={newPassword}
-                      onChange={(e) => { setNewPassword(e.target.value); setPwError(null); }}
-                      autoComplete="new-password"
-                    />
-                    <input
-                      className="input"
-                      type="password"
-                      placeholder="新しいパスワード（確認）"
-                      value={confirmPassword}
-                      onChange={(e) => { setConfirmPassword(e.target.value); setPwError(null); }}
-                      autoComplete="new-password"
-                    />
-                  </div>
-                  {pwError && <p className="text-[#EF4444] text-sm mt-2">{pwError}</p>}
+              <div className="border-t border-[#F2F2F2] mt-4 pt-4">
+                {!showPasswordForm ? (
                   <button
-                    className="btn-primary w-full mt-3 gap-2"
-                    onClick={handleChangePassword}
-                    disabled={changingPw || !newPassword || !confirmPassword}
+                    className="flex items-center gap-1.5 text-sm text-[#888888]"
+                    onClick={() => setShowPasswordForm(true)}
                   >
-                    {pwSaved ? <><Check size={16} />変更しました</> : changingPw ? "変更中..." : "パスワードを変更する"}
+                    <KeyRound size={13} /> パスワードを変更する
                   </button>
-                </div>
-              </>
+                ) : (
+                  <>
+                    <p className="text-sm text-[#888888] flex items-center gap-1.5 mb-3">
+                      <KeyRound size={13} /> パスワード変更
+                    </p>
+                    <div className="flex flex-col gap-2">
+                      <input
+                        className="input"
+                        type="password"
+                        placeholder="新しいパスワード（8文字以上）"
+                        value={newPassword}
+                        onChange={(e) => { setNewPassword(e.target.value); setPwError(null); }}
+                        autoComplete="new-password"
+                      />
+                      <input
+                        className="input"
+                        type="password"
+                        placeholder="新しいパスワード（確認）"
+                        value={confirmPassword}
+                        onChange={(e) => { setConfirmPassword(e.target.value); setPwError(null); }}
+                        autoComplete="new-password"
+                      />
+                    </div>
+                    {pwError && <p className="text-[#EF4444] text-sm mt-2">{pwError}</p>}
+                    <div className="flex gap-2 mt-3">
+                      <button
+                        className="btn-primary flex-1 gap-2"
+                        onClick={handleChangePassword}
+                        disabled={changingPw || !newPassword || !confirmPassword}
+                      >
+                        {pwSaved ? <><Check size={16} />変更しました</> : changingPw ? "変更中..." : "変更する"}
+                      </button>
+                      <button
+                        className="px-4 py-3 text-sm text-[#888888] border border-[#E5E5E5] rounded-lg"
+                        onClick={() => { setShowPasswordForm(false); setNewPassword(""); setConfirmPassword(""); setPwError(null); }}
+                      >
+                        キャンセル
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
             )}
           </div>
         </div>
