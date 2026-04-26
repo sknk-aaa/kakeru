@@ -38,12 +38,48 @@ export default async function GoalsPage() {
         .lte("scheduled_date", weekEndStr)
     : { data: [] };
 
+  const pastOneoffGoalIds = (goals ?? [])
+    .filter((g) => g.type === "oneoff" && g.scheduled_date && g.scheduled_date < todayStr)
+    .map((g) => g.id);
+  const { data: pastOneoffInstances } = pastOneoffGoalIds.length > 0
+    ? await supabase
+        .from("goal_instances")
+        .select("goal_id, scheduled_date, status")
+        .in("goal_id", pastOneoffGoalIds)
+    : { data: [] };
+
+  const { data: inactiveRecurring } = await supabase
+    .from("goals")
+    .select("*")
+    .eq("user_id", user.id)
+    .eq("is_active", false)
+    .eq("type", "recurring")
+    .order("created_at", { ascending: false });
+
+  const inactiveIds = (inactiveRecurring ?? []).map((g) => g.id);
+  const { data: inactiveAchieved } = inactiveIds.length > 0
+    ? await supabase
+        .from("goal_instances")
+        .select("goal_id")
+        .in("goal_id", inactiveIds)
+        .eq("status", "achieved")
+    : { data: [] };
+
+  const pastRecurringGoals = (inactiveRecurring ?? [])
+    .map((g) => ({
+      ...g,
+      achievedCount: (inactiveAchieved ?? []).filter((i) => i.goal_id === g.id).length,
+    }))
+    .filter((g) => g.achievedCount > 0);
+
   return (
     <AppShell>
       <GoalsClient
         goals={goals ?? []}
         instances={instances ?? []}
         todayStr={todayStr}
+        pastOneoffInstances={pastOneoffInstances ?? []}
+        pastRecurringGoals={pastRecurringGoals}
       />
     </AppShell>
   );

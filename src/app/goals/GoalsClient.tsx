@@ -21,6 +21,10 @@ interface Instance {
   status: "pending" | "achieved" | "failed" | "skipped" | "cancelled";
 }
 
+interface PastRecurringGoal extends Goal {
+  achievedCount: number;
+}
+
 const DAY_NAMES = ["日", "月", "火", "水", "木", "金", "土"];
 // 月〜日の順で並べるための順序
 const WEEK_ORDER = [1, 2, 3, 4, 5, 6, 0];
@@ -143,13 +147,22 @@ export default function GoalsClient({
   goals,
   instances,
   todayStr,
+  pastOneoffInstances,
+  pastRecurringGoals,
 }: {
   goals: Goal[];
   instances: Instance[];
   todayStr: string;
+  pastOneoffInstances: Instance[];
+  pastRecurringGoals: PastRecurringGoal[];
 }) {
   const recurringGoals = goals.filter((g) => g.type === "recurring");
-  const oneoffGoals = goals.filter((g) => g.type === "oneoff");
+  const activeOneoffGoals = goals.filter(
+    (g) => g.type === "oneoff" && (!g.scheduled_date || g.scheduled_date >= todayStr)
+  );
+  const pastOneoffGoals = goals.filter(
+    (g) => g.type === "oneoff" && g.scheduled_date && g.scheduled_date < todayStr
+  );
 
   return (
     <div>
@@ -213,13 +226,13 @@ export default function GoalsClient({
           </div>
         )}
 
-        {oneoffGoals.length > 0 && (
+        {activeOneoffGoals.length > 0 && (
           <div style={{ marginBottom: "20px" }}>
             <p style={{ fontSize: "12px", color: "#888888", fontWeight: 600, marginBottom: "10px", paddingLeft: "4px", textTransform: "uppercase", letterSpacing: "0.04em" }}>
               1回のみの目標
             </p>
             <div style={{ background: "white", borderRadius: "16px", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
-              {oneoffGoals.map((goal, idx) => (
+              {activeOneoffGoals.map((goal, idx) => (
                 <div key={goal.id}>
                   {idx > 0 && <div style={{ height: "1px", background: "#F2F2F2", marginLeft: "68px" }} />}
                   <Link href={`/goals/${goal.id}`}>
@@ -240,6 +253,61 @@ export default function GoalsClient({
                   </Link>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {(pastOneoffGoals.length > 0 || pastRecurringGoals.length > 0) && (
+          <div style={{ marginBottom: "20px" }}>
+            <p style={{ fontSize: "12px", color: "#888888", fontWeight: 600, marginBottom: "10px", paddingLeft: "4px", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+              過去の目標
+            </p>
+            <div style={{ background: "white", borderRadius: "16px", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
+              {[...pastOneoffGoals, ...pastRecurringGoals].map((goal, idx) => {
+                const isPastRecurring = "achievedCount" in goal;
+                const instance = pastOneoffInstances.find((i) => i.goal_id === goal.id);
+                const statusLabel = instance?.status === "achieved" ? "達成" : instance?.status === "failed" ? "失敗" : null;
+                const statusColor = instance?.status === "achieved" ? "#22C55E" : "#EF4444";
+                return (
+                  <div key={goal.id}>
+                    {idx > 0 && <div style={{ height: "1px", background: "#F2F2F2", marginLeft: "68px" }} />}
+                    {isPastRecurring ? (
+                      <div style={{ display: "flex", alignItems: "center", padding: "16px 16px", gap: "14px" }}>
+                        <div style={{ width: "44px", height: "44px", borderRadius: "12px", background: "#F5F5F5", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                          <Repeat size={20} color="#AAAAAA" />
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <p style={{ fontSize: "16px", fontWeight: 700, color: "#888888" }}>{formatGoalSummary(goal)}</p>
+                          <p style={{ fontSize: "12px", color: "#AAAAAA", marginTop: "2px" }}>{formatSchedule(goal)}</p>
+                        </div>
+                        <div style={{ flexShrink: 0 }}>
+                          <span style={{ fontSize: "12px", color: "#AAAAAA", fontWeight: 600 }}>
+                            {(goal as PastRecurringGoal).achievedCount}回達成
+                          </span>
+                        </div>
+                      </div>
+                    ) : (
+                      <Link href={`/goals/${goal.id}`}>
+                        <div style={{ display: "flex", alignItems: "center", padding: "16px 16px", gap: "14px" }}>
+                          <div style={{ width: "44px", height: "44px", borderRadius: "12px", background: "#F5F5F5", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                            <Calendar size={20} color="#AAAAAA" />
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <p style={{ fontSize: "16px", fontWeight: 700, color: "#888888" }}>{formatGoalSummary(goal)}</p>
+                            <p style={{ fontSize: "12px", color: "#AAAAAA", marginTop: "2px" }}>{formatSchedule(goal)}</p>
+                          </div>
+                          <div style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: "8px" }}>
+                            {statusLabel && (
+                              <span style={{ fontSize: "12px", color: statusColor, fontWeight: 600 }}>{statusLabel}</span>
+                            )}
+                            <ChevronRight size={18} color="#CCCCCC" />
+                          </div>
+                        </div>
+                      </Link>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
