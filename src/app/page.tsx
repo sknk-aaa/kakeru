@@ -19,7 +19,7 @@ export default async function HomePage() {
 
   const startOfMonth = `${nowJst.getUTCFullYear()}-${String(nowJst.getUTCMonth() + 1).padStart(2, "0")}-01`;
 
-  const [{ data: userProfile }, { data: weekInstances }, { data: monthRuns }, { data: monthPenalties }, { data: todayRuns }] =
+  const [{ data: userProfile }, { data: weekInstances }, { data: monthRuns }, { data: monthPenalties }, { data: todayRuns }, { data: allTimeInstances }] =
     await Promise.all([
       supabase.from("users").select("*").eq("id", user.id).single(),
       supabase
@@ -45,6 +45,11 @@ export default async function HomePage() {
         .select("distance_km, duration_seconds")
         .eq("user_id", user.id)
         .gte("started_at", `${todayStr}T00:00:00`),
+      supabase
+        .from("goal_instances")
+        .select("status")
+        .eq("user_id", user.id)
+        .in("status", ["achieved", "failed"]),
     ]);
 
   const totalDistanceMonth = (monthRuns ?? []).reduce(
@@ -59,9 +64,11 @@ export default async function HomePage() {
   const progressPct = monthGoal > 0 ? Math.min((totalDistanceMonth / monthGoal) * 100, 100) : 0;
 
   const allInstances = weekInstances ?? [];
-  const achievedCount = allInstances.filter((i) => i.status === "achieved").length;
-  const totalCount = allInstances.filter((i) => i.status !== "cancelled").length;
-  const achieveRate = totalCount > 0 ? Math.round((achievedCount / totalCount) * 100) : 0;
+  const achievedCount = (allTimeInstances ?? []).filter((i) => i.status === "achieved").length;
+  const failedCount = (allTimeInstances ?? []).filter((i) => i.status === "failed").length;
+  const achieveRate = achievedCount + failedCount > 0
+    ? Math.round((achievedCount / (achievedCount + failedCount)) * 100)
+    : 0;
 
   const todayGoalInstances = allInstances.filter(
     (i) => i.scheduled_date === todayStr && i.status === "pending" && i.goals
