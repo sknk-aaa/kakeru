@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { buildEmailHtml, goalBox, ctaButton } from "@/lib/emails";
 
 export async function GET(request: Request) {
   const authHeader = request.headers.get("authorization");
@@ -14,17 +15,17 @@ export async function GET(request: Request) {
   const { Resend } = await import("resend");
   const resend = new Resend(process.env.RESEND_API_KEY);
   const admin = createAdminClient();
-  const today = new Date().toLocaleDateString("sv-SE"); // YYYY-MM-DD in local TZ (JST after TZ=Asia/Tokyo)
-  const hour = new Date().getHours(); // JST after TZ=Asia/Tokyo
+  const today = new Date().toLocaleDateString("sv-SE");
+  const hour = new Date().getHours();
 
   const { data: todayInstances } = await admin
     .from("goal_instances")
-    .select("user_id, goals(distance_km, duration_minutes)")
+    .select("user_id, goals(distance_km, duration_minutes, penalty_amount)")
     .eq("scheduled_date", today)
     .eq("status", "pending") as {
       data: Array<{
         user_id: string;
-        goals: { distance_km: number | null; duration_minutes: number | null } | null;
+        goals: { distance_km: number | null; duration_minutes: number | null; penalty_amount: number | null } | null;
       }> | null;
     };
 
@@ -42,31 +43,51 @@ export async function GET(request: Request) {
   for (const user of users ?? []) {
     if (!user.email) continue;
     const instance = todayInstances.find((i) => i.user_id === user.id);
-    const goal = instance?.goals as { distance_km: number | null; duration_minutes: number | null } | null;
-    const goalStr = [
-      goal?.distance_km && `${goal.distance_km}km`,
-      goal?.duration_minutes && `${goal.duration_minutes}分`,
-    ].filter(Boolean).join("・");
+    const goal = instance?.goals ?? null;
 
     let subject = "";
-    let text = "";
+    let html = "";
 
     if (hour <= 10) {
-      subject = `今日は${goalStr}走る日です`;
-      text = `今日の目標: ${goalStr}\n頑張ってください！`;
-    } else if (hour <= 21) {
-      subject = `まだ達成していません — あと${24 - hour}時間`;
-      text = `今日の目標 ${goalStr} がまだ未達成です。残り時間は約${24 - hour}時間です。`;
+      subject = "【カケル】今日は走る日です";
+      html = buildEmailHtml(`
+        <p style="margin:0 0 8px;font-size:16px;font-weight:700;color:#111111;">おはようございます。</p>
+        <p style="margin:0 0 28px;font-size:15px;color:#555555;line-height:1.8;">
+          本日、ランニング目標が設定されています。<br>
+          達成できなかった場合、<strong style="color:#111111;">本日0時に自動的に課金が発生</strong>しますので、<br>
+          ぜひ今日中に目標を達成しましょう！
+        </p>
+        ${goalBox({
+          distanceKm: goal?.distance_km ?? null,
+          durationMinutes: goal?.duration_minutes ?? null,
+          penaltyAmount: goal?.penalty_amount ?? null,
+        })}
+        ${ctaButton("アプリを開いて走り始める", "https://www.kakeruapp.com")}
+      `);
     } else {
-      subject = `あと1時間で罰金が発生します`;
-      text = `今日の目標 ${goalStr} が未達成です。残り約1時間で自動課金されます。`;
+      subject = "【カケル】本日の目標が未達成です — 0時に課金が発生します";
+      html = buildEmailHtml(`
+        <p style="margin:0 0 8px;font-size:16px;font-weight:700;color:#111111;">本日の目標がまだ達成されていません。</p>
+        <p style="margin:0 0 28px;font-size:15px;color:#555555;line-height:1.8;">
+          このまま未達成の場合、<strong style="color:#EF4444;">本日0時をもって自動的に課金が発生</strong>します。<br>
+          まだ間に合います。今すぐ走り始めましょう！
+        </p>
+        ${goalBox({
+          distanceKm: goal?.distance_km ?? null,
+          durationMinutes: goal?.duration_minutes ?? null,
+          penaltyAmount: goal?.penalty_amount ?? null,
+          label: "未達成の目標",
+          accentColor: "#EF4444",
+        })}
+        ${ctaButton("アプリを開いて走り始める", "https://www.kakeruapp.com")}
+      `);
     }
 
     await resend.emails.send({
       from: "カケル <noreply@kakeruapp.com>",
       to: user.email,
       subject,
-      text,
+      html,
     });
     sent++;
   }
