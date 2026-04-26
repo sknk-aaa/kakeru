@@ -109,40 +109,35 @@ export default function RecordsClient({ runs, bestPaceSecPerKm, longestRunKm, to
           ))}
         </div>
 
-        {/* 期間合計 */}
+        {/* 期間合計 + 月間目標プログレス（統合） */}
         <div style={{ background: "white", borderRadius: "16px", padding: "20px", marginBottom: "12px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
-          <p style={{ fontSize: "12px", color: "#888888", marginBottom: "6px" }}>{PERIOD_LABELS[period]}の合計</p>
-          <div style={{ display: "flex", alignItems: "baseline", gap: "12px" }}>
-            <div>
+          <p style={{ fontSize: "12px", color: "#888888", marginBottom: "8px" }}>{PERIOD_LABELS[period]}の合計</p>
+          <div style={{ display: "flex", alignItems: "baseline", gap: "12px", marginBottom: period === "month" && monthGoal > 0 ? "16px" : "0" }}>
+            <div style={{ display: "flex", alignItems: "baseline", gap: "4px" }}>
               <span className="metric-value" style={{ fontSize: "48px", color: "#FF6B00", lineHeight: 1 }}>
                 {Math.round(filteredTotal * 10) / 10}
               </span>
-              <span style={{ fontSize: "16px", color: "#888888", marginLeft: "4px" }}>km</span>
+              {period === "month" && monthGoal > 0 ? (
+                <span style={{ fontSize: "16px", color: "#CCCCCC" }}>/ {monthGoal} km</span>
+              ) : (
+                <span style={{ fontSize: "16px", color: "#888888" }}>km</span>
+              )}
             </div>
             <span style={{ fontSize: "16px", color: "#CCCCCC" }}>·</span>
             <span style={{ fontSize: "18px", color: "#888888", fontWeight: 600 }}>{filteredRuns.length}回</span>
           </div>
-        </div>
-
-        {/* 月間目標プログレス */}
-        {period === "month" && monthGoal > 0 && (
-          <div style={{ background: "white", borderRadius: "16px", padding: "20px", marginBottom: "12px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "12px" }}>
-              <span style={{ fontSize: "13px", color: "#888888", fontWeight: 500 }}>今月の目標距離</span>
-              <div>
-                <span className="metric-value" style={{ fontSize: "24px", color: "#111111" }}>{monthDistanceKm}</span>
-                <span style={{ fontSize: "13px", color: "#888888" }}>/{monthGoal}km</span>
+          {period === "month" && monthGoal > 0 && (
+            <>
+              <div style={{ height: "7px", background: "#F0F0F0", borderRadius: "4px", overflow: "hidden" }}>
+                <div style={{ height: "100%", background: "#FF6B00", borderRadius: "4px", width: `${Math.min((monthDistanceKm / monthGoal) * 100, 100)}%`, transition: "width 0.5s ease" }} />
               </div>
-            </div>
-            <div style={{ height: "7px", background: "#F0F0F0", borderRadius: "4px", overflow: "hidden" }}>
-              <div style={{ height: "100%", background: "#FF6B00", borderRadius: "4px", width: `${Math.min((monthDistanceKm / monthGoal) * 100, 100)}%`, transition: "width 0.5s ease" }} />
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-between", marginTop: "8px" }}>
-              <span style={{ fontSize: "12px", color: "#FF6B00", fontWeight: 600 }}>{Math.round((monthDistanceKm / monthGoal) * 100)}%</span>
-              <span style={{ fontSize: "12px", color: "#888888" }}>残り {Math.max(0, monthGoal - monthDistanceKm).toFixed(1)}km</span>
-            </div>
-          </div>
-        )}
+              <div style={{ display: "flex", justifyContent: "space-between", marginTop: "8px" }}>
+                <span style={{ fontSize: "12px", color: "#FF6B00", fontWeight: 600 }}>{Math.round((monthDistanceKm / monthGoal) * 100)}%</span>
+                <span style={{ fontSize: "12px", color: "#888888" }}>残り {Math.max(0, monthGoal - monthDistanceKm).toFixed(1)}km</span>
+              </div>
+            </>
+          )}
+        </div>
 
         {/* 週別グラフ */}
         <div style={{ background: "white", borderRadius: "16px", padding: "16px", marginBottom: "12px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
