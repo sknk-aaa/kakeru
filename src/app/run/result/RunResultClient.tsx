@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { formatPace, formatDuration } from "@/lib/haversine";
 import { CheckCircle, TrendingUp, Home } from "lucide-react";
 import AppShell from "@/components/AppShell";
+import InstallPromptModal from "@/components/InstallPromptModal";
 
 export default function RunResultClient() {
   const params = useSearchParams();
@@ -19,6 +20,9 @@ export default function RunResultClient() {
   const calories = parseInt(params.get("calories") ?? "0");
   const goalReached = params.get("goalReached") === "true";
   const runId = params.get("runId");
+  const rawInstall = params.get("installPrompt");
+  const installTrigger: 1 | 3 | null = rawInstall === "1" ? 1 : rawInstall === "3" ? 3 : null;
+  const [showInstallModal, setShowInstallModal] = useState(installTrigger !== null);
 
   useEffect(() => {
     if (!runId) return;
@@ -45,6 +49,12 @@ export default function RunResultClient() {
 
   return (
     <AppShell>
+      {showInstallModal && installTrigger && (
+        <InstallPromptModal
+          triggerRun={installTrigger}
+          onClose={() => setShowInstallModal(false)}
+        />
+      )}
       <div className="flex flex-col min-h-[calc(100vh-64px)] px-4 pt-12 pb-4">
         {/* ヘッダー */}
         <div className="text-center mb-8">

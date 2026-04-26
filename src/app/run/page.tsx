@@ -181,8 +181,14 @@ function RunPageInner() {
       }
     }
 
+    const { count: runCount } = await supabase
+      .from("runs")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id);
+    const installPrompt = runCount === 1 || runCount === 3 ? runCount : 0;
+
     router.push(
-      `/run/result?runId=${run?.id ?? ""}&distanceKm=${distanceKm.toFixed(2)}&durationSec=${elapsedSec}&pace=${Math.round(avgPace)}&calories=${calories}&goalReached=${cumulativeGoalReached}`
+      `/run/result?runId=${run?.id ?? ""}&distanceKm=${distanceKm.toFixed(2)}&durationSec=${elapsedSec}&pace=${Math.round(avgPace)}&calories=${calories}&goalReached=${cumulativeGoalReached}${installPrompt ? `&installPrompt=${installPrompt}` : ""}`
     );
   }
 
