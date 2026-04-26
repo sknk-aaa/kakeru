@@ -128,8 +128,12 @@ function RunPageInner() {
         setGpsPoints((prev) => {
           const last = prev[prev.length - 1];
           if (last) {
+            // 瞬間速度が速すぎる場合（高速移動中）を除外
             const speed = speedKmh(last, newPoint);
             if (speed > 30) return prev;
+            // GPS精度低下中に長時間移動した場合を除外（バス・電車停車時の大ジャンプ対策）
+            const jumpKm = haversineDistance(last, newPoint);
+            if (jumpKm > 0.2) return prev;
           }
           const newPoints = [...prev, newPoint];
           const dist = newPoints.slice(1).reduce((acc, p, i) => acc + haversineDistance(newPoints[i], p), 0);
