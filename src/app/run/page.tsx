@@ -44,6 +44,22 @@ function RunPageInner() {
   const watchIdRef = useRef<number | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const isPausedRef = useRef(false);
+  const wakeLockRef = useRef<{ release: () => Promise<void> } | null>(null);
+
+  async function acquireWakeLock() {
+    const nav = navigator as unknown as { wakeLock?: { request: (type: string) => Promise<{ release: () => Promise<void> }> } };
+    if (!nav.wakeLock) return;
+    try {
+      wakeLockRef.current = await nav.wakeLock.request("screen");
+    } catch {
+      // 非対応ブラウザや権限拒否は無視
+    }
+  }
+
+  function releaseWakeLock() {
+    wakeLockRef.current?.release();
+    wakeLockRef.current = null;
+  }
 
   useEffect(() => {
     const supabase = createClient();
@@ -91,6 +107,7 @@ function RunPageInner() {
   const startGps = useCallback(() => {
     setPhase("running");
     setStartedAt(new Date());
+    acquireWakeLock();
 
     timerRef.current = setInterval(() => {
       if (!isPausedRef.current) {
@@ -133,6 +150,18 @@ function RunPageInner() {
     if (distOk && timeOk) setGoalReached(true);
   }, [distanceKm, elapsedSec, goalInstance, goalReached, phase]);
 
+  // ページが前面に戻ったとき（通知バー展開などでWakeLockが解除された場合）に再取得
+  useEffect(() => {
+    function handleVisibility() {
+      if (document.visibilityState === "visible" && phase === "running") {
+        acquireWakeLock();
+      }
+    }
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase]);
+
   function handlePauseResume() {
     isPausedRef.current = !isPausedRef.current;
     setPhase(isPausedRef.current ? "paused" : "running");
@@ -141,6 +170,7 @@ function RunPageInner() {
   async function handleFinish() {
     if (watchIdRef.current !== null) navigator.geolocation.clearWatch(watchIdRef.current);
     if (timerRef.current) clearInterval(timerRef.current);
+    releaseWakeLock();
 
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
