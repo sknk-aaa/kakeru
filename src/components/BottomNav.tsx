@@ -26,7 +26,7 @@ export default function BottomNav() {
     return (
       <Link
         href={href}
-        className="flex-1 flex flex-col items-center justify-center gap-0.5 py-2 min-h-[56px]"
+        className="flex-1 flex flex-col items-center justify-center gap-0.5 pt-2 pb-4 min-h-[56px]"
         style={{ color: active ? "#FF6B00" : "#888888" }}
       >
         <Icon size={21} strokeWidth={active ? 2.5 : 2} />
@@ -44,7 +44,7 @@ export default function BottomNav() {
         {leftTabs.map((tab) => <TabItem key={tab.href} {...tab} />)}
 
         {/* 計測ボタン（中央・突出） */}
-        <div className="flex-1 flex flex-col items-center" style={{ marginBottom: "6px" }}>
+        <div className="flex-1 flex flex-col items-center" style={{ marginBottom: "10px" }}>
           <Link href="/run" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
             <div
               style={{
