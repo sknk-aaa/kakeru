@@ -25,6 +25,9 @@ function footer(): string {
           <a href="https://www.kakeruapp.com" style="color:#aaaaaa;text-decoration:none;">www.kakeruapp.com</a>
         </p>
         <p style="margin:6px 0 0;font-size:11px;color:#cccccc;">このメールはシステムから自動送信されています。</p>
+        <p style="margin:6px 0 0;font-size:11px;">
+          <a href="https://www.kakeruapp.com/settings" style="color:#aaaaaa;text-decoration:none;">メール配信の設定を変更する</a>
+        </p>
       </td>
     </tr>`;
 }

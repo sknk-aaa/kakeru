@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import AppShell from "@/components/AppShell";
-import { User, Weight, Target, CreditCard, LogOut, ChevronRight, Check, CheckCircle, KeyRound } from "lucide-react";
+import { User, Weight, Target, CreditCard, LogOut, ChevronRight, Check, CheckCircle, KeyRound, Bell } from "lucide-react";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -15,6 +15,8 @@ export default function SettingsPage() {
   const [monthlyGoal, setMonthlyGoal] = useState("");
   const [hasCard, setHasCard] = useState(false);
   const [cardInfo, setCardInfo] = useState<{ brand: string; last4: string } | null>(null);
+  const [notifyMorning, setNotifyMorning] = useState(true);
+  const [notifyEvening, setNotifyEvening] = useState(true);
   const [isEmailUser, setIsEmailUser] = useState(false);
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [newPassword, setNewPassword] = useState("");
@@ -34,12 +36,14 @@ export default function SettingsPage() {
       setIsEmailUser(user.app_metadata?.provider === "email");
       supabase
         .from("users")
-        .select("weight_kg, monthly_distance_goal_km, stripe_payment_method_id")
+        .select("weight_kg, monthly_distance_goal_km, stripe_payment_method_id, notify_morning, notify_evening")
         .eq("id", user.id)
         .single()
         .then(({ data }) => {
           if (data?.weight_kg) setWeightKg(String(data.weight_kg));
           if (data?.monthly_distance_goal_km) setMonthlyGoal(String(data.monthly_distance_goal_km));
+          if (data?.notify_morning != null) setNotifyMorning(data.notify_morning);
+          if (data?.notify_evening != null) setNotifyEvening(data.notify_evening);
           if (data?.stripe_payment_method_id) {
             setHasCard(true);
             fetch("/api/stripe/payment-method")
@@ -84,6 +88,14 @@ export default function SettingsPage() {
       }, 1500);
     }
     setChangingPw(false);
+  }
+
+  async function handleToggleNotify(field: "notify_morning" | "notify_evening", value: boolean) {
+    if (field === "notify_morning") setNotifyMorning(value);
+    else setNotifyEvening(value);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    await supabase.from("users").update({ [field]: value }).eq("id", user.id);
   }
 
   async function handleLogout() {
@@ -222,6 +234,40 @@ export default function SettingsPage() {
         >
           {saved ? <><Check size={16} />保存しました</> : saving ? "保存中..." : "変更を保存"}
         </button>
+
+        {/* メール通知 */}
+        <div className="mb-4">
+          <p className="text-xs text-[#888888] font-medium mb-2 flex items-center gap-1.5">
+            <Bell size={13} /> メール通知
+          </p>
+          <div className="card p-0 overflow-hidden">
+            {(
+              [
+                { field: "notify_morning", label: "朝のリマインダー（8時）", value: notifyMorning },
+                { field: "notify_evening", label: "夜のリマインダー（22時）", value: notifyEvening },
+              ] as const
+            ).map(({ field, label, value }, i) => (
+              <div
+                key={field}
+                className={`flex items-center justify-between px-4 py-4 ${i > 0 ? "border-t border-[#F2F2F2]" : ""}`}
+              >
+                <span className="text-[15px] text-[#111111]">{label}</span>
+                <button
+                  role="switch"
+                  aria-checked={value}
+                  onClick={() => handleToggleNotify(field, !value)}
+                  className="relative shrink-0 w-12 h-7 rounded-full transition-colors duration-200"
+                  style={{ background: value ? "#FF6B00" : "#E5E5E5" }}
+                >
+                  <span
+                    className="absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full shadow-sm transition-transform duration-200"
+                    style={{ transform: value ? "translateX(20px)" : "translateX(0)" }}
+                  />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
 
         {/* クレカ */}
         <div className="mb-4">

@@ -36,12 +36,14 @@ export async function GET(request: Request) {
   const userIds = [...new Set(todayInstances.map((i) => i.user_id))];
   const { data: users } = await admin
     .from("users")
-    .select("id, email")
-    .in("id", userIds) as { data: Array<{ id: string; email: string }> | null };
+    .select("id, email, notify_morning, notify_evening")
+    .in("id", userIds) as { data: Array<{ id: string; email: string; notify_morning: boolean; notify_evening: boolean }> | null };
 
   let sent = 0;
   for (const user of users ?? []) {
     if (!user.email) continue;
+    if (hour <= 10 && !user.notify_morning) continue;
+    if (hour > 10 && !user.notify_evening) continue;
     const instance = todayInstances.find((i) => i.user_id === user.id);
     const goal = instance?.goals ?? null;
 
