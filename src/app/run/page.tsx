@@ -212,6 +212,10 @@ function RunPageInner() {
       cumulativeGoalReached = distOk && timeOk;
       if (cumulativeGoalReached) {
         await supabase.from("goal_instances").update({ status: "achieved" }).eq("id", effectiveInstanceId);
+        const { data: inst } = await supabase.from("goal_instances").select("goal_id").eq("id", effectiveInstanceId).single();
+        if (inst?.goal_id) {
+          await supabase.from("goals").update({ consecutive_failures: 0 }).eq("id", inst.goal_id);
+        }
       }
     }
 

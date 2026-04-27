@@ -13,13 +13,14 @@ export async function GET(request: Request) {
 
   const { data: pendingInstances } = await admin
     .from("goal_instances")
-    .select("id, user_id, goals(penalty_amount)")
+    .select("id, goal_id, user_id, goals(penalty_amount, escalation_type, escalation_value, consecutive_failures)")
     .eq("scheduled_date", today)
     .eq("status", "pending") as {
       data: Array<{
         id: string;
+        goal_id: string;
         user_id: string;
-        goals: { penalty_amount: number } | null;
+        goals: { penalty_amount: number; escalation_type: string | null; escalation_value: number | null; consecutive_failures: number } | null;
       }> | null;
     };
 
@@ -36,15 +37,24 @@ export async function GET(request: Request) {
   let skipped = 0;
 
   for (const instance of pendingInstances) {
-    const penaltyAmount = (instance.goals as { penalty_amount: number } | null)?.penalty_amount ?? 0;
+    const goalData = instance.goals as { penalty_amount: number; escalation_type: string | null; escalation_value: number | null; consecutive_failures: number } | null;
+    const basePenalty = goalData?.penalty_amount ?? 0;
+    const newConsecutive = (goalData?.consecutive_failures ?? 0) + 1;
 
-    // インスタンスを失敗に更新
-    await admin
-      .from("goal_instances")
-      .update({ status: "failed" })
-      .eq("id", instance.id);
+    let chargeAmount = basePenalty;
+    if (goalData?.escalation_type && goalData?.escalation_value) {
+      if (goalData.escalation_type === "multiplier") {
+        chargeAmount = Math.min(basePenalty * Math.pow(goalData.escalation_value, newConsecutive), basePenalty * 5);
+      } else {
+        chargeAmount = Math.min(basePenalty + goalData.escalation_value * newConsecutive, basePenalty * 5);
+      }
+    }
+    chargeAmount = Math.round(chargeAmount);
 
-    if (penaltyAmount <= 0 || !stripe) {
+    await admin.from("goal_instances").update({ status: "failed" }).eq("id", instance.id);
+    await admin.from("goals").update({ consecutive_failures: newConsecutive }).eq("id", instance.goal_id);
+
+    if (chargeAmount <= 0 || !stripe) {
       skipped++;
       continue;
     }
@@ -60,13 +70,12 @@ export async function GET(request: Request) {
       continue;
     }
 
-    // penaltyレコードを作成（statusはpending、Webhookが charged/failed に更新する）
     const { data: penaltyRecord } = await admin
       .from("penalties")
       .insert({
         user_id: instance.user_id,
         goal_instance_id: instance.id,
-        amount: penaltyAmount,
+        amount: chargeAmount,
         status: "pending",
       })
       .select()
@@ -74,7 +83,7 @@ export async function GET(request: Request) {
 
     try {
       const paymentIntent = await stripe.paymentIntents.create({
-        amount: penaltyAmount,
+        amount: chargeAmount,
         currency: "jpy",
         customer: userData.stripe_customer_id ?? undefined,
         payment_method: userData.stripe_payment_method_id,
@@ -82,7 +91,6 @@ export async function GET(request: Request) {
         off_session: true,
       });
 
-      // payment_intent_idを保存（ステータス更新はWebhookが行う）
       await admin
         .from("penalties")
         .update({ stripe_payment_intent_id: paymentIntent.id })
@@ -91,7 +99,6 @@ export async function GET(request: Request) {
       charged++;
     } catch (err) {
       console.error("Stripe charge failed:", err);
-      // Stripeが同期エラーを返した場合はWebhookが来ないので直接failedに
       await admin
         .from("penalties")
         .update({ status: "failed" })

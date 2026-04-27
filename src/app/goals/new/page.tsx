@@ -2,7 +2,7 @@
 
 export const dynamic = "force-dynamic";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -11,6 +11,7 @@ import AppShell from "@/components/AppShell";
 const DAYS = ["日", "月", "火", "水", "木", "金", "土"];
 
 type GoalType = "recurring" | "oneoff";
+type EscalationType = "multiplier" | "surcharge";
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
@@ -32,6 +33,32 @@ function ListRow({ label, children, last }: { label: string; children: React.Rea
   );
 }
 
+function Toggle({ value, onChange, disabled }: { value: boolean; onChange: () => void; disabled?: boolean }) {
+  return (
+    <button
+      role="switch"
+      aria-checked={value}
+      onClick={onChange}
+      style={{
+        width: "44px", height: "26px", borderRadius: "13px",
+        background: value ? "#FF6B00" : "#E4E4EB",
+        border: "none", cursor: disabled ? "default" : "pointer",
+        position: "relative", transition: "background 0.2s", flexShrink: 0,
+        opacity: disabled ? 0.5 : 1,
+      }}
+    >
+      <span style={{
+        position: "absolute", top: "3px",
+        left: value ? "21px" : "3px",
+        width: "20px", height: "20px",
+        borderRadius: "50%", background: "white",
+        boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+        transition: "left 0.2s", display: "block",
+      }} />
+    </button>
+  );
+}
+
 export default function NewGoalPage() {
   const router = useRouter();
   const [type, setType] = useState<GoalType>("recurring");
@@ -46,6 +73,23 @@ export default function NewGoalPage() {
   const [overlapDays, setOverlapDays] = useState<string[]>([]);
   const [showOverlapConfirm, setShowOverlapConfirm] = useState(false);
 
+  // サブスク機能
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [escalationEnabled, setEscalationEnabled] = useState(false);
+  const [escalationType, setEscalationType] = useState<EscalationType>("multiplier");
+  const [escalationValue, setEscalationValue] = useState("1.5");
+  const [isLocked, setIsLocked] = useState(false);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return;
+      supabase.from("users").select("is_subscribed").eq("id", user.id).single().then(({ data }) => {
+        setIsSubscribed(data?.is_subscribed ?? false);
+      });
+    });
+  }, []);
+
   const todayStr = new Date().toISOString().split("T")[0];
   const todayDayOfWeek = new Date(todayStr + "T00:00:00").getDay();
   const includesToday =
@@ -56,6 +100,14 @@ export default function NewGoalPage() {
     setSelectedDays((prev) => prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]);
   }
 
+  function handleProToggle(setter: (v: boolean) => void, current: boolean) {
+    if (!isSubscribed) {
+      alert("サブスクリプション限定の機能です");
+      return;
+    }
+    setter(!current);
+  }
+
   function validate() {
     if (type === "recurring" && selectedDays.length === 0) { setError("曜日を1つ以上選択してください"); return false; }
     if (type === "oneoff" && !scheduledDate) { setError("日付を選択してください"); return false; }
@@ -63,6 +115,9 @@ export default function NewGoalPage() {
     if (distanceKm && parseFloat(distanceKm) < 0.1) { setError("距離は0.1km以上で入力してください"); return false; }
     if (durationMinutes && parseInt(durationMinutes) < 1) { setError("時間は1分以上で入力してください"); return false; }
     if (!penaltyAmount || parseInt(penaltyAmount) < 100) { setError("罰金は100円以上で入力してください"); return false; }
+    if (escalationEnabled && (!escalationValue || parseFloat(escalationValue) <= 0)) {
+      setError("罰金増加の値を入力してください"); return false;
+    }
     return true;
   }
 
@@ -133,6 +188,9 @@ export default function NewGoalPage() {
       duration_minutes: durationMinutes ? parseInt(durationMinutes) : null,
       penalty_amount: parseInt(penaltyAmount),
       is_active: true,
+      escalation_type: type === "recurring" && escalationEnabled ? escalationType : null,
+      escalation_value: type === "recurring" && escalationEnabled ? parseFloat(escalationValue) : null,
+      is_locked: type === "oneoff" && isLocked ? true : false,
     }).select().single();
 
     if (goalError || !goal) { setError("保存に失敗しました"); setLoading(false); return; }
@@ -172,6 +230,12 @@ export default function NewGoalPage() {
       distanceKm ? { label: "距離", value: `${distanceKm}km` } : null,
       durationMinutes ? { label: "時間", value: `${durationMinutes}分` } : null,
       { label: "罰金", value: `¥${parseInt(penaltyAmount).toLocaleString()}`, danger: true },
+      type === "recurring" && escalationEnabled
+        ? { label: "罰金増加", value: escalationType === "multiplier" ? `連続失敗×${escalationValue}倍` : `連続失敗+¥${parseInt(escalationValue).toLocaleString()}/回` }
+        : null,
+      type === "oneoff" && isLocked
+        ? { label: "ロック", value: "取り消し不可能", danger: true }
+        : null,
     ].filter(Boolean) as { label: string; value: string; danger?: boolean }[];
 
     return (
@@ -186,7 +250,6 @@ export default function NewGoalPage() {
           <div style={{ padding: "0 16px 24px" }}>
             <h1 style={{ fontSize: "28px", fontWeight: 800, color: "#111111", marginBottom: "20px" }}>確認</h1>
 
-            {/* 確認内容 */}
             <div style={{ background: "white", borderRadius: "16px", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", marginBottom: "12px" }}>
               {summaryRows.map((row, idx) => (
                 <div key={row.label}>
@@ -199,12 +262,19 @@ export default function NewGoalPage() {
               ))}
             </div>
 
-            {/* 警告 */}
-            <div style={{ background: "#FFF5EE", borderRadius: "12px", padding: "12px 14px", marginBottom: "20px", borderLeft: "3px solid #FF6B00" }}>
+            <div style={{ background: "#FFF5EE", borderRadius: "12px", padding: "12px 14px", marginBottom: type === "oneoff" && isLocked ? "12px" : "20px", borderLeft: "3px solid #FF6B00" }}>
               <p style={{ fontSize: "13px", color: "#FF6B00", lineHeight: 1.5 }}>
                 ⚠️ 未達成の場合はクレジットカードから自動で引き落とされます
               </p>
             </div>
+
+            {type === "oneoff" && isLocked && (
+              <div style={{ background: "#FEE2E2", borderRadius: "12px", padding: "12px 14px", marginBottom: "20px", borderLeft: "3px solid #EF4444" }}>
+                <p style={{ fontSize: "13px", color: "#EF4444", lineHeight: 1.5 }}>
+                  🔒 この目標は作成後、当日まで削除・変更できません
+                </p>
+              </div>
+            )}
 
             {error && <p style={{ fontSize: "14px", color: "#EF4444", marginBottom: "12px" }}>{error}</p>}
 
@@ -356,6 +426,98 @@ export default function NewGoalPage() {
           <p style={{ fontSize: "12px", color: "#AAAAAA", marginBottom: "20px", paddingLeft: "4px" }}>
             距離・時間はどちらか一方、または両方設定できます。罰金は最低100円。
           </p>
+
+          {/* サブスク機能 */}
+          {type === "recurring" && (
+            <>
+              <SectionLabel>PRO機能</SectionLabel>
+              <div style={{ background: "white", borderRadius: "16px", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", marginBottom: "20px" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", flex: 1 }}>
+                    <span style={{ fontSize: "15px", color: "#111111", fontWeight: 500 }}>連続失敗で罰金増加</span>
+                    <span style={{ fontSize: "10px", fontWeight: 700, color: "#FF6B00", background: "#FFF0E5", padding: "2px 6px", borderRadius: "4px" }}>PRO</span>
+                  </div>
+                  <Toggle
+                    value={escalationEnabled}
+                    onChange={() => handleProToggle(setEscalationEnabled, escalationEnabled)}
+                    disabled={!isSubscribed}
+                  />
+                </div>
+                {escalationEnabled && (
+                  <>
+                    <div style={{ height: "1px", background: "#F2F2F2" }} />
+                    <div style={{ padding: "14px 16px" }}>
+                      <p style={{ fontSize: "12px", color: "#888888", marginBottom: "10px" }}>増加方式</p>
+                      <div style={{ display: "flex", gap: "8px", marginBottom: "14px" }}>
+                        {([["multiplier", "倍率"], ["surcharge", "上乗せ"]] as [EscalationType, string][]).map(([v, label]) => (
+                          <button
+                            key={v}
+                            onClick={() => setEscalationType(v)}
+                            style={{
+                              flex: 1, padding: "8px", borderRadius: "8px", fontSize: "14px", fontWeight: 600,
+                              background: escalationType === v ? "#FF6B00" : "#F2F2F7",
+                              color: escalationType === v ? "white" : "#888888",
+                              border: "none", cursor: "pointer",
+                            }}
+                          >
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        <input
+                          type="number"
+                          inputMode="decimal"
+                          value={escalationValue}
+                          onChange={(e) => setEscalationValue(e.target.value)}
+                          step={escalationType === "multiplier" ? "0.1" : "100"}
+                          min={escalationType === "multiplier" ? "1.1" : "100"}
+                          style={{ flex: 1, border: "1px solid #E4E4EB", borderRadius: "8px", padding: "8px 12px", fontSize: "15px", outline: "none" }}
+                        />
+                        <span style={{ fontSize: "14px", color: "#888888", flexShrink: 0 }}>
+                          {escalationType === "multiplier" ? "倍（連続毎）" : "円（連続毎）"}
+                        </span>
+                      </div>
+                      <p style={{ fontSize: "11px", color: "#AAAAAA", marginTop: "8px" }}>
+                        {escalationType === "multiplier"
+                          ? `例：罰金¥${parseInt(penaltyAmount || "0").toLocaleString()}で値${escalationValue}→ 2回連続失敗で¥${Math.round(parseInt(penaltyAmount || "0") * Math.pow(parseFloat(escalationValue || "1"), 2)).toLocaleString()}（最大5倍）`
+                          : `例：罰金¥${parseInt(penaltyAmount || "0").toLocaleString()}で+¥${parseInt(escalationValue || "0").toLocaleString()}→ 2回連続失敗で¥${(parseInt(penaltyAmount || "0") + parseInt(escalationValue || "0") * 2).toLocaleString()}（最大5倍）`}
+                      </p>
+                    </div>
+                  </>
+                )}
+              </div>
+            </>
+          )}
+
+          {type === "oneoff" && (
+            <>
+              <SectionLabel>PRO機能</SectionLabel>
+              <div style={{ background: "white", borderRadius: "16px", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", marginBottom: "20px" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", flex: 1 }}>
+                    <span style={{ fontSize: "15px", color: "#111111", fontWeight: 500 }}>取り消し不可能にする</span>
+                    <span style={{ fontSize: "10px", fontWeight: 700, color: "#FF6B00", background: "#FFF0E5", padding: "2px 6px", borderRadius: "4px" }}>PRO</span>
+                  </div>
+                  <Toggle
+                    value={isLocked}
+                    onChange={() => handleProToggle(setIsLocked, isLocked)}
+                    disabled={!isSubscribed}
+                  />
+                </div>
+                {isLocked && (
+                  <>
+                    <div style={{ height: "1px", background: "#F2F2F2" }} />
+                    <div style={{ padding: "10px 16px" }}>
+                      <p style={{ fontSize: "13px", color: "#EF4444", lineHeight: 1.5 }}>
+                        ⚠️ 当日まで削除・変更できなくなります
+                      </p>
+                    </div>
+                  </>
+                )}
+              </div>
+            </>
+          )}
 
           {error && <p style={{ fontSize: "14px", color: "#EF4444", marginBottom: "12px" }}>{error}</p>}
 

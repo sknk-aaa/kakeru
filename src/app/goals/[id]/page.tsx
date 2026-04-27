@@ -18,6 +18,10 @@ interface Goal {
   distance_km: number | null;
   duration_minutes: number | null;
   penalty_amount: number;
+  is_locked: boolean;
+  escalation_type: "multiplier" | "surcharge" | null;
+  escalation_value: number | null;
+  consecutive_failures: number;
 }
 
 function ListRow({ label, children, last }: { label: string; children: React.ReactNode; last?: boolean }) {
@@ -72,7 +76,7 @@ export default function GoalEditPage() {
       .eq("status", "pending")
       .maybeSingle()
       .then(({ data }) => setHasTodayInstance(!!data));
-  }, [id]);
+  }, [id, todayStr]);
 
   function toggleDay(day: number) {
     setSelectedDays((prev) => prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]);
@@ -116,10 +120,21 @@ export default function GoalEditPage() {
     );
   }
 
-  const isLockedOneoffToday = goal.type === "oneoff" && goal.scheduled_date === todayStr;
-  const isLockedRecurringToday = goal.type === "recurring" && hasTodayInstance;
-  const isInputLocked = isLockedOneoffToday || isLockedRecurringToday;
+  const isPermanentlyLocked = goal.is_locked;
+  const isLockedOneoffToday = !isPermanentlyLocked && goal.type === "oneoff" && goal.scheduled_date === todayStr;
+  const isLockedRecurringToday = !isPermanentlyLocked && goal.type === "recurring" && hasTodayInstance;
+  const isInputLocked = isPermanentlyLocked || isLockedOneoffToday || isLockedRecurringToday;
   const todayDayOfWeek = new Date(todayStr + "T00:00:00").getDay();
+
+  // 次回課金額の計算
+  const nextChargeAmount = (() => {
+    if (!goal.escalation_type || !goal.escalation_value) return null;
+    const n = goal.consecutive_failures + 1;
+    if (goal.escalation_type === "multiplier") {
+      return Math.round(Math.min(goal.penalty_amount * Math.pow(goal.escalation_value, n), goal.penalty_amount * 5));
+    }
+    return Math.round(Math.min(goal.penalty_amount + goal.escalation_value * n, goal.penalty_amount * 5));
+  })();
 
   const inputStyle = {
     border: "none",
@@ -146,6 +161,14 @@ export default function GoalEditPage() {
             {goal.type === "recurring" ? "毎週繰り返し" : "1回のみ"}
           </p>
 
+          {/* 永久ロックバナー */}
+          {isPermanentlyLocked && (
+            <div style={{ background: "#FEE2E2", borderRadius: "12px", padding: "14px 16px", marginBottom: "20px", borderLeft: "3px solid #EF4444" }}>
+              <p style={{ fontSize: "14px", fontWeight: 700, color: "#EF4444", marginBottom: "4px" }}>🔒 取り消し不可能な目標</p>
+              <p style={{ fontSize: "13px", color: "#888888" }}>この目標は削除・変更できません</p>
+            </div>
+          )}
+
           {/* 曜日選択（繰り返しのみ） */}
           {goal.type === "recurring" && (
             <div style={{ marginBottom: "16px" }}>
@@ -153,15 +176,16 @@ export default function GoalEditPage() {
               <div style={{ display: "flex", gap: "6px" }}>
                 {DAYS.map((day, i) => {
                   const isTodayDay = isLockedRecurringToday && i === todayDayOfWeek;
+                  const disabled = isPermanentlyLocked || isTodayDay;
                   return (
                     <button
                       key={i}
-                      onClick={() => !isTodayDay && toggleDay(i)}
+                      onClick={() => !disabled && toggleDay(i)}
                       style={{
                         flex: 1, height: "44px", borderRadius: "10px", fontSize: "14px", fontWeight: 700,
-                        background: selectedDays.includes(i) ? (isTodayDay ? "#FFBB88" : "#FF6B00") : "white",
-                        color: selectedDays.includes(i) ? "white" : (isTodayDay ? "#CCCCCC" : "#888888"),
-                        border: "none", cursor: isTodayDay ? "default" : "pointer",
+                        background: selectedDays.includes(i) ? (isTodayDay ? "#FFBB88" : isPermanentlyLocked ? "#CCCCCC" : "#FF6B00") : "white",
+                        color: selectedDays.includes(i) ? "white" : (disabled ? "#CCCCCC" : "#888888"),
+                        border: "none", cursor: disabled ? "default" : "pointer",
                         boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
                         transition: "all 0.15s",
                         opacity: isTodayDay ? 0.6 : 1,
@@ -172,9 +196,11 @@ export default function GoalEditPage() {
                   );
                 })}
               </div>
-              <p style={{ fontSize: "11px", color: "#AAAAAA", marginTop: "6px", paddingLeft: "4px" }}>
-                ※曜日の変更は既存のスケジュールには反映されません
-              </p>
+              {!isPermanentlyLocked && (
+                <p style={{ fontSize: "11px", color: "#AAAAAA", marginTop: "6px", paddingLeft: "4px" }}>
+                  ※曜日の変更は既存のスケジュールには反映されません
+                </p>
+              )}
             </div>
           )}
 
@@ -198,8 +224,33 @@ export default function GoalEditPage() {
             </ListRow>
           </div>
 
+          {/* 連続失敗エスカレーション状況 */}
+          {goal.type === "recurring" && goal.escalation_type && (
+            <div style={{ background: "white", borderRadius: "16px", padding: "14px 16px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", marginBottom: "20px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "8px" }}>
+                <p style={{ fontSize: "12px", color: "#888888", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>罰金増加</p>
+                <span style={{ fontSize: "10px", fontWeight: 700, color: "#FF6B00", background: "#FFF0E5", padding: "2px 6px", borderRadius: "4px" }}>PRO</span>
+              </div>
+              {goal.consecutive_failures > 0 ? (
+                <p style={{ fontSize: "14px", color: "#111111" }}>
+                  連続失敗: <strong style={{ color: "#EF4444" }}>{goal.consecutive_failures}回</strong>
+                  {nextChargeAmount !== null && (
+                    <> → 次回 <strong style={{ color: "#EF4444" }}>¥{nextChargeAmount.toLocaleString()}</strong>
+                    <span style={{ fontSize: "12px", color: "#888888" }}>（通常¥{goal.penalty_amount.toLocaleString()}の{(nextChargeAmount / goal.penalty_amount).toFixed(2)}倍）</span></>
+                  )}
+                </p>
+              ) : (
+                <p style={{ fontSize: "14px", color: "#22C55E", fontWeight: 600 }}>連続失敗なし（リセット済み）</p>
+              )}
+            </div>
+          )}
+
           {/* 保存ボタン */}
-          {isLockedOneoffToday ? (
+          {isPermanentlyLocked ? (
+            <div style={{ background: "#F8F8F8", borderRadius: "12px", padding: "16px 20px", textAlign: "center", marginBottom: "12px" }}>
+              <p style={{ fontSize: "14px", color: "#888888" }}>取り消し不可能な目標のため変更できません</p>
+            </div>
+          ) : isLockedOneoffToday ? (
             <div style={{ background: "#F8F8F8", borderRadius: "12px", padding: "16px 20px", textAlign: "center", marginBottom: "12px" }}>
               <p style={{ fontSize: "14px", color: "#888888" }}>当日の目標は変更できません</p>
             </div>
@@ -222,8 +273,8 @@ export default function GoalEditPage() {
             </>
           )}
 
-          {/* 停止ボタン：oneoffのロック中のみ非表示 */}
-          {!isLockedOneoffToday && (
+          {/* 停止ボタン：永久ロックと当日oneoffは非表示 */}
+          {!isPermanentlyLocked && !isLockedOneoffToday && (
             !showDeleteConfirm ? (
               <button
                 onClick={() => setShowDeleteConfirm(true)}
