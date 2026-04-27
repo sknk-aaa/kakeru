@@ -23,7 +23,6 @@ interface Goal {
   escalation_type: "multiplier" | "surcharge" | null;
   escalation_value: number | null;
   consecutive_failures: number;
-  lock_days_before: number | null;
   cooling_weeks: number | null;
   created_at: string;
 }
@@ -60,7 +59,7 @@ export default function GoalEditPage() {
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [hasTodayInstance, setHasTodayInstance] = useState(false);
-  const [nextInstanceDate, setNextInstanceDate] = useState<string | null>(null);
+  const [scheduledDate, setScheduledDate] = useState("");
   const [challengeProgress, setChallengeProgress] = useState<{ totalDistKm: number; totalSec: number } | null>(null);
 
   useEffect(() => {
@@ -74,6 +73,7 @@ export default function GoalEditPage() {
       setDurationMinutes(g.duration_minutes ? String(g.duration_minutes) : "");
       setPenaltyAmount(String(g.penalty_amount));
       setSelectedDays(g.days_of_week ?? []);
+      if (g.type === "oneoff") setScheduledDate(g.scheduled_date ?? "");
 
       if (g.type === "challenge" && g.challenge_start_date) {
         supabase.from("runs")
@@ -103,16 +103,6 @@ export default function GoalEditPage() {
       .eq("status", "pending")
       .maybeSingle()
       .then(({ data }) => setHasTodayInstance(!!data));
-
-    supabase.from("goal_instances")
-      .select("scheduled_date")
-      .eq("goal_id", id)
-      .eq("status", "pending")
-      .gte("scheduled_date", todayStr)
-      .order("scheduled_date")
-      .limit(1)
-      .maybeSingle()
-      .then(({ data }) => setNextInstanceDate(data?.scheduled_date ?? null));
   }, [id, todayStr]);
 
   function toggleDay(day: number) {
@@ -133,6 +123,7 @@ export default function GoalEditPage() {
         duration_minutes: durationMinutes || null,
         penalty_amount: penaltyAmount,
         ...(goal?.type === "recurring" ? { days_of_week: selectedDays } : {}),
+        ...(goal?.type === "oneoff" ? { scheduled_date: scheduledDate } : {}),
       }),
     });
     if (!res.ok) { setError("保存に失敗しました"); setLoading(false); return; }
@@ -177,18 +168,9 @@ export default function GoalEditPage() {
     return lockUntil.toISOString().split("T")[0];
   })();
 
-  // lock_days_before による期限ロック
-  const isLockedByLeadTime = (() => {
-    if (!goal.lock_days_before || isPermanentlyLocked || isChallenge) return false;
-    const targetDate = nextInstanceDate;
-    if (!targetDate) return false;
-    const diff = Math.ceil((new Date(targetDate + "T00:00:00").getTime() - new Date(todayStr + "T00:00:00").getTime()) / (1000 * 60 * 60 * 24));
-    return diff <= goal.lock_days_before;
-  })();
-
-  const isLockedOneoffToday = !isPermanentlyLocked && !isLockedByLeadTime && !isCooling && goal.type === "oneoff" && goal.scheduled_date === todayStr;
-  const isLockedRecurringToday = !isPermanentlyLocked && !isLockedByLeadTime && !isCooling && goal.type === "recurring" && hasTodayInstance;
-  const isInputLocked = isPermanentlyLocked || isChallenge || isLockedByLeadTime || isCooling || isLockedOneoffToday || isLockedRecurringToday;
+  const isLockedOneoffToday = !isPermanentlyLocked && !isCooling && goal.type === "oneoff" && goal.scheduled_date === todayStr;
+  const isLockedRecurringToday = !isPermanentlyLocked && !isCooling && goal.type === "recurring" && hasTodayInstance;
+  const isInputLocked = isPermanentlyLocked || isChallenge || isCooling || isLockedOneoffToday || isLockedRecurringToday;
   const todayDayOfWeek = new Date(todayStr + "T00:00:00").getDay();
 
   // 次回課金額の計算
@@ -275,14 +257,6 @@ export default function GoalEditPage() {
             </div>
           )}
 
-          {/* lock_days_beforeによる期限ロックバナー */}
-          {isLockedByLeadTime && !isPermanentlyLocked && (
-            <div style={{ background: "#F8F8F8", borderRadius: "12px", padding: "14px 16px", marginBottom: "20px" }}>
-              <p style={{ fontSize: "14px", fontWeight: 700, color: "#888888", marginBottom: "4px" }}>🔒 変更期限ロック中</p>
-              <p style={{ fontSize: "13px", color: "#AAAAAA" }}>次の実施日まで{goal.lock_days_before}日以内のため変更できません</p>
-            </div>
-          )}
-
           {/* 永久ロックバナー */}
           {isPermanentlyLocked && (
             <div style={{ background: "#FEE2E2", borderRadius: "12px", padding: "14px 16px", marginBottom: "20px", borderLeft: "3px solid #EF4444" }}>
@@ -323,6 +297,25 @@ export default function GoalEditPage() {
                   ※曜日の変更は既存のスケジュールには反映されません
                 </p>
               )}
+            </div>
+          )}
+
+          {/* 実施日（oneoffのみ） */}
+          {goal.type === "oneoff" && (
+            <div style={{ marginBottom: "16px" }}>
+              <p style={{ fontSize: "12px", color: "#888888", fontWeight: 600, marginBottom: "8px", paddingLeft: "4px" }}>実施日</p>
+              <div style={{ background: "white", borderRadius: "16px", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
+                <div style={{ padding: "14px 16px" }}>
+                  <input
+                    type="date"
+                    value={scheduledDate}
+                    min={todayStr}
+                    onChange={(e) => setScheduledDate(e.target.value)}
+                    disabled={isInputLocked}
+                    style={{ border: "none", outline: "none", fontSize: "15px", color: "#111111", background: "transparent", width: "100%" }}
+                  />
+                </div>
+              </div>
             </div>
           )}
 
@@ -376,10 +369,6 @@ export default function GoalEditPage() {
             <div style={{ background: "#FFF5EE", borderRadius: "12px", padding: "16px 20px", textAlign: "center", marginBottom: "12px" }}>
               <p style={{ fontSize: "14px", color: "#FF6B00" }}>クーリング期間中のため変更できません</p>
             </div>
-          ) : isLockedByLeadTime ? (
-            <div style={{ background: "#F8F8F8", borderRadius: "12px", padding: "16px 20px", textAlign: "center", marginBottom: "12px" }}>
-              <p style={{ fontSize: "14px", color: "#888888" }}>変更期限ロック中のため変更できません</p>
-            </div>
           ) : isLockedOneoffToday ? (
             <div style={{ background: "#F8F8F8", borderRadius: "12px", padding: "16px 20px", textAlign: "center", marginBottom: "12px" }}>
               <p style={{ fontSize: "14px", color: "#888888" }}>当日の目標は変更できません</p>
@@ -403,8 +392,8 @@ export default function GoalEditPage() {
             </>
           )}
 
-          {/* 停止ボタン：永久ロック・チャレンジ・クーリング中・当日oneoff・期限ロックは非表示 */}
-          {!isPermanentlyLocked && !isChallenge && !isCooling && !isLockedByLeadTime && !isLockedOneoffToday && (
+          {/* 停止ボタン：永久ロック・チャレンジ・クーリング中・当日oneoffは非表示 */}
+          {!isPermanentlyLocked && !isChallenge && !isCooling && !isLockedOneoffToday && (
             !showDeleteConfirm ? (
               <button
                 onClick={() => setShowDeleteConfirm(true)}

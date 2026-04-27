@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { CheckCircle, XCircle, SkipForward, Plus, ChevronRight, ChevronDown, ChevronUp, X, Route, Trophy, CreditCard, MapPin, Clock, CalendarDays } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { CheckCircle, XCircle, SkipForward, Plus, ChevronRight, ChevronDown, ChevronUp, Route, Trophy, CreditCard, MapPin, Clock, CalendarDays } from "lucide-react";
 import { useState } from "react";
 
 interface GoalInstance {
@@ -9,6 +10,8 @@ interface GoalInstance {
   scheduled_date: string;
   status: string;
   goals: {
+    id: string;
+    type: "recurring" | "oneoff" | "challenge";
     distance_km: number | null;
     duration_minutes: number | null;
     penalty_amount: number;
@@ -35,14 +38,6 @@ interface Props {
 
 const DAY_NAMES = ["日", "月", "火", "水", "木", "金", "土"];
 
-function formatGoal(goal: GoalInstance["goals"]) {
-  if (!goal) return "";
-  const parts: string[] = [];
-  if (goal.distance_km) parts.push(`${goal.distance_km}km`);
-  if (goal.duration_minutes) parts.push(`${goal.duration_minutes}分`);
-  return parts.join("・");
-}
-
 export default function HomeClient({
   userProfile,
   weekInstances,
@@ -54,8 +49,9 @@ export default function HomeClient({
   todayRunDistanceKm,
   todayRunDurationSec,
 }: Props) {
+  const router = useRouter();
   const [instances, setInstances] = useState(weekInstances);
-  const [confirmCancelId, setConfirmCancelId] = useState<string | null>(null);
+  const [bottomSheetInstance, setBottomSheetInstance] = useState<GoalInstance | null>(null);
   const [skipTargetId, setSkipTargetId] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
@@ -65,9 +61,8 @@ export default function HomeClient({
   async function handleCancelInstance(instanceId: string) {
     setProcessing(true);
     await fetch(`/api/goals/instances/${instanceId}/cancel`, { method: "POST" });
-    // 楽観的削除
     setInstances((prev) => prev.filter((i) => i.id !== instanceId));
-    setConfirmCancelId(null);
+    setBottomSheetInstance(null);
     setProcessing(false);
   }
 
@@ -131,6 +126,54 @@ export default function HomeClient({
                 スキップする
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* recurring用 取り消しボトムシート */}
+      {bottomSheetInstance && (
+        <div
+          style={{ position: "fixed", inset: 0, zIndex: 100, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "flex-end" }}
+          onClick={() => setBottomSheetInstance(null)}
+        >
+          <div
+            style={{ background: "white", borderRadius: "20px 20px 0 0", padding: "24px 20px calc(env(safe-area-inset-bottom) + 24px)", width: "100%" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ width: "36px", height: "4px", background: "#E5E5E5", borderRadius: "2px", margin: "0 auto 20px" }} />
+            {(() => {
+              const d = new Date(bottomSheetInstance.scheduled_date + "T00:00:00");
+              const g = bottomSheetInstance.goals;
+              return (
+                <>
+                  <p style={{ fontSize: "13px", color: "#888888", marginBottom: "6px" }}>
+                    {d.getMonth() + 1}/{d.getDate()}（{DAY_NAMES[d.getDay()]}）
+                  </p>
+                  <p style={{ fontSize: "20px", fontWeight: 800, color: "#111111", marginBottom: "4px" }}>
+                    {[g?.distance_km && `${g.distance_km}km`, g?.duration_minutes && `${g.duration_minutes}分`].filter(Boolean).join("・") || "フリーラン"}
+                  </p>
+                  {g && (
+                    <p style={{ fontSize: "14px", color: "#EF4444", fontWeight: 600, marginBottom: "20px" }}>
+                      罰金 ¥{g.penalty_amount.toLocaleString()}
+                    </p>
+                  )}
+                  <button
+                    style={{ width: "100%", minHeight: "52px", background: "#EF4444", color: "white", border: "none", borderRadius: "12px", fontSize: "16px", fontWeight: 700, cursor: "pointer", marginBottom: "10px" }}
+                    onClick={() => handleCancelInstance(bottomSheetInstance.id)}
+                    disabled={processing}
+                  >
+                    {processing ? "処理中..." : "この日だけ取り消す"}
+                  </button>
+                  <button
+                    className="btn-secondary"
+                    style={{ width: "100%", minHeight: "48px" }}
+                    onClick={() => setBottomSheetInstance(null)}
+                  >
+                    閉じる
+                  </button>
+                </>
+              );
+            })()}
           </div>
         </div>
       )}
@@ -251,116 +294,99 @@ export default function HomeClient({
               const isToday = instance.scheduled_date === todayStr;
               const isFuture = instance.scheduled_date > todayStr;
               const isPendingNotToday = instance.status === "pending" && !isToday;
-              const isConfirmingCancel = confirmCancelId === instance.id;
               const d = new Date(instance.scheduled_date + "T00:00:00");
+
+              function handleCardTap() {
+                if (!isPendingNotToday || !instance.goals) return;
+                if (instance.goals.type === "oneoff") {
+                  router.push(`/goals/${instance.goals.id}`);
+                } else {
+                  setBottomSheetInstance(instance);
+                }
+              }
 
               return (
                 <div key={instance.id} style={{ transition: "opacity 0.2s" }}>
                   {idx > 0 && <div style={{ height: "1px", background: "#F2F2F2", marginLeft: "72px" }} />}
 
-                  {/* 取消確認バー */}
-                  {isConfirmingCancel ? (
-                    <div style={{ display: "flex", alignItems: "center", padding: "12px 16px", gap: "12px", background: "#FFF5F5" }}>
-                      <p style={{ flex: 1, fontSize: "14px", color: "#EF4444", fontWeight: 500 }}>
-                        {d.getMonth() + 1}/{d.getDate()}({DAY_NAMES[d.getDay()]}) を取り消しますか？
+                  <div
+                    style={{ display: "flex", alignItems: "center", padding: "18px 16px", opacity: isFuture && !isPendingNotToday ? 0.45 : 1, cursor: isPendingNotToday ? "pointer" : "default" }}
+                    onClick={handleCardTap}
+                  >
+                    {/* 日付 */}
+                    <div style={{ width: "44px", textAlign: "center", flexShrink: 0 }}>
+                      <p className="metric-value" style={{ fontSize: "32px", color: isToday ? "#FF6B00" : "#111111", lineHeight: 1 }}>
+                        {d.getDate()}
                       </p>
-                      <button
-                        style={{ fontSize: "13px", color: "#888888", background: "none", border: "none", cursor: "pointer", padding: "4px 8px" }}
-                        onClick={() => setConfirmCancelId(null)}
-                      >
-                        戻す
-                      </button>
-                      <button
-                        style={{ fontSize: "13px", color: "white", background: "#EF4444", border: "none", borderRadius: "8px", padding: "6px 14px", cursor: "pointer", fontWeight: 600 }}
-                        onClick={() => handleCancelInstance(instance.id)}
-                        disabled={processing}
-                      >
-                        取り消す
-                      </button>
+                      <p style={{ fontSize: "12px", color: isToday ? "#FF6B00" : "#888888", marginTop: "3px" }}>
+                        {DAY_NAMES[d.getDay()]}
+                      </p>
                     </div>
-                  ) : (
-                    <div style={{ display: "flex", alignItems: "center", padding: "18px 16px", opacity: isFuture && !isPendingNotToday ? 0.45 : 1 }}>
-                      {/* 日付 */}
-                      <div style={{ width: "44px", textAlign: "center", flexShrink: 0 }}>
-                        <p className="metric-value" style={{ fontSize: "32px", color: isToday ? "#FF6B00" : "#111111", lineHeight: 1 }}>
-                          {d.getDate()}
-                        </p>
-                        <p style={{ fontSize: "12px", color: isToday ? "#FF6B00" : "#888888", marginTop: "3px" }}>
-                          {DAY_NAMES[d.getDay()]}
-                        </p>
+
+                    <div style={{ width: "1px", height: "42px", background: "#EBEBEB", margin: "0 14px", flexShrink: 0 }} />
+
+                    {/* 目標内容 */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                        {instance.goals?.distance_km && (
+                          <span style={{ display: "flex", alignItems: "center", gap: "3px", fontSize: "15px", fontWeight: 600, color: "#111111" }}>
+                            <MapPin size={13} color="#FF6B00" strokeWidth={2.5} />
+                            {instance.goals.distance_km}km
+                          </span>
+                        )}
+                        {instance.goals?.duration_minutes && (
+                          <span style={{ display: "flex", alignItems: "center", gap: "3px", fontSize: "15px", fontWeight: 600, color: "#111111" }}>
+                            <Clock size={13} color="#888888" strokeWidth={2.5} />
+                            {instance.goals.duration_minutes}分
+                          </span>
+                        )}
+                        {!instance.goals?.distance_km && !instance.goals?.duration_minutes && (
+                          <span style={{ fontSize: "15px", fontWeight: 600, color: "#111111" }}>フリーラン</span>
+                        )}
+                        {isToday && (
+                          <span style={{ fontSize: "10px", background: "#FF6B00", color: "white", padding: "2px 7px", borderRadius: "99px", fontWeight: 700 }}>今日</span>
+                        )}
                       </div>
+                      {instance.goals && (
+                        <p style={{ fontSize: "12px", color: "#EF4444", marginTop: "4px" }}>
+                          罰金 ¥{instance.goals.penalty_amount.toLocaleString()}
+                        </p>
+                      )}
+                    </div>
 
-                      <div style={{ width: "1px", height: "42px", background: "#EBEBEB", margin: "0 14px", flexShrink: 0 }} />
-
-                      {/* 目標内容 */}
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
-                          {instance.goals?.distance_km && (
-                            <span style={{ display: "flex", alignItems: "center", gap: "3px", fontSize: "15px", fontWeight: 600, color: "#111111" }}>
-                              <MapPin size={13} color="#FF6B00" strokeWidth={2.5} />
-                              {instance.goals.distance_km}km
-                            </span>
-                          )}
-                          {instance.goals?.duration_minutes && (
-                            <span style={{ display: "flex", alignItems: "center", gap: "3px", fontSize: "15px", fontWeight: 600, color: "#111111" }}>
-                              <Clock size={13} color="#888888" strokeWidth={2.5} />
-                              {instance.goals.duration_minutes}分
-                            </span>
-                          )}
-                          {!instance.goals?.distance_km && !instance.goals?.duration_minutes && (
-                            <span style={{ fontSize: "15px", fontWeight: 600, color: "#111111" }}>フリーラン</span>
-                          )}
-                          {isToday && (
-                            <span style={{ fontSize: "10px", background: "#FF6B00", color: "white", padding: "2px 7px", borderRadius: "99px", fontWeight: 700 }}>今日</span>
-                          )}
+                    {/* アクション */}
+                    <div style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: "6px" }}>
+                      {instance.status === "achieved" && <CheckCircle size={22} color="#22C55E" />}
+                      {instance.status === "failed" && <XCircle size={22} color="#EF4444" />}
+                      {instance.status === "skipped" && (
+                        <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                          <SkipForward size={14} color="#AAAAAA" />
+                          <span style={{ fontSize: "12px", color: "#AAAAAA", fontWeight: 500 }}>スキップ済み</span>
                         </div>
-                        {instance.goals && (
-                          <p style={{ fontSize: "12px", color: "#EF4444", marginTop: "4px" }}>
-                            罰金 ¥{instance.goals.penalty_amount.toLocaleString()}
-                          </p>
-                        )}
-                      </div>
+                      )}
 
-                      {/* アクション */}
-                      <div style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: "6px" }}>
-                        {instance.status === "achieved" && <CheckCircle size={22} color="#22C55E" />}
-                        {instance.status === "failed" && <XCircle size={22} color="#EF4444" />}
-                        {instance.status === "skipped" && (
-                          <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                            <SkipForward size={14} color="#AAAAAA" />
-                            <span style={{ fontSize: "12px", color: "#AAAAAA", fontWeight: 500 }}>スキップ済み</span>
-                          </div>
-                        )}
+                      {instance.status === "pending" && isToday && (
+                        <>
+                          <Link href="/run">
+                            <button className="btn-primary" style={{ minHeight: "36px", fontSize: "13px", padding: "0 14px" }}>走る</button>
+                          </Link>
+                          {skipRemaining > 0 && (
+                            <button
+                              className="btn-secondary"
+                              style={{ minHeight: "36px", fontSize: "13px", padding: "0 10px" }}
+                              onClick={(e) => { e.stopPropagation(); setSkipTargetId(instance.id); }}
+                            >
+                              スキップ
+                            </button>
+                          )}
+                        </>
+                      )}
 
-                        {instance.status === "pending" && isToday && (
-                          <>
-                            <Link href="/run">
-                              <button className="btn-primary" style={{ minHeight: "36px", fontSize: "13px", padding: "0 14px" }}>走る</button>
-                            </Link>
-                            {skipRemaining > 0 && (
-                              <button
-                                className="btn-secondary"
-                                style={{ minHeight: "36px", fontSize: "13px", padding: "0 10px" }}
-                                onClick={() => setSkipTargetId(instance.id)}
-                              >
-                                スキップ
-                              </button>
-                            )}
-                          </>
-                        )}
-
-                        {/* 今日以外のpending：×ボタン */}
-                        {isPendingNotToday && (
-                          <button
-                            onClick={() => setConfirmCancelId(instance.id)}
-                            style={{ width: "28px", height: "28px", borderRadius: "50%", background: "#F2F2F2", border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
-                          >
-                            <X size={14} color="#AAAAAA" strokeWidth={2.5} />
-                          </button>
-                        )}
-                      </div>
+                      {isPendingNotToday && (
+                        <ChevronRight size={16} color="#CCCCCC" />
+                      )}
                     </div>
-                  )}
+                  </div>
                 </div>
               );
             })}
@@ -379,7 +405,7 @@ export default function HomeClient({
                   {showHistory ? <ChevronUp size={14} color="#AAAAAA" /> : <ChevronDown size={14} color="#AAAAAA" />}
                 </button>
 
-                {showHistory && historyInstances.map((instance, idx) => {
+                {showHistory && historyInstances.map((instance) => {
                   const isToday = instance.scheduled_date === todayStr;
                   const d = new Date(instance.scheduled_date + "T00:00:00");
                   return (

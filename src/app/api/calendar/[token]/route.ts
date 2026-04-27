@@ -37,6 +37,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ token: 
       }> | null;
     };
 
+  const dtstamp = new Date().toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
   const events: string[] = [];
   for (const instance of instances ?? []) {
     if (!instance.goals || instance.goals.type !== "oneoff") continue;
@@ -48,6 +49,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ token: 
         "BEGIN:VEVENT",
         `DTSTART;VALUE=DATE:${dtstart}`,
         `DTEND;VALUE=DATE:${dtend}`,
+        `DTSTAMP:${dtstamp}`,
         `SUMMARY:${summary}`,
         `UID:kakeru-instance-${instance.id}@kakeru`,
         "END:VEVENT",

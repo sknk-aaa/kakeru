@@ -4,7 +4,7 @@ import { requireUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import AppShell from "@/components/AppShell";
 import GoalsClient from "./GoalsClient";
-import { getPrefectureByCode, checkRainy } from "@/lib/prefectures";
+import { checkRainy } from "@/lib/prefectures";
 
 export default async function GoalsPage() {
   const user = await requireUser();
@@ -17,11 +17,12 @@ export default async function GoalsPage() {
       .eq("user_id", user.id)
       .eq("is_active", true)
       .order("created_at", { ascending: false }),
-    supabase.from("users").select("prefecture").eq("id", user.id).single(),
+    supabase.from("users").select("location_lat, location_lng").eq("id", user.id).single(),
   ]);
 
-  const prefObj = userProfile?.prefecture ? getPrefectureByCode(userProfile.prefecture) : null;
-  const isRainy = prefObj ? await checkRainy(prefObj.lat, prefObj.lng) : false;
+  const isRainy = (userProfile?.location_lat && userProfile?.location_lng)
+    ? await checkRainy(userProfile.location_lat, userProfile.location_lng)
+    : false;
 
   // JSTで日付を計算（サーバーはUTCで動くため+9時間補正）
   const nowJst = new Date(Date.now() + 9 * 60 * 60 * 1000);

@@ -7,7 +7,6 @@ import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import AppShell from "@/components/AppShell";
 import { User, Weight, Target, CreditCard, LogOut, ChevronRight, Check, CheckCircle, KeyRound, Bell, MapPin, Calendar, Copy } from "lucide-react";
-import { PREFECTURES } from "@/lib/prefectures";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -25,7 +24,11 @@ export default function SettingsPage() {
   const [changingPw, setChangingPw] = useState(false);
   const [pwSaved, setPwSaved] = useState(false);
   const [pwError, setPwError] = useState<string | null>(null);
-  const [prefecture, setPrefecture] = useState("");
+  const [cityName, setCityName] = useState("");
+  const [locationLat, setLocationLat] = useState<number | null>(null);
+  const [locationLng, setLocationLng] = useState<number | null>(null);
+  const [cityQuery, setCityQuery] = useState("");
+  const [citySuggestions, setCitySuggestions] = useState<{ name: string; admin1: string; latitude: number; longitude: number }[]>([]);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [calendarToken, setCalendarToken] = useState<string | null>(null);
@@ -41,7 +44,7 @@ export default function SettingsPage() {
       setIsEmailUser(user.app_metadata?.provider === "email");
       supabase
         .from("users")
-        .select("weight_kg, monthly_distance_goal_km, stripe_payment_method_id, notify_morning, notify_evening, prefecture, calendar_token")
+        .select("weight_kg, monthly_distance_goal_km, stripe_payment_method_id, notify_morning, notify_evening, city_name, location_lat, location_lng, calendar_token")
         .eq("id", user.id)
         .single()
         .then(({ data }) => {
@@ -49,7 +52,9 @@ export default function SettingsPage() {
           if (data?.monthly_distance_goal_km) setMonthlyGoal(String(data.monthly_distance_goal_km));
           if (data?.notify_morning != null) setNotifyMorning(data.notify_morning);
           if (data?.notify_evening != null) setNotifyEvening(data.notify_evening);
-          if (data?.prefecture) setPrefecture(data.prefecture);
+          if (data?.city_name) setCityName(data.city_name);
+          if (data?.location_lat) setLocationLat(data.location_lat);
+          if (data?.location_lng) setLocationLng(data.location_lng);
           if (data?.calendar_token) setCalendarToken(data.calendar_token);
           if (data?.stripe_payment_method_id) {
             setHasCard(true);
@@ -70,13 +75,26 @@ export default function SettingsPage() {
     await supabase.from("users").update({
       weight_kg: weightKg ? parseFloat(weightKg) : null,
       monthly_distance_goal_km: monthlyGoal ? parseFloat(monthlyGoal) : null,
-      prefecture: prefecture || null,
+      city_name: cityName || null,
+      location_lat: locationLat,
+      location_lng: locationLng,
+      prefecture: null,
     }).eq("id", user.id);
 
     setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   }
+
+  useEffect(() => {
+    if (!cityQuery.trim()) { setCitySuggestions([]); return; }
+    const timer = setTimeout(async () => {
+      const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityQuery)}&count=5&language=ja&countryCode=JP`);
+      const data = await res.json();
+      setCitySuggestions(data.results ?? []);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [cityQuery]);
 
   async function handleChangePassword() {
     if (newPassword.length < 8) { setPwError("8文字以上で入力してください"); return; }
@@ -259,18 +277,52 @@ export default function SettingsPage() {
           <p className="text-xs text-[#888888] font-medium mb-2 flex items-center gap-1.5">
             <MapPin size={13} /> 地域（雨の日スキップ用）
           </p>
-          <div className="card p-0 overflow-hidden">
-            <select
-              value={prefecture}
-              onChange={(e) => setPrefecture(e.target.value)}
-              style={{ width: "100%", padding: "14px 16px", border: "none", outline: "none", fontSize: "15px", color: prefecture ? "#111111" : "#AAAAAA", background: "transparent", appearance: "none" }}
-            >
-              <option value="">都道府県を選択</option>
-              {PREFECTURES.map((p) => (
-                <option key={p.code} value={p.code}>{p.name}</option>
-              ))}
-            </select>
-          </div>
+          {cityName && !cityQuery ? (
+            <div className="card flex items-center justify-between">
+              <div>
+                <p className="text-[15px] text-text-main font-medium">{cityName}</p>
+                <p className="text-xs text-[#AAAAAA] mt-0.5">設定済み</p>
+              </div>
+              <button
+                className="text-sm text-accent"
+                onClick={() => { setCityName(""); setLocationLat(null); setLocationLng(null); }}
+              >
+                変更する
+              </button>
+            </div>
+          ) : (
+            <div className="relative">
+              <div className="card p-0 overflow-hidden">
+                <input
+                  className="w-full px-4 py-3.5 text-[15px] border-none outline-none bg-transparent"
+                  type="text"
+                  placeholder="市区町村名を入力（例: 渋谷区）"
+                  value={cityQuery}
+                  onChange={(e) => setCityQuery(e.target.value)}
+                />
+              </div>
+              {citySuggestions.length > 0 && (
+                <div className="absolute z-10 w-full mt-1 bg-white rounded-xl shadow-lg border border-border overflow-hidden">
+                  {citySuggestions.map((s, i) => (
+                    <button
+                      key={i}
+                      className="w-full text-left px-4 py-3 text-[14px] border-t border-[#F2F2F2] first:border-t-0 hover:bg-[#F8F8F8]"
+                      onClick={() => {
+                        setCityName(s.name);
+                        setLocationLat(s.latitude);
+                        setLocationLng(s.longitude);
+                        setCityQuery("");
+                        setCitySuggestions([]);
+                      }}
+                    >
+                      <span className="text-text-main font-medium">{s.name}</span>
+                      {s.admin1 && <span className="text-[#AAAAAA] ml-2 text-xs">{s.admin1}</span>}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* 保存ボタン */}

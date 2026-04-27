@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { getPrefectureByCode, checkRainy } from "@/lib/prefectures";
+import { checkRainy } from "@/lib/prefectures";
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -9,17 +9,17 @@ export async function POST(request: Request) {
 
   const { goalInstanceId } = await request.json();
 
-  // ユーザーの都道府県を取得して天気を再確認
   const { data: userData } = await supabase
     .from("users")
-    .select("prefecture")
+    .select("location_lat, location_lng")
     .eq("id", user.id)
     .single();
 
-  const prefObj = userData?.prefecture ? getPrefectureByCode(userData.prefecture) : null;
-  if (!prefObj) return NextResponse.json({ error: "都道府県が設定されていません" }, { status: 400 });
+  if (!userData?.location_lat || !userData?.location_lng) {
+    return NextResponse.json({ error: "地域が設定されていません" }, { status: 400 });
+  }
 
-  const rainy = await checkRainy(prefObj.lat, prefObj.lng);
+  const rainy = await checkRainy(userData.location_lat, userData.location_lng);
   if (!rainy) return NextResponse.json({ error: "現在地は雨ではありません" }, { status: 400 });
 
   const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().split("T")[0];
