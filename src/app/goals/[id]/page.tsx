@@ -24,6 +24,8 @@ interface Goal {
   escalation_value: number | null;
   consecutive_failures: number;
   lock_days_before: number | null;
+  cooling_weeks: number | null;
+  created_at: string;
 }
 
 function ListRow({ label, children, last }: { label: string; children: React.ReactNode; last?: boolean }) {
@@ -158,6 +160,23 @@ export default function GoalEditPage() {
   const isPermanentlyLocked = goal.is_locked;
   const isChallenge = goal.type === "challenge";
 
+  // クーリング期間ロック
+  const isCooling = (() => {
+    if (!goal.cooling_weeks) return false;
+    const lockUntil = new Date(new Date(goal.created_at).getTime() + goal.cooling_weeks * 7 * 24 * 60 * 60 * 1000);
+    return lockUntil > new Date(Date.now() + 9 * 60 * 60 * 1000);
+  })();
+  const coolingRemainingDays = (() => {
+    if (!goal.cooling_weeks) return 0;
+    const lockUntil = new Date(new Date(goal.created_at).getTime() + goal.cooling_weeks * 7 * 24 * 60 * 60 * 1000);
+    return Math.max(0, Math.ceil((lockUntil.getTime() - (Date.now() + 9 * 60 * 60 * 1000)) / (1000 * 60 * 60 * 24)));
+  })();
+  const coolingUnlockDate = (() => {
+    if (!goal.cooling_weeks) return "";
+    const lockUntil = new Date(new Date(goal.created_at).getTime() + goal.cooling_weeks * 7 * 24 * 60 * 60 * 1000);
+    return lockUntil.toISOString().split("T")[0];
+  })();
+
   // lock_days_before による期限ロック
   const isLockedByLeadTime = (() => {
     if (!goal.lock_days_before || isPermanentlyLocked || isChallenge) return false;
@@ -167,9 +186,9 @@ export default function GoalEditPage() {
     return diff <= goal.lock_days_before;
   })();
 
-  const isLockedOneoffToday = !isPermanentlyLocked && !isLockedByLeadTime && goal.type === "oneoff" && goal.scheduled_date === todayStr;
-  const isLockedRecurringToday = !isPermanentlyLocked && !isLockedByLeadTime && goal.type === "recurring" && hasTodayInstance;
-  const isInputLocked = isPermanentlyLocked || isChallenge || isLockedByLeadTime || isLockedOneoffToday || isLockedRecurringToday;
+  const isLockedOneoffToday = !isPermanentlyLocked && !isLockedByLeadTime && !isCooling && goal.type === "oneoff" && goal.scheduled_date === todayStr;
+  const isLockedRecurringToday = !isPermanentlyLocked && !isLockedByLeadTime && !isCooling && goal.type === "recurring" && hasTodayInstance;
+  const isInputLocked = isPermanentlyLocked || isChallenge || isLockedByLeadTime || isCooling || isLockedOneoffToday || isLockedRecurringToday;
   const todayDayOfWeek = new Date(todayStr + "T00:00:00").getDay();
 
   // 次回課金額の計算
@@ -245,6 +264,14 @@ export default function GoalEditPage() {
                 <p style={{ fontSize: "13px", color: "#AAAAAA" }}>読み込み中...</p>
               )}
               <p style={{ fontSize: "12px", color: "#EF4444", marginTop: "10px" }}>⚠️ チャレンジ目標は期間中に停止できません</p>
+            </div>
+          )}
+
+          {/* クーリング期間バナー */}
+          {isCooling && !isPermanentlyLocked && !isChallenge && (
+            <div style={{ background: "#FFF5EE", borderRadius: "12px", padding: "14px 16px", marginBottom: "20px", borderLeft: "3px solid #FF6B00" }}>
+              <p style={{ fontSize: "14px", fontWeight: 700, color: "#FF6B00", marginBottom: "4px" }}>🔒 クーリング期間中</p>
+              <p style={{ fontSize: "13px", color: "#888888" }}>変更・停止できません（残り{coolingRemainingDays}日 / {coolingUnlockDate}まで）</p>
             </div>
           )}
 
@@ -345,7 +372,11 @@ export default function GoalEditPage() {
             <div style={{ background: "#F8F8F8", borderRadius: "12px", padding: "16px 20px", textAlign: "center", marginBottom: "12px" }}>
               <p style={{ fontSize: "14px", color: "#888888" }}>取り消し不可能な目標のため変更できません</p>
             </div>
-          ) : isChallenge ? null : isLockedByLeadTime ? (
+          ) : isChallenge ? null : isCooling ? (
+            <div style={{ background: "#FFF5EE", borderRadius: "12px", padding: "16px 20px", textAlign: "center", marginBottom: "12px" }}>
+              <p style={{ fontSize: "14px", color: "#FF6B00" }}>クーリング期間中のため変更できません</p>
+            </div>
+          ) : isLockedByLeadTime ? (
             <div style={{ background: "#F8F8F8", borderRadius: "12px", padding: "16px 20px", textAlign: "center", marginBottom: "12px" }}>
               <p style={{ fontSize: "14px", color: "#888888" }}>変更期限ロック中のため変更できません</p>
             </div>
@@ -372,8 +403,8 @@ export default function GoalEditPage() {
             </>
           )}
 
-          {/* 停止ボタン：永久ロック・チャレンジ・当日oneoff・期限ロックは非表示 */}
-          {!isPermanentlyLocked && !isChallenge && !isLockedByLeadTime && !isLockedOneoffToday && (
+          {/* 停止ボタン：永久ロック・チャレンジ・クーリング中・当日oneoff・期限ロックは非表示 */}
+          {!isPermanentlyLocked && !isChallenge && !isCooling && !isLockedByLeadTime && !isLockedOneoffToday && (
             !showDeleteConfirm ? (
               <button
                 onClick={() => setShowDeleteConfirm(true)}

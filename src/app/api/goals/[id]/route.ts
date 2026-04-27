@@ -13,10 +13,16 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { data: goal } = await supabase.from("goals").select("is_locked, user_id, type, lock_days_before").eq("id", id).single();
+  const { data: goal } = await supabase.from("goals").select("is_locked, user_id, type, lock_days_before, cooling_weeks, created_at").eq("id", id).single();
   if (!goal || goal.user_id !== user.id) return NextResponse.json({ error: "not found" }, { status: 404 });
   if (goal.is_locked) return NextResponse.json({ error: "locked" }, { status: 403 });
   if (goal.type === "challenge") return NextResponse.json({ error: "challenge goals cannot be edited" }, { status: 403 });
+
+  if (goal.cooling_weeks != null) {
+    const lockUntil = new Date(new Date(goal.created_at).getTime() + goal.cooling_weeks * 7 * 24 * 60 * 60 * 1000);
+    const now = new Date(Date.now() + 9 * 60 * 60 * 1000);
+    if (lockUntil > now) return NextResponse.json({ error: "cooling_period" }, { status: 403 });
+  }
 
   if (goal.lock_days_before != null) {
     const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().split("T")[0];
@@ -55,10 +61,16 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { data: goal } = await supabase.from("goals").select("is_locked, user_id, type, lock_days_before").eq("id", id).single();
+  const { data: goal } = await supabase.from("goals").select("is_locked, user_id, type, lock_days_before, cooling_weeks, created_at").eq("id", id).single();
   if (!goal || goal.user_id !== user.id) return NextResponse.json({ error: "not found" }, { status: 404 });
   if (goal.is_locked) return NextResponse.json({ error: "locked" }, { status: 403 });
   if (goal.type === "challenge") return NextResponse.json({ error: "challenge goals cannot be stopped" }, { status: 403 });
+
+  if (goal.cooling_weeks != null) {
+    const lockUntil = new Date(new Date(goal.created_at).getTime() + goal.cooling_weeks * 7 * 24 * 60 * 60 * 1000);
+    const now = new Date(Date.now() + 9 * 60 * 60 * 1000);
+    if (lockUntil > now) return NextResponse.json({ error: "cooling_period" }, { status: 403 });
+  }
 
   if (goal.lock_days_before != null) {
     const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().split("T")[0];

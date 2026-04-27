@@ -52,7 +52,7 @@ export default async function GoalsPage() {
     pastOneoffGoalIds.length > 0
       ? supabase
           .from("goal_instances")
-          .select("goal_id, scheduled_date, status")
+          .select("id, goal_id, scheduled_date, status")
           .in("goal_id", pastOneoffGoalIds)
       : Promise.resolve({ data: [] }),
     supabase

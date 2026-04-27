@@ -81,6 +81,7 @@ export default function NewGoalPage() {
   const [escalationValue, setEscalationValue] = useState("1.5");
   const [isLocked, setIsLocked] = useState(false);
   const [lockDaysBefore, setLockDaysBefore] = useState<number | null>(null);
+  const [coolingWeeks, setCoolingWeeks] = useState<number | null>(null);
 
   useEffect(() => {
     const supabase = createClient();
@@ -118,6 +119,11 @@ export default function NewGoalPage() {
   function handleLockDaysSelect(days: number | null) {
     if (!isSubscribed && days !== null) { alert("サブスクリプション限定の機能です"); return; }
     setLockDaysBefore(days);
+  }
+
+  function handleCoolingSelect(weeks: number | null) {
+    if (!isSubscribed && weeks !== null) { alert("サブスクリプション限定の機能です"); return; }
+    setCoolingWeeks(weeks);
   }
 
   function validate() {
@@ -194,6 +200,7 @@ export default function NewGoalPage() {
       escalation_value: type === "recurring" && escalationEnabled ? parseFloat(escalationValue) : null,
       is_locked: type === "oneoff" && isLocked ? true : false,
       lock_days_before: (type === "recurring" || type === "oneoff") ? lockDaysBefore : null,
+      cooling_weeks: type === "recurring" ? coolingWeeks : null,
     }).select().single();
 
     if (goalError || !goal) { setError("保存に失敗しました"); setLoading(false); return; }
@@ -228,6 +235,14 @@ export default function NewGoalPage() {
     { label: "14日前", value: 14 },
   ];
 
+  const coolingOptions: { label: string; value: number | null }[] = [
+    { label: "なし", value: null },
+    { label: "2週間", value: 2 },
+    { label: "4週間", value: 4 },
+    { label: "8週間", value: 8 },
+    { label: "12週間", value: 12 },
+  ];
+
   if (step === "confirm") {
     const endDateFormatted = type === "challenge"
       ? (() => { const d = new Date(challengeEndDate + "T00:00:00"); return `${d.getMonth() + 1}/${d.getDate()}(${DAYS[d.getDay()]})`; })()
@@ -249,6 +264,9 @@ export default function NewGoalPage() {
       type === "oneoff" && isLocked ? { label: "ロック", value: "取り消し不可能", danger: true } : null,
       (type === "recurring" || type === "oneoff") && lockDaysBefore != null
         ? { label: "変更期限", value: `${lockDaysBefore}日前までロック` }
+        : null,
+      type === "recurring" && coolingWeeks != null
+        ? { label: "クーリング期間", value: `最初の${coolingWeeks}週間は変更・停止不可`, danger: true }
         : null,
     ].filter(Boolean) as { label: string; value: string; danger?: boolean }[];
 
@@ -283,8 +301,14 @@ export default function NewGoalPage() {
             </div>
 
             {type === "oneoff" && isLocked && (
-              <div style={{ background: "#FEE2E2", borderRadius: "12px", padding: "12px 14px", marginBottom: "20px", borderLeft: "3px solid #EF4444" }}>
+              <div style={{ background: "#FEE2E2", borderRadius: "12px", padding: "12px 14px", marginBottom: "12px", borderLeft: "3px solid #EF4444" }}>
                 <p style={{ fontSize: "13px", color: "#EF4444", lineHeight: 1.5 }}>🔒 この目標は作成後、当日まで削除・変更できません</p>
+              </div>
+            )}
+
+            {type === "recurring" && coolingWeeks != null && (
+              <div style={{ background: "#FFF5EE", borderRadius: "12px", padding: "12px 14px", marginBottom: "12px", borderLeft: "3px solid #FF6B00" }}>
+                <p style={{ fontSize: "13px", color: "#FF6B00", lineHeight: 1.5 }}>🔒 最初の{coolingWeeks}週間は変更・停止できません</p>
               </div>
             )}
 
@@ -486,6 +510,37 @@ export default function NewGoalPage() {
                       >
                         <span style={{ width: "18px", height: "18px", borderRadius: "50%", border: "2px solid", borderColor: lockDaysBefore === value ? "#FF6B00" : "#CCCCCC", background: lockDaysBefore === value ? "#FF6B00" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                           {lockDaysBefore === value && <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "white", display: "block" }} />}
+                        </span>
+                        <span style={{ fontSize: "14px", color: "#111111" }}>{label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div style={{ height: "1px", background: "#F2F2F2" }} />
+
+                {/* 初期クーリング期間 */}
+                <div style={{ padding: "14px 16px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
+                    <span style={{ fontSize: "15px", color: "#111111", fontWeight: 500 }}>初期クーリング期間</span>
+                    <span style={{ fontSize: "10px", fontWeight: 700, color: "#FF6B00", background: "#FFF0E5", padding: "2px 6px", borderRadius: "4px" }}>PRO</span>
+                  </div>
+                  <p style={{ fontSize: "12px", color: "#888888", marginBottom: "10px" }}>設定後X週間は変更・停止不可</p>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                    {coolingOptions.map(({ label, value }) => (
+                      <button
+                        key={String(value)}
+                        onClick={() => handleCoolingSelect(value)}
+                        style={{
+                          display: "flex", alignItems: "center", gap: "10px", padding: "10px 12px",
+                          borderRadius: "10px", border: "1.5px solid",
+                          borderColor: coolingWeeks === value ? "#FF6B00" : "#F2F2F7",
+                          background: coolingWeeks === value ? "#FFF5EE" : "#F2F2F7",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <span style={{ width: "18px", height: "18px", borderRadius: "50%", border: "2px solid", borderColor: coolingWeeks === value ? "#FF6B00" : "#CCCCCC", background: coolingWeeks === value ? "#FF6B00" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                          {coolingWeeks === value && <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "white", display: "block" }} />}
                         </span>
                         <span style={{ fontSize: "14px", color: "#111111" }}>{label}</span>
                       </button>
