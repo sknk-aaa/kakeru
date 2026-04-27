@@ -4,8 +4,8 @@ function header(): string {
       <td style="background-color:#111111;padding:24px 40px;text-align:center;">
         <table cellpadding="0" cellspacing="0" style="margin:0 auto;">
           <tr>
-            <td style="width:40px;height:40px;background-color:#FF6B00;border-radius:20px;text-align:center;vertical-align:middle;">
-              <span style="color:white;font-size:20px;font-weight:900;line-height:40px;display:block;">K</span>
+            <td style="width:40px;height:40px;">
+              <img src="https://www.kakeruapp.com/favicon.png" width="40" height="40" alt="カケル" style="display:block;border-radius:10px;" />
             </td>
             <td style="padding-left:12px;vertical-align:middle;">
               <span style="color:white;font-size:18px;font-weight:700;">カケル</span>
