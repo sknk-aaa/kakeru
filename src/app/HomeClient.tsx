@@ -51,20 +51,11 @@ export default function HomeClient({
 }: Props) {
   const router = useRouter();
   const [instances, setInstances] = useState(weekInstances);
-  const [bottomSheetInstance, setBottomSheetInstance] = useState<GoalInstance | null>(null);
   const [skipTargetId, setSkipTargetId] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
 
   const skipRemaining = Math.max(0, 1 - (userProfile?.skip_count_this_month ?? 0));
-
-  async function handleCancelInstance(instanceId: string) {
-    setProcessing(true);
-    await fetch(`/api/goals/instances/${instanceId}/cancel`, { method: "POST" });
-    setInstances((prev) => prev.filter((i) => i.id !== instanceId));
-    setBottomSheetInstance(null);
-    setProcessing(false);
-  }
 
   async function handleSkip(instanceId: string) {
     setProcessing(true);
@@ -126,54 +117,6 @@ export default function HomeClient({
                 スキップする
               </button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* recurring用 取り消しボトムシート */}
-      {bottomSheetInstance && (
-        <div
-          style={{ position: "fixed", inset: 0, zIndex: 100, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "flex-end" }}
-          onClick={() => setBottomSheetInstance(null)}
-        >
-          <div
-            style={{ background: "white", borderRadius: "20px 20px 0 0", padding: "24px 20px calc(env(safe-area-inset-bottom) + 24px)", width: "100%" }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div style={{ width: "36px", height: "4px", background: "#E5E5E5", borderRadius: "2px", margin: "0 auto 20px" }} />
-            {(() => {
-              const d = new Date(bottomSheetInstance.scheduled_date + "T00:00:00");
-              const g = bottomSheetInstance.goals;
-              return (
-                <>
-                  <p style={{ fontSize: "13px", color: "#888888", marginBottom: "6px" }}>
-                    {d.getMonth() + 1}/{d.getDate()}（{DAY_NAMES[d.getDay()]}）
-                  </p>
-                  <p style={{ fontSize: "20px", fontWeight: 800, color: "#111111", marginBottom: "4px" }}>
-                    {[g?.distance_km && `${g.distance_km}km`, g?.duration_minutes && `${g.duration_minutes}分`].filter(Boolean).join("・") || "フリーラン"}
-                  </p>
-                  {g && (
-                    <p style={{ fontSize: "14px", color: "#EF4444", fontWeight: 600, marginBottom: "20px" }}>
-                      罰金 ¥{g.penalty_amount.toLocaleString()}
-                    </p>
-                  )}
-                  <button
-                    style={{ width: "100%", minHeight: "52px", background: "#EF4444", color: "white", border: "none", borderRadius: "12px", fontSize: "16px", fontWeight: 700, cursor: "pointer", marginBottom: "10px" }}
-                    onClick={() => handleCancelInstance(bottomSheetInstance.id)}
-                    disabled={processing}
-                  >
-                    {processing ? "処理中..." : "この日だけ取り消す"}
-                  </button>
-                  <button
-                    className="btn-secondary"
-                    style={{ width: "100%", minHeight: "48px" }}
-                    onClick={() => setBottomSheetInstance(null)}
-                  >
-                    閉じる
-                  </button>
-                </>
-              );
-            })()}
           </div>
         </div>
       )}
@@ -301,7 +244,7 @@ export default function HomeClient({
                 if (instance.goals.type === "oneoff") {
                   router.push(`/goals/${instance.goals.id}`);
                 } else {
-                  setBottomSheetInstance(instance);
+                  router.push(`/goals/instances/${instance.id}`);
                 }
               }
 
