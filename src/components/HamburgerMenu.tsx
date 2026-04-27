@@ -3,11 +3,15 @@
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { Menu, X, Shield, FileText, Receipt } from "lucide-react";
+import { Menu, X, Shield, FileText, Receipt, MessageCircle } from "lucide-react";
 
 const MAIN_PAGES = ["/", "/goals", "/records", "/settings"];
 
-const MENU_ITEMS = [
+const SUPPORT_ITEMS = [
+  { href: "/contact", label: "お問い合わせ", icon: MessageCircle },
+];
+
+const LEGAL_ITEMS = [
   { href: "/privacy", label: "プライバシーポリシー", icon: Shield },
   { href: "/terms", label: "利用規約", icon: FileText },
   { href: "/tokusho", label: "特定商取引法に基づく表記", icon: Receipt },
@@ -77,9 +81,23 @@ export default function HamburgerMenu() {
             {/* メニュー項目 */}
             <div style={{ padding: "12px 0", flex: 1 }}>
               <p style={{ fontSize: "10px", color: "#AAAAAA", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", padding: "8px 20px 4px" }}>
+                サポート
+              </p>
+              {SUPPORT_ITEMS.map(({ href, label, icon: Icon }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  onClick={() => setOpen(false)}
+                  style={{ display: "flex", alignItems: "center", gap: "12px", padding: "13px 20px", color: "#333333", textDecoration: "none" }}
+                >
+                  <Icon size={17} color="#888888" strokeWidth={1.8} />
+                  <span style={{ fontSize: "14px", fontWeight: 500 }}>{label}</span>
+                </Link>
+              ))}
+              <p style={{ fontSize: "10px", color: "#AAAAAA", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", padding: "16px 20px 4px" }}>
                 法的情報
               </p>
-              {MENU_ITEMS.map(({ href, label, icon: Icon }) => (
+              {LEGAL_ITEMS.map(({ href, label, icon: Icon }) => (
                 <Link
                   key={href}
                   href={href}
