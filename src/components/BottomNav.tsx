@@ -13,6 +13,19 @@ const rightTabs = [
   { href: "/settings", label: "設定", icon: Settings },
 ];
 
+function TabItem({ href, label, icon: Icon, active }: { href: string; label: string; icon: React.ElementType; active: boolean }) {
+  return (
+    <Link
+      href={href}
+      className="flex-1 flex flex-col items-center justify-center gap-0.5 pt-2 pb-4 min-h-14"
+      style={{ color: active ? "#FF6B00" : "#888888" }}
+    >
+      <Icon size={21} strokeWidth={active ? 2.5 : 2} />
+      <span style={{ fontSize: "9px", fontWeight: active ? 700 : 500, lineHeight: 1 }}>{label}</span>
+    </Link>
+  );
+}
+
 export default function BottomNav() {
   const pathname = usePathname();
   const isRunActive = pathname === "/run" || pathname.startsWith("/run/");
@@ -21,27 +34,13 @@ export default function BottomNav() {
     return pathname === href || (href !== "/" && pathname.startsWith(href));
   }
 
-  function TabItem({ href, label, icon: Icon }: { href: string; label: string; icon: React.ElementType }) {
-    const active = isActive(href);
-    return (
-      <Link
-        href={href}
-        className="flex-1 flex flex-col items-center justify-center gap-0.5 pt-2 pb-4 min-h-[56px]"
-        style={{ color: active ? "#FF6B00" : "#888888" }}
-      >
-        <Icon size={21} strokeWidth={active ? 2.5 : 2} />
-        <span style={{ fontSize: "9px", fontWeight: active ? 700 : 500, lineHeight: 1 }}>{label}</span>
-      </Link>
-    );
-  }
-
   return (
     <nav
       className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-[#E5E5E5]"
       style={{ paddingBottom: "env(safe-area-inset-bottom)", overflow: "visible" }}
     >
       <div className="flex items-end" style={{ minHeight: "56px" }}>
-        {leftTabs.map((tab) => <TabItem key={tab.href} {...tab} />)}
+        {leftTabs.map((tab) => <TabItem key={tab.href} {...tab} active={isActive(tab.href)} />)}
 
         {/* 計測ボタン（中央・突出） */}
         <div className="flex-1 flex flex-col items-center" style={{ marginBottom: "10px" }}>
@@ -76,7 +75,7 @@ export default function BottomNav() {
           </Link>
         </div>
 
-        {rightTabs.map((tab) => <TabItem key={tab.href} {...tab} />)}
+        {rightTabs.map((tab) => <TabItem key={tab.href} {...tab} active={isActive(tab.href)} />)}
       </div>
     </nav>
   );

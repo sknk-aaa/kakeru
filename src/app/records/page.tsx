@@ -27,22 +27,17 @@ export default async function RecordsPage() {
   ]);
 
   const monthGoal = userProfile?.monthly_distance_goal_km ?? 0;
-  const monthDistanceKm = Math.round(
-    (allRuns ?? [])
-      .filter((r) => r.started_at >= `${startOfMonth}T00:00:00`)
-      .reduce((sum, r) => sum + (r.distance_km ?? 0), 0) * 10
-  ) / 10;
+  const monthPrefix = `${startOfMonth}T00:00:00`;
 
-  const bestPace = (allRuns ?? []).reduce(
-    (best, r) => (r.pace_seconds_per_km && r.pace_seconds_per_km < best ? r.pace_seconds_per_km : best),
-    Infinity
-  );
-  const longestRun = (allRuns ?? []).reduce(
-    (best, r) => (r.distance_km > best ? r.distance_km : best),
-    0
-  );
-  const totalDurationSec = (allRuns ?? []).reduce((sum, r) => sum + (r.duration_seconds ?? 0), 0);
-  const totalCalories = (allRuns ?? []).reduce((sum, r) => sum + (r.calories ?? 0), 0);
+  let monthDistanceRaw = 0, bestPace = Infinity, longestRun = 0, totalDurationSec = 0, totalCalories = 0;
+  for (const r of allRuns ?? []) {
+    if (r.started_at >= monthPrefix) monthDistanceRaw += r.distance_km ?? 0;
+    if (r.pace_seconds_per_km && r.pace_seconds_per_km < bestPace) bestPace = r.pace_seconds_per_km;
+    if ((r.distance_km ?? 0) > longestRun) longestRun = r.distance_km ?? 0;
+    totalDurationSec += r.duration_seconds ?? 0;
+    totalCalories += r.calories ?? 0;
+  }
+  const monthDistanceKm = Math.round(monthDistanceRaw * 10) / 10;
 
   return (
     <AppShell>

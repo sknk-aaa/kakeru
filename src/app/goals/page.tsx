@@ -29,32 +29,33 @@ export default async function GoalsPage() {
   const weekEndStr = weekEnd.toISOString().split("T")[0];
 
   const goalIds = (goals ?? []).map((g) => g.id);
-  const { data: instances } = goalIds.length > 0
-    ? await supabase
-        .from("goal_instances")
-        .select("goal_id, scheduled_date, status")
-        .in("goal_id", goalIds)
-        .gte("scheduled_date", weekStartStr)
-        .lte("scheduled_date", weekEndStr)
-    : { data: [] };
-
   const pastOneoffGoalIds = (goals ?? [])
     .filter((g) => g.type === "oneoff" && g.scheduled_date && g.scheduled_date < todayStr)
     .map((g) => g.id);
-  const { data: pastOneoffInstances } = pastOneoffGoalIds.length > 0
-    ? await supabase
-        .from("goal_instances")
-        .select("goal_id, scheduled_date, status")
-        .in("goal_id", pastOneoffGoalIds)
-    : { data: [] };
 
-  const { data: inactiveRecurring } = await supabase
-    .from("goals")
-    .select("*")
-    .eq("user_id", user.id)
-    .eq("is_active", false)
-    .eq("type", "recurring")
-    .order("created_at", { ascending: false });
+  const [{ data: instances }, { data: pastOneoffInstances }, { data: inactiveRecurring }] = await Promise.all([
+    goalIds.length > 0
+      ? supabase
+          .from("goal_instances")
+          .select("goal_id, scheduled_date, status")
+          .in("goal_id", goalIds)
+          .gte("scheduled_date", weekStartStr)
+          .lte("scheduled_date", weekEndStr)
+      : Promise.resolve({ data: [] }),
+    pastOneoffGoalIds.length > 0
+      ? supabase
+          .from("goal_instances")
+          .select("goal_id, scheduled_date, status")
+          .in("goal_id", pastOneoffGoalIds)
+      : Promise.resolve({ data: [] }),
+    supabase
+      .from("goals")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("is_active", false)
+      .eq("type", "recurring")
+      .order("created_at", { ascending: false }),
+  ]);
 
   const inactiveIds = (inactiveRecurring ?? []).map((g) => g.id);
   const { data: inactiveAchieved } = inactiveIds.length > 0
