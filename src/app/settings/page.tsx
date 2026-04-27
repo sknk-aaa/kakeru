@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import AppShell from "@/components/AppShell";
-import { User, Weight, Target, CreditCard, LogOut, ChevronRight, Check, CheckCircle, KeyRound, Bell, MapPin, Calendar, Copy } from "lucide-react";
+import { User, Weight, Target, CreditCard, LogOut, ChevronRight, Check, CheckCircle, KeyRound, Bell, MapPin } from "lucide-react";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -31,10 +31,6 @@ export default function SettingsPage() {
   const [citySuggestions, setCitySuggestions] = useState<{ name: string; admin1: string; latitude: number; longitude: number }[]>([]);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [calendarToken, setCalendarToken] = useState<string | null>(null);
-  const [generatingToken, setGeneratingToken] = useState(false);
-  const [copied, setCopied] = useState(false);
-
   const supabase = createClient();
 
   useEffect(() => {
@@ -44,7 +40,7 @@ export default function SettingsPage() {
       setIsEmailUser(user.app_metadata?.provider === "email");
       supabase
         .from("users")
-        .select("weight_kg, monthly_distance_goal_km, stripe_payment_method_id, notify_morning, notify_evening, city_name, location_lat, location_lng, calendar_token")
+        .select("weight_kg, monthly_distance_goal_km, stripe_payment_method_id, notify_morning, notify_evening, city_name, location_lat, location_lng")
         .eq("id", user.id)
         .single()
         .then(({ data }) => {
@@ -55,7 +51,6 @@ export default function SettingsPage() {
           if (data?.city_name) setCityName(data.city_name);
           if (data?.location_lat) setLocationLat(data.location_lat);
           if (data?.location_lng) setLocationLng(data.location_lng);
-          if (data?.calendar_token) setCalendarToken(data.calendar_token);
           if (data?.stripe_payment_method_id) {
             setHasCard(true);
             fetch("/api/stripe/payment-method")
@@ -122,26 +117,6 @@ export default function SettingsPage() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
     await supabase.from("users").update({ [field]: value }).eq("id", user.id);
-  }
-
-  async function handleGenerateToken(regenerate = false) {
-    if (regenerate && !confirm("既存の購読URLが無効になります。再発行しますか？")) return;
-    setGeneratingToken(true);
-    const res = await fetch("/api/calendar/token", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ regenerate }),
-    });
-    const data = await res.json();
-    if (data.token) setCalendarToken(data.token);
-    setGeneratingToken(false);
-  }
-
-  function handleCopy() {
-    if (!calendarToken) return;
-    navigator.clipboard.writeText(`${window.location.origin}/api/calendar/${calendarToken}/goals.ics`);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
   }
 
   async function handleLogout() {
@@ -412,50 +387,6 @@ export default function SettingsPage() {
               <ChevronRight size={16} color="#888888" />
             </button>
           )}
-        </div>
-
-        {/* Googleカレンダー連携 */}
-        <div className="mb-4">
-          <p className="text-xs text-[#888888] font-medium mb-2 flex items-center gap-1.5">
-            <Calendar size={13} /> Googleカレンダー連携
-          </p>
-          <div className="card">
-            <p className="text-sm text-text-sub mb-3">日ごとの目標が自動でカレンダーに反映されます</p>
-            {calendarToken ? (
-              <>
-                <div className="flex items-center gap-2 mb-2">
-                  <input
-                    readOnly
-                    value={`${typeof window !== "undefined" ? window.location.origin : ""}/api/calendar/${calendarToken}/goals.ics`}
-                    className="input flex-1"
-                    style={{ fontSize: "11px", color: "#888888" }}
-                  />
-                  <button
-                    onClick={handleCopy}
-                    className="flex items-center gap-1.5 shrink-0 px-3 py-2 rounded-lg text-sm font-medium border border-border"
-                    style={{ color: copied ? "#22C55E" : "#888888" }}
-                  >
-                    {copied ? <><Check size={14} />コピー済</> : <><Copy size={14} />コピー</>}
-                  </button>
-                </div>
-                <p className="text-xs text-[#AAAAAA] mb-3">Googleカレンダー → 他のカレンダー → URLで追加</p>
-                <button
-                  onClick={() => handleGenerateToken(true)}
-                  className="text-xs text-[#AAAAAA] underline"
-                >
-                  URLを再発行する（既存の購読URLは無効になります）
-                </button>
-              </>
-            ) : (
-              <button
-                className="btn-primary w-full"
-                onClick={() => handleGenerateToken(false)}
-                disabled={generatingToken}
-              >
-                {generatingToken ? "設定中..." : "Googleカレンダーと連携する"}
-              </button>
-            )}
-          </div>
         </div>
 
         {/* ログアウト */}
