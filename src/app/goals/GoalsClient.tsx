@@ -271,40 +271,23 @@ export default function GoalsClient({
                 return (
                   <div key={goal.id}>
                     {idx > 0 && <div style={{ height: "1px", background: "#F2F2F2", marginLeft: "68px" }} />}
-                    {isPastRecurring ? (
-                      <div style={{ display: "flex", alignItems: "center", padding: "16px 16px", gap: "14px" }}>
-                        <div style={{ width: "44px", height: "44px", borderRadius: "12px", background: "#F5F5F5", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                          <Repeat size={20} color="#AAAAAA" />
-                        </div>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <p style={{ fontSize: "16px", fontWeight: 700, color: "#888888" }}>{formatGoalSummary(goal)}</p>
-                          <p style={{ fontSize: "12px", color: "#AAAAAA", marginTop: "2px" }}>{formatSchedule(goal)}</p>
-                        </div>
-                        <div style={{ flexShrink: 0 }}>
-                          <span style={{ fontSize: "12px", color: "#AAAAAA", fontWeight: 600 }}>
-                            {(goal as PastRecurringGoal).achievedCount}回達成
-                          </span>
-                        </div>
+                    <div style={{ display: "flex", alignItems: "center", padding: "16px 16px", gap: "14px" }}>
+                      <div style={{ width: "44px", height: "44px", borderRadius: "12px", background: "#F5F5F5", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                        {isPastRecurring ? <Repeat size={20} color="#AAAAAA" /> : <Calendar size={20} color="#AAAAAA" />}
                       </div>
-                    ) : (
-                      <Link href={`/goals/${goal.id}`}>
-                        <div style={{ display: "flex", alignItems: "center", padding: "16px 16px", gap: "14px" }}>
-                          <div style={{ width: "44px", height: "44px", borderRadius: "12px", background: "#F5F5F5", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                            <Calendar size={20} color="#AAAAAA" />
-                          </div>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <p style={{ fontSize: "16px", fontWeight: 700, color: "#888888" }}>{formatGoalSummary(goal)}</p>
-                            <p style={{ fontSize: "12px", color: "#AAAAAA", marginTop: "2px" }}>{formatSchedule(goal)}</p>
-                          </div>
-                          <div style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: "8px" }}>
-                            {statusLabel && (
-                              <span style={{ fontSize: "12px", color: statusColor, fontWeight: 600 }}>{statusLabel}</span>
-                            )}
-                            <ChevronRight size={18} color="#CCCCCC" />
-                          </div>
-                        </div>
-                      </Link>
-                    )}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ fontSize: "16px", fontWeight: 700, color: "#888888" }}>{formatGoalSummary(goal)}</p>
+                        <p style={{ fontSize: "12px", color: "#AAAAAA", marginTop: "2px" }}>{formatSchedule(goal)}</p>
+                      </div>
+                      <div style={{ textAlign: "right", flexShrink: 0 }}>
+                        <p style={{ fontSize: "13px", color: "#AAAAAA", fontWeight: 600 }}>¥{goal.penalty_amount.toLocaleString()}</p>
+                        {isPastRecurring ? (
+                          <p style={{ fontSize: "11px", color: "#AAAAAA", marginTop: "2px" }}>{(goal as PastRecurringGoal).achievedCount}回達成</p>
+                        ) : statusLabel ? (
+                          <p style={{ fontSize: "11px", color: statusColor, marginTop: "2px" }}>{statusLabel}</p>
+                        ) : null}
+                      </div>
+                    </div>
                   </div>
                 );
               })}
