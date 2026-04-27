@@ -12,9 +12,10 @@ const DAYS = ["日", "月", "火", "水", "木", "金", "土"];
 
 interface Goal {
   id: string;
-  type: "recurring" | "oneoff";
+  type: "recurring" | "oneoff" | "challenge";
   days_of_week: number[] | null;
   scheduled_date: string | null;
+  challenge_start_date: string | null;
   distance_km: number | null;
   duration_minutes: number | null;
   penalty_amount: number;
@@ -22,6 +23,7 @@ interface Goal {
   escalation_type: "multiplier" | "surcharge" | null;
   escalation_value: number | null;
   consecutive_failures: number;
+  lock_days_before: number | null;
 }
 
 function ListRow({ label, children, last }: { label: string; children: React.ReactNode; last?: boolean }) {
@@ -56,17 +58,40 @@ export default function GoalEditPage() {
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [hasTodayInstance, setHasTodayInstance] = useState(false);
+  const [nextInstanceDate, setNextInstanceDate] = useState<string | null>(null);
+  const [challengeProgress, setChallengeProgress] = useState<{ totalDistKm: number; totalSec: number } | null>(null);
 
   useEffect(() => {
     const supabase = createClient();
 
     supabase.from("goals").select("*").eq("id", id).single().then(({ data }) => {
       if (!data) return;
-      setGoal(data as Goal);
-      setDistanceKm(data.distance_km ? String(data.distance_km) : "");
-      setDurationMinutes(data.duration_minutes ? String(data.duration_minutes) : "");
-      setPenaltyAmount(String(data.penalty_amount));
-      setSelectedDays(data.days_of_week ?? []);
+      const g = data as Goal;
+      setGoal(g);
+      setDistanceKm(g.distance_km ? String(g.distance_km) : "");
+      setDurationMinutes(g.duration_minutes ? String(g.duration_minutes) : "");
+      setPenaltyAmount(String(g.penalty_amount));
+      setSelectedDays(g.days_of_week ?? []);
+
+      if (g.type === "challenge" && g.challenge_start_date) {
+        supabase.from("runs")
+          .select("distance_km, duration_seconds")
+          .eq("user_id", supabase.auth.getUser().then(() => {}))
+          .gte("started_at", g.challenge_start_date + "T00:00:00")
+          .then(() => {});
+        supabase.auth.getUser().then(({ data: { user } }) => {
+          if (!user) return;
+          supabase.from("runs")
+            .select("distance_km, duration_seconds")
+            .eq("user_id", user.id)
+            .gte("started_at", g.challenge_start_date! + "T00:00:00")
+            .then(({ data: runs }) => {
+              const totalDistKm = Math.round((runs ?? []).reduce((s, r) => s + (r.distance_km ?? 0), 0) * 10) / 10;
+              const totalSec = (runs ?? []).reduce((s, r) => s + (r.duration_seconds ?? 0), 0);
+              setChallengeProgress({ totalDistKm, totalSec });
+            });
+        });
+      }
     });
 
     supabase.from("goal_instances")
@@ -76,6 +101,16 @@ export default function GoalEditPage() {
       .eq("status", "pending")
       .maybeSingle()
       .then(({ data }) => setHasTodayInstance(!!data));
+
+    supabase.from("goal_instances")
+      .select("scheduled_date")
+      .eq("goal_id", id)
+      .eq("status", "pending")
+      .gte("scheduled_date", todayStr)
+      .order("scheduled_date")
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }) => setNextInstanceDate(data?.scheduled_date ?? null));
   }, [id, todayStr]);
 
   function toggleDay(day: number) {
@@ -121,9 +156,20 @@ export default function GoalEditPage() {
   }
 
   const isPermanentlyLocked = goal.is_locked;
-  const isLockedOneoffToday = !isPermanentlyLocked && goal.type === "oneoff" && goal.scheduled_date === todayStr;
-  const isLockedRecurringToday = !isPermanentlyLocked && goal.type === "recurring" && hasTodayInstance;
-  const isInputLocked = isPermanentlyLocked || isLockedOneoffToday || isLockedRecurringToday;
+  const isChallenge = goal.type === "challenge";
+
+  // lock_days_before による期限ロック
+  const isLockedByLeadTime = (() => {
+    if (!goal.lock_days_before || isPermanentlyLocked || isChallenge) return false;
+    const targetDate = nextInstanceDate;
+    if (!targetDate) return false;
+    const diff = Math.ceil((new Date(targetDate + "T00:00:00").getTime() - new Date(todayStr + "T00:00:00").getTime()) / (1000 * 60 * 60 * 24));
+    return diff <= goal.lock_days_before;
+  })();
+
+  const isLockedOneoffToday = !isPermanentlyLocked && !isLockedByLeadTime && goal.type === "oneoff" && goal.scheduled_date === todayStr;
+  const isLockedRecurringToday = !isPermanentlyLocked && !isLockedByLeadTime && goal.type === "recurring" && hasTodayInstance;
+  const isInputLocked = isPermanentlyLocked || isChallenge || isLockedByLeadTime || isLockedOneoffToday || isLockedRecurringToday;
   const todayDayOfWeek = new Date(todayStr + "T00:00:00").getDay();
 
   // 次回課金額の計算
@@ -160,6 +206,55 @@ export default function GoalEditPage() {
           <p style={{ fontSize: "13px", color: "#AAAAAA", marginBottom: "20px" }}>
             {goal.type === "recurring" ? "毎週繰り返し" : "1回のみ"}
           </p>
+
+          {/* チャレンジ専用表示 */}
+          {isChallenge && (
+            <div style={{ background: "#FFFBEB", borderRadius: "12px", padding: "14px 16px", marginBottom: "20px", borderLeft: "3px solid #F59E0B" }}>
+              <p style={{ fontSize: "14px", fontWeight: 700, color: "#F59E0B", marginBottom: "8px" }}>🏆 チャレンジ進捗</p>
+              {challengeProgress !== null ? (
+                <>
+                  {goal.distance_km && (
+                    <div style={{ marginBottom: "8px" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", color: "#888888", marginBottom: "4px" }}>
+                        <span style={{ color: "#FF6B00", fontWeight: 600 }}>{challengeProgress.totalDistKm}km</span>
+                        <span>目標 {goal.distance_km}km（{Math.round((challengeProgress.totalDistKm / goal.distance_km) * 100)}%）</span>
+                      </div>
+                      <div style={{ height: "5px", background: "#F0F0F0", borderRadius: "3px", overflow: "hidden" }}>
+                        <div style={{ height: "100%", background: "#FF6B00", borderRadius: "3px", width: `${Math.min((challengeProgress.totalDistKm / goal.distance_km) * 100, 100)}%` }} />
+                      </div>
+                    </div>
+                  )}
+                  {goal.duration_minutes && (
+                    <div>
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", color: "#888888", marginBottom: "4px" }}>
+                        <span style={{ color: "#FF6B00", fontWeight: 600 }}>{Math.round(challengeProgress.totalSec / 60)}分</span>
+                        <span>目標 {goal.duration_minutes}分（{Math.round((challengeProgress.totalSec / (goal.duration_minutes * 60)) * 100)}%）</span>
+                      </div>
+                      <div style={{ height: "5px", background: "#F0F0F0", borderRadius: "3px", overflow: "hidden" }}>
+                        <div style={{ height: "100%", background: "#FF6B00", borderRadius: "3px", width: `${Math.min((challengeProgress.totalSec / (goal.duration_minutes * 60)) * 100, 100)}%` }} />
+                      </div>
+                    </div>
+                  )}
+                  {goal.scheduled_date && (
+                    <p style={{ fontSize: "12px", color: "#888888", marginTop: "10px" }}>
+                      終了日：{goal.scheduled_date}　残り{Math.max(0, Math.ceil((new Date(goal.scheduled_date + "T00:00:00").getTime() - new Date(todayStr + "T00:00:00").getTime()) / (1000 * 60 * 60 * 24)))}日
+                    </p>
+                  )}
+                </>
+              ) : (
+                <p style={{ fontSize: "13px", color: "#AAAAAA" }}>読み込み中...</p>
+              )}
+              <p style={{ fontSize: "12px", color: "#EF4444", marginTop: "10px" }}>⚠️ チャレンジ目標は期間中に停止できません</p>
+            </div>
+          )}
+
+          {/* lock_days_beforeによる期限ロックバナー */}
+          {isLockedByLeadTime && !isPermanentlyLocked && (
+            <div style={{ background: "#F8F8F8", borderRadius: "12px", padding: "14px 16px", marginBottom: "20px" }}>
+              <p style={{ fontSize: "14px", fontWeight: 700, color: "#888888", marginBottom: "4px" }}>🔒 変更期限ロック中</p>
+              <p style={{ fontSize: "13px", color: "#AAAAAA" }}>次の実施日まで{goal.lock_days_before}日以内のため変更できません</p>
+            </div>
+          )}
 
           {/* 永久ロックバナー */}
           {isPermanentlyLocked && (
@@ -250,6 +345,10 @@ export default function GoalEditPage() {
             <div style={{ background: "#F8F8F8", borderRadius: "12px", padding: "16px 20px", textAlign: "center", marginBottom: "12px" }}>
               <p style={{ fontSize: "14px", color: "#888888" }}>取り消し不可能な目標のため変更できません</p>
             </div>
+          ) : isChallenge ? null : isLockedByLeadTime ? (
+            <div style={{ background: "#F8F8F8", borderRadius: "12px", padding: "16px 20px", textAlign: "center", marginBottom: "12px" }}>
+              <p style={{ fontSize: "14px", color: "#888888" }}>変更期限ロック中のため変更できません</p>
+            </div>
           ) : isLockedOneoffToday ? (
             <div style={{ background: "#F8F8F8", borderRadius: "12px", padding: "16px 20px", textAlign: "center", marginBottom: "12px" }}>
               <p style={{ fontSize: "14px", color: "#888888" }}>当日の目標は変更できません</p>
@@ -273,8 +372,8 @@ export default function GoalEditPage() {
             </>
           )}
 
-          {/* 停止ボタン：永久ロックと当日oneoffは非表示 */}
-          {!isPermanentlyLocked && !isLockedOneoffToday && (
+          {/* 停止ボタン：永久ロック・チャレンジ・当日oneoff・期限ロックは非表示 */}
+          {!isPermanentlyLocked && !isChallenge && !isLockedByLeadTime && !isLockedOneoffToday && (
             !showDeleteConfirm ? (
               <button
                 onClick={() => setShowDeleteConfirm(true)}

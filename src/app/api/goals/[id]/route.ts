@@ -1,15 +1,38 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 
+function diffDays(dateStr: string, todayStr: string): number {
+  return Math.ceil(
+    (new Date(dateStr + "T00:00:00").getTime() - new Date(todayStr + "T00:00:00").getTime()) / (1000 * 60 * 60 * 24)
+  );
+}
+
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { data: goal } = await supabase.from("goals").select("is_locked, user_id").eq("id", id).single();
+  const { data: goal } = await supabase.from("goals").select("is_locked, user_id, type, lock_days_before").eq("id", id).single();
   if (!goal || goal.user_id !== user.id) return NextResponse.json({ error: "not found" }, { status: 404 });
   if (goal.is_locked) return NextResponse.json({ error: "locked" }, { status: 403 });
+  if (goal.type === "challenge") return NextResponse.json({ error: "challenge goals cannot be edited" }, { status: 403 });
+
+  if (goal.lock_days_before != null) {
+    const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().split("T")[0];
+    const { data: nextInstance } = await supabase
+      .from("goal_instances")
+      .select("scheduled_date")
+      .eq("goal_id", id)
+      .eq("status", "pending")
+      .gte("scheduled_date", today)
+      .order("scheduled_date")
+      .limit(1)
+      .maybeSingle();
+    if (nextInstance && diffDays(nextInstance.scheduled_date, today) <= goal.lock_days_before) {
+      return NextResponse.json({ error: "locked" }, { status: 403 });
+    }
+  }
 
   const body = await req.json();
   const updates: Record<string, unknown> = {};
@@ -32,12 +55,28 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { data: goal } = await supabase.from("goals").select("is_locked, user_id").eq("id", id).single();
+  const { data: goal } = await supabase.from("goals").select("is_locked, user_id, type, lock_days_before").eq("id", id).single();
   if (!goal || goal.user_id !== user.id) return NextResponse.json({ error: "not found" }, { status: 404 });
   if (goal.is_locked) return NextResponse.json({ error: "locked" }, { status: 403 });
+  if (goal.type === "challenge") return NextResponse.json({ error: "challenge goals cannot be stopped" }, { status: 403 });
+
+  if (goal.lock_days_before != null) {
+    const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().split("T")[0];
+    const { data: nextInstance } = await supabase
+      .from("goal_instances")
+      .select("scheduled_date")
+      .eq("goal_id", id)
+      .eq("status", "pending")
+      .gte("scheduled_date", today)
+      .order("scheduled_date")
+      .limit(1)
+      .maybeSingle();
+    if (nextInstance && diffDays(nextInstance.scheduled_date, today) <= goal.lock_days_before) {
+      return NextResponse.json({ error: "locked" }, { status: 403 });
+    }
+  }
 
   const today = new Date().toISOString().split("T")[0];
-
   const { error: goalError } = await supabase.from("goals").update({ is_active: false }).eq("id", id);
   if (goalError) return NextResponse.json({ error: goalError.message }, { status: 500 });
 

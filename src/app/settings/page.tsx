@@ -6,7 +6,8 @@ import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import AppShell from "@/components/AppShell";
-import { User, Weight, Target, CreditCard, LogOut, ChevronRight, Check, CheckCircle, KeyRound, Bell } from "lucide-react";
+import { User, Weight, Target, CreditCard, LogOut, ChevronRight, Check, CheckCircle, KeyRound, Bell, MapPin } from "lucide-react";
+import { PREFECTURES } from "@/lib/prefectures";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -24,6 +25,7 @@ export default function SettingsPage() {
   const [changingPw, setChangingPw] = useState(false);
   const [pwSaved, setPwSaved] = useState(false);
   const [pwError, setPwError] = useState<string | null>(null);
+  const [prefecture, setPrefecture] = useState("");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -36,7 +38,7 @@ export default function SettingsPage() {
       setIsEmailUser(user.app_metadata?.provider === "email");
       supabase
         .from("users")
-        .select("weight_kg, monthly_distance_goal_km, stripe_payment_method_id, notify_morning, notify_evening")
+        .select("weight_kg, monthly_distance_goal_km, stripe_payment_method_id, notify_morning, notify_evening, prefecture")
         .eq("id", user.id)
         .single()
         .then(({ data }) => {
@@ -44,6 +46,7 @@ export default function SettingsPage() {
           if (data?.monthly_distance_goal_km) setMonthlyGoal(String(data.monthly_distance_goal_km));
           if (data?.notify_morning != null) setNotifyMorning(data.notify_morning);
           if (data?.notify_evening != null) setNotifyEvening(data.notify_evening);
+          if (data?.prefecture) setPrefecture(data.prefecture);
           if (data?.stripe_payment_method_id) {
             setHasCard(true);
             fetch("/api/stripe/payment-method")
@@ -63,6 +66,7 @@ export default function SettingsPage() {
     await supabase.from("users").update({
       weight_kg: weightKg ? parseFloat(weightKg) : null,
       monthly_distance_goal_km: monthlyGoal ? parseFloat(monthlyGoal) : null,
+      prefecture: prefecture || null,
     }).eq("id", user.id);
 
     setSaving(false);
@@ -223,6 +227,25 @@ export default function SettingsPage() {
               />
               <span className="text-[#888888] shrink-0">km/月</span>
             </div>
+          </div>
+        </div>
+
+        {/* 地域設定 */}
+        <div className="mb-4">
+          <p className="text-xs text-[#888888] font-medium mb-2 flex items-center gap-1.5">
+            <MapPin size={13} /> 地域（雨の日スキップ用）
+          </p>
+          <div className="card p-0 overflow-hidden">
+            <select
+              value={prefecture}
+              onChange={(e) => setPrefecture(e.target.value)}
+              style={{ width: "100%", padding: "14px 16px", border: "none", outline: "none", fontSize: "15px", color: prefecture ? "#111111" : "#AAAAAA", background: "transparent", appearance: "none" }}
+            >
+              <option value="">都道府県を選択</option>
+              {PREFECTURES.map((p) => (
+                <option key={p.code} value={p.code}>{p.name}</option>
+              ))}
+            </select>
           </div>
         </div>
 

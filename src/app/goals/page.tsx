@@ -4,17 +4,24 @@ import { requireUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import AppShell from "@/components/AppShell";
 import GoalsClient from "./GoalsClient";
+import { getPrefectureByCode, checkRainy } from "@/lib/prefectures";
 
 export default async function GoalsPage() {
   const user = await requireUser();
   const supabase = await createClient();
 
-  const { data: goals } = await supabase
-    .from("goals")
-    .select("*")
-    .eq("user_id", user.id)
-    .eq("is_active", true)
-    .order("created_at", { ascending: false });
+  const [{ data: goals }, { data: userProfile }] = await Promise.all([
+    supabase
+      .from("goals")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("is_active", true)
+      .order("created_at", { ascending: false }),
+    supabase.from("users").select("prefecture").eq("id", user.id).single(),
+  ]);
+
+  const prefObj = userProfile?.prefecture ? getPrefectureByCode(userProfile.prefecture) : null;
+  const isRainy = prefObj ? await checkRainy(prefObj.lat, prefObj.lng) : false;
 
   // JSTで日付を計算（サーバーはUTCで動くため+9時間補正）
   const nowJst = new Date(Date.now() + 9 * 60 * 60 * 1000);
@@ -37,7 +44,7 @@ export default async function GoalsPage() {
     goalIds.length > 0
       ? supabase
           .from("goal_instances")
-          .select("goal_id, scheduled_date, status")
+          .select("id, goal_id, scheduled_date, status")
           .in("goal_id", goalIds)
           .gte("scheduled_date", weekStartStr)
           .lte("scheduled_date", weekEndStr)
@@ -73,6 +80,21 @@ export default async function GoalsPage() {
     }))
     .filter((g) => g.achievedCount > 0);
 
+  // チャレンジゴールの進捗fetch
+  const challengeGoals = (goals ?? []).filter((g) => g.type === "challenge");
+  const challengeProgress: Record<string, { totalDistKm: number; totalSec: number }> = {};
+  for (const cg of challengeGoals) {
+    if (!cg.challenge_start_date) continue;
+    const { data: cgRuns } = await supabase
+      .from("runs")
+      .select("distance_km, duration_seconds")
+      .eq("user_id", user.id)
+      .gte("started_at", cg.challenge_start_date + "T00:00:00");
+    const totalDistKm = (cgRuns ?? []).reduce((s, r) => s + (r.distance_km ?? 0), 0);
+    const totalSec = (cgRuns ?? []).reduce((s, r) => s + (r.duration_seconds ?? 0), 0);
+    challengeProgress[cg.id] = { totalDistKm: Math.round(totalDistKm * 10) / 10, totalSec };
+  }
+
   return (
     <AppShell>
       <GoalsClient
@@ -81,6 +103,8 @@ export default async function GoalsPage() {
         todayStr={todayStr}
         pastOneoffInstances={pastOneoffInstances ?? []}
         pastRecurringGoals={pastRecurringGoals}
+        isRainy={isRainy}
+        challengeProgress={challengeProgress}
       />
     </AppShell>
   );
