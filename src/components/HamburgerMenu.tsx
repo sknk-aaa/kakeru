@@ -3,11 +3,12 @@
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { Menu, X, Shield, FileText, Receipt, MessageCircle } from "lucide-react";
+import { Menu, X, Shield, FileText, Receipt, MessageCircle, HelpCircle } from "lucide-react";
 
 const MAIN_PAGES = ["/", "/goals", "/records", "/settings"];
 
 const SUPPORT_ITEMS = [
+  { href: "/faq", label: "よくある質問", icon: HelpCircle },
   { href: "/contact", label: "お問い合わせ", icon: MessageCircle },
 ];
 
