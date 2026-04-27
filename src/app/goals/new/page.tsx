@@ -46,6 +46,12 @@ export default function NewGoalPage() {
   const [overlapDays, setOverlapDays] = useState<string[]>([]);
   const [showOverlapConfirm, setShowOverlapConfirm] = useState(false);
 
+  const todayStr = new Date().toISOString().split("T")[0];
+  const todayDayOfWeek = new Date(todayStr + "T00:00:00").getDay();
+  const includesToday =
+    (type === "recurring" && selectedDays.includes(todayDayOfWeek)) ||
+    (type === "oneoff" && scheduledDate === todayStr);
+
   function toggleDay(day: number) {
     setSelectedDays((prev) => prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]);
   }
@@ -277,6 +283,11 @@ export default function NewGoalPage() {
                   </button>
                 ))}
               </div>
+              {includesToday && (
+                <p style={{ fontSize: "12px", color: "#AAAAAA", marginTop: "8px", paddingLeft: "4px" }}>
+                  当日を含む目標は、当日の距離・時間・金額の変更ができません
+                </p>
+              )}
             </div>
           )}
 
@@ -295,6 +306,11 @@ export default function NewGoalPage() {
                   />
                 </div>
               </div>
+              {includesToday && (
+                <p style={{ fontSize: "12px", color: "#AAAAAA", marginTop: "8px", paddingLeft: "4px" }}>
+                  当日を含む目標は、当日の距離・時間・金額の変更ができません
+                </p>
+              )}
             </div>
           )}
 

@@ -116,9 +116,10 @@ export default function GoalEditPage() {
     );
   }
 
-  const isLockedToday =
-    (goal.type === "oneoff" && goal.scheduled_date === todayStr) ||
-    (goal.type === "recurring" && hasTodayInstance);
+  const isLockedOneoffToday = goal.type === "oneoff" && goal.scheduled_date === todayStr;
+  const isLockedRecurringToday = goal.type === "recurring" && hasTodayInstance;
+  const isInputLocked = isLockedOneoffToday || isLockedRecurringToday;
+  const todayDayOfWeek = new Date(todayStr + "T00:00:00").getDay();
 
   const inputStyle = {
     border: "none",
@@ -150,22 +151,26 @@ export default function GoalEditPage() {
             <div style={{ marginBottom: "16px" }}>
               <p style={{ fontSize: "12px", color: "#888888", fontWeight: 600, marginBottom: "8px", paddingLeft: "4px" }}>実施する曜日</p>
               <div style={{ display: "flex", gap: "6px" }}>
-                {DAYS.map((day, i) => (
-                  <button
-                    key={i}
-                    onClick={() => toggleDay(i)}
-                    style={{
-                      flex: 1, height: "44px", borderRadius: "10px", fontSize: "14px", fontWeight: 700,
-                      background: selectedDays.includes(i) ? "#FF6B00" : "white",
-                      color: selectedDays.includes(i) ? "white" : "#888888",
-                      border: "none", cursor: "pointer",
-                      boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-                      transition: "all 0.15s",
-                    }}
-                  >
-                    {day}
-                  </button>
-                ))}
+                {DAYS.map((day, i) => {
+                  const isTodayDay = isLockedRecurringToday && i === todayDayOfWeek;
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => !isTodayDay && toggleDay(i)}
+                      style={{
+                        flex: 1, height: "44px", borderRadius: "10px", fontSize: "14px", fontWeight: 700,
+                        background: selectedDays.includes(i) ? (isTodayDay ? "#FFBB88" : "#FF6B00") : "white",
+                        color: selectedDays.includes(i) ? "white" : (isTodayDay ? "#CCCCCC" : "#888888"),
+                        border: "none", cursor: isTodayDay ? "default" : "pointer",
+                        boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+                        transition: "all 0.15s",
+                        opacity: isTodayDay ? 0.6 : 1,
+                      }}
+                    >
+                      {day}
+                    </button>
+                  );
+                })}
               </div>
               <p style={{ fontSize: "11px", color: "#AAAAAA", marginTop: "6px", paddingLeft: "4px" }}>
                 ※曜日の変更は既存のスケジュールには反映されません
@@ -180,26 +185,31 @@ export default function GoalEditPage() {
           <div style={{ background: "white", borderRadius: "16px", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", marginBottom: "20px" }}>
             <ListRow label="距離 (km)">
               <input type="number" inputMode="decimal" placeholder="例: 5" min="0.1" step="0.1"
-                value={distanceKm} onChange={(e) => setDistanceKm(e.target.value)} style={inputStyle} disabled={isLockedToday} />
+                value={distanceKm} onChange={(e) => setDistanceKm(e.target.value)} style={inputStyle} disabled={isInputLocked} />
             </ListRow>
             <ListRow label="時間 (分)">
               <input type="number" inputMode="numeric" placeholder="例: 30" min="1"
-                value={durationMinutes} onChange={(e) => setDurationMinutes(e.target.value)} style={inputStyle} disabled={isLockedToday} />
+                value={durationMinutes} onChange={(e) => setDurationMinutes(e.target.value)} style={inputStyle} disabled={isInputLocked} />
             </ListRow>
             <ListRow label="罰金 (円)" last>
               <input type="number" inputMode="numeric" placeholder="500" min="100" step="100"
                 value={penaltyAmount} onChange={(e) => setPenaltyAmount(e.target.value)}
-                style={{ ...inputStyle, color: "#EF4444" }} disabled={isLockedToday} />
+                style={{ ...inputStyle, color: "#EF4444" }} disabled={isInputLocked} />
             </ListRow>
           </div>
 
-          {/* 保存ボタン：ロック中は非表示 */}
-          {isLockedToday ? (
+          {/* 保存ボタン */}
+          {isLockedOneoffToday ? (
             <div style={{ background: "#F8F8F8", borderRadius: "12px", padding: "16px 20px", textAlign: "center", marginBottom: "12px" }}>
               <p style={{ fontSize: "14px", color: "#888888" }}>当日の目標は変更できません</p>
             </div>
           ) : (
             <>
+              {isLockedRecurringToday && (
+                <p style={{ fontSize: "12px", color: "#AAAAAA", marginBottom: "8px", paddingLeft: "4px" }}>
+                  距離・時間・金額は当日変更できません。曜日の変更は可能です。
+                </p>
+              )}
               {error && <p style={{ fontSize: "14px", color: "#EF4444", marginBottom: "12px" }}>{error}</p>}
               <button
                 className="btn-primary"
@@ -212,8 +222,8 @@ export default function GoalEditPage() {
             </>
           )}
 
-          {/* 停止ボタン：oneoffのロック中のみ非表示、recurringは当日でも停止可 */}
-          {!(isLockedToday && goal.type === "oneoff") && (
+          {/* 停止ボタン：oneoffのロック中のみ非表示 */}
+          {!isLockedOneoffToday && (
             !showDeleteConfirm ? (
               <button
                 onClick={() => setShowDeleteConfirm(true)}
