@@ -116,7 +116,9 @@ export default function GoalEditPage() {
     );
   }
 
-  const isLockedToday = goal.type === "oneoff" && goal.scheduled_date === todayStr;
+  const isLockedToday =
+    (goal.type === "oneoff" && goal.scheduled_date === todayStr) ||
+    (goal.type === "recurring" && hasTodayInstance);
 
   const inputStyle = {
     border: "none",
@@ -191,14 +193,14 @@ export default function GoalEditPage() {
             </ListRow>
           </div>
 
+          {/* 保存ボタン：ロック中は非表示 */}
           {isLockedToday ? (
-            <div style={{ background: "#F8F8F8", borderRadius: "12px", padding: "16px 20px", textAlign: "center" }}>
-              <p style={{ fontSize: "14px", color: "#888888" }}>当日の目標は削除・変更できません</p>
+            <div style={{ background: "#F8F8F8", borderRadius: "12px", padding: "16px 20px", textAlign: "center", marginBottom: "12px" }}>
+              <p style={{ fontSize: "14px", color: "#888888" }}>当日の目標は変更できません</p>
             </div>
           ) : (
             <>
               {error && <p style={{ fontSize: "14px", color: "#EF4444", marginBottom: "12px" }}>{error}</p>}
-
               <button
                 className="btn-primary"
                 style={{ width: "100%", marginBottom: "12px", background: saved ? "#22C55E" : undefined }}
@@ -207,50 +209,52 @@ export default function GoalEditPage() {
               >
                 {saved ? "保存しました ✓" : loading ? "保存中..." : "変更を保存する"}
               </button>
-
-              {/* 停止ボタン */}
-              {!showDeleteConfirm ? (
-                <button
-                  onClick={() => setShowDeleteConfirm(true)}
-                  style={{ width: "100%", minHeight: "52px", background: "white", border: "1.5px solid #EF4444", borderRadius: "8px", color: "#EF4444", fontSize: "16px", fontWeight: 600, cursor: "pointer" }}
-                >
-                  この目標を停止する
-                </button>
-              ) : (
-                <div style={{ background: "white", borderRadius: "16px", padding: "16px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
-                  <p style={{ fontSize: "14px", color: "#111111", fontWeight: 600, marginBottom: "6px" }}>本当に停止しますか？</p>
-                  <p style={{ fontSize: "13px", color: "#888888", lineHeight: 1.6, marginBottom: hasTodayInstance ? "8px" : "14px" }}>
-                    明日以降のスケジュールがキャンセルされます。過去の記録は残ります。
-                  </p>
-                  {hasTodayInstance && (
-                    <div style={{ background: "#FFF5EE", borderRadius: "10px", padding: "10px 12px", marginBottom: "14px", borderLeft: "3px solid #FF6B00" }}>
-                      <p style={{ fontSize: "13px", color: "#FF6B00", fontWeight: 600 }}>
-                        ⚠️ 今日の目標は残ります
-                      </p>
-                      <p style={{ fontSize: "12px", color: "#888888", marginTop: "2px" }}>
-                        今日分はスキップか達成が必要です
-                      </p>
-                    </div>
-                  )}
-                  <div style={{ display: "flex", gap: "8px" }}>
-                    <button
-                      className="btn-secondary"
-                      style={{ flex: 1, minHeight: "48px" }}
-                      onClick={() => setShowDeleteConfirm(false)}
-                    >
-                      やめる
-                    </button>
-                    <button
-                      style={{ flex: 1, minHeight: "48px", background: "#EF4444", color: "white", border: "none", borderRadius: "8px", fontSize: "15px", fontWeight: 700, cursor: "pointer" }}
-                      onClick={handleDelete}
-                      disabled={deleting}
-                    >
-                      {deleting ? "停止中..." : "停止する"}
-                    </button>
-                  </div>
-                </div>
-              )}
             </>
+          )}
+
+          {/* 停止ボタン：oneoffのロック中のみ非表示、recurringは当日でも停止可 */}
+          {!(isLockedToday && goal.type === "oneoff") && (
+            !showDeleteConfirm ? (
+              <button
+                onClick={() => setShowDeleteConfirm(true)}
+                style={{ width: "100%", minHeight: "52px", background: "white", border: "1.5px solid #EF4444", borderRadius: "8px", color: "#EF4444", fontSize: "16px", fontWeight: 600, cursor: "pointer" }}
+              >
+                この目標を停止する
+              </button>
+            ) : (
+              <div style={{ background: "white", borderRadius: "16px", padding: "16px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
+                <p style={{ fontSize: "14px", color: "#111111", fontWeight: 600, marginBottom: "6px" }}>本当に停止しますか？</p>
+                <p style={{ fontSize: "13px", color: "#888888", lineHeight: 1.6, marginBottom: hasTodayInstance ? "8px" : "14px" }}>
+                  明日以降のスケジュールがキャンセルされます。過去の記録は残ります。
+                </p>
+                {hasTodayInstance && (
+                  <div style={{ background: "#FFF5EE", borderRadius: "10px", padding: "10px 12px", marginBottom: "14px", borderLeft: "3px solid #FF6B00" }}>
+                    <p style={{ fontSize: "13px", color: "#FF6B00", fontWeight: 600 }}>
+                      ⚠️ 今日の目標は残ります
+                    </p>
+                    <p style={{ fontSize: "12px", color: "#888888", marginTop: "2px" }}>
+                      今日分はスキップか達成が必要です
+                    </p>
+                  </div>
+                )}
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <button
+                    className="btn-secondary"
+                    style={{ flex: 1, minHeight: "48px" }}
+                    onClick={() => setShowDeleteConfirm(false)}
+                  >
+                    やめる
+                  </button>
+                  <button
+                    style={{ flex: 1, minHeight: "48px", background: "#EF4444", color: "white", border: "none", borderRadius: "8px", fontSize: "15px", fontWeight: 700, cursor: "pointer" }}
+                    onClick={handleDelete}
+                    disabled={deleting}
+                  >
+                    {deleting ? "停止中..." : "停止する"}
+                  </button>
+                </div>
+              </div>
+            )
           )}
         </div>
       </div>
