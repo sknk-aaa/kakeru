@@ -133,6 +133,16 @@ export async function POST(request: NextRequest) {
     });
   }
 
+  if (event.type === "checkout.session.completed") {
+    const session = event.data.object as import("stripe").Stripe.Checkout.Session;
+    if (session.mode === "subscription" && session.client_reference_id && session.customer) {
+      await admin
+        .from("users")
+        .update({ stripe_customer_id: session.customer as string })
+        .eq("id", session.client_reference_id);
+    }
+  }
+
   if (
     event.type === "customer.subscription.created" ||
     event.type === "customer.subscription.updated"

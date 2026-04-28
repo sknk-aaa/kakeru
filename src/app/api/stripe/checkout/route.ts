@@ -25,6 +25,7 @@ export async function POST(request: NextRequest) {
   const origin = request.headers.get("origin") ?? "https://www.kakeruapp.com";
 
   const session = await stripe.checkout.sessions.create({
+    client_reference_id: user.id,
     customer: userData?.stripe_customer_id ?? undefined,
     customer_email: userData?.stripe_customer_id ? undefined : user.email!,
     mode: "subscription",
