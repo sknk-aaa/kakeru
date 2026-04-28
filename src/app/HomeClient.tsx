@@ -76,12 +76,6 @@ export default function HomeClient({
   const pendingInstances = visibleInstances.filter((i) => i.status === "pending");
   const historyInstances = visibleInstances.filter((i) => i.status !== "pending");
 
-  const todayDate = new Date(todayStr + "T00:00:00");
-  const monthNum = todayDate.getMonth() + 1;
-  const dayNum = todayDate.getDate();
-  const dayName = DAY_NAMES[todayDate.getDay()];
-
-  const hasGoalToday = todayGoalInstances.length > 0;
   const monthlyGoal = userProfile?.monthly_distance_goal_km ?? 0;
   const monthlyProgressPct = monthlyGoal > 0
     ? Math.min(Math.round((totalDistanceMonth / monthlyGoal) * 100), 100)
@@ -152,29 +146,6 @@ export default function HomeClient({
             <Plus size={16} color="white" strokeWidth={2.5} aria-hidden="true" />
           </button>
         </Link>
-      </div>
-
-      {/* ── 日付・グリーティング ── */}
-      <div style={{ padding: "20px 16px 0", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div>
-          <p style={{ fontSize: "11px", color: "#AAAAAA", fontWeight: 600, letterSpacing: "0.14em", marginBottom: "4px" }}>
-            {monthNum}月{dayNum}日（{dayName}）
-          </p>
-          <p style={{ fontSize: "26px", fontWeight: 900, color: "#111111", lineHeight: 1.2, letterSpacing: "-0.01em" }}>
-            {hasGoalToday ? (
-              <>今日も、<span style={{ color: "#FF6B00" }}>走れ。</span></>
-            ) : (
-              <>今日は、<span style={{ color: "#FF6B00" }}>休息日。</span></>
-            )}
-          </p>
-        </div>
-        <Image
-          src={hasGoalToday ? "/stickman-assets/stickman-01.png" : "/stickman-assets/stickman-06.png"}
-          alt=""
-          width={80}
-          height={80}
-          style={{ objectFit: "contain", flexShrink: 0 }}
-        />
       </div>
 
       {/* ── メインコンテンツ ── */}
@@ -259,84 +230,52 @@ export default function HomeClient({
           );
         })}
 
-        {/* ── 月間距離ヒーロー ── */}
+        {/* ── 今月のサマリー（コンパクト3列） ── */}
         <div style={{
-          background: "white", borderRadius: "22px", padding: "20px",
-          marginBottom: "10px",
-          position: "relative", overflow: "hidden",
-          boxShadow: "0 1px 6px rgba(0,0,0,0.07)",
+          background: "white", borderRadius: "16px",
+          display: "grid", gridTemplateColumns: "1fr 1px 1fr 1px 1fr",
+          marginBottom: "20px",
+          boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
         }}>
-          {/* 背景アート：グラフ上を走る棒人間 */}
-          <div style={{ position: "absolute", right: "-10px", bottom: "-14px", pointerEvents: "none" }}>
-            <Image src="/stickman-assets/stickman-03.png" alt="" width={130} height={130} style={{ objectFit: "contain", opacity: 0.1 }} />
-          </div>
+          {[
+            { label: "今月の距離", value: `${totalDistanceMonth}`, unit: "km", color: "#FF6B00" },
+            { label: "達成率", value: `${achieveRate}`, unit: "%", color: "#111111" },
+            {
+              label: "今月の罰金",
+              value: totalPenaltyMonth >= 1000 ? `${(totalPenaltyMonth / 1000).toFixed(1)}k` : String(totalPenaltyMonth),
+              unit: "円",
+              color: totalPenaltyMonth > 0 ? "#EF4444" : "#111111",
+            },
+          ].map((item, i) => (
+            i % 2 === 1
+              ? <div key={i} style={{ background: "#F0F0F0", width: "1px", margin: "14px 0" }} />
+              : (
+                <div key={i} style={{ padding: "14px 10px", textAlign: "center" }}>
+                  <p style={{ fontSize: "10px", color: "#AAAAAA", fontWeight: 600, marginBottom: "3px", whiteSpace: "nowrap" }}>{item.label}</p>
+                  <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: "2px" }}>
+                    <span className="metric-value" style={{ fontSize: "26px", color: item.color }}>{item.value}</span>
+                    <span style={{ fontSize: "11px", color: "#AAAAAA", fontWeight: 600 }}>{item.unit}</span>
+                  </div>
+                </div>
+              )
+          ))}</div>
 
-          <p style={{ fontSize: "10px", color: "#AAAAAA", fontWeight: 700, letterSpacing: "0.14em", marginBottom: "2px" }}>
-            今月の走行距離
-          </p>
-          <div style={{ display: "flex", alignItems: "baseline", gap: "5px" }}>
-            <span className="metric-value" style={{ fontSize: "58px", color: "#FF6B00" }}>
-              {totalDistanceMonth}
-            </span>
-            <span style={{ fontSize: "20px", color: "#AAAAAA", fontWeight: 600 }}>km</span>
-          </div>
-
-          {(monthlyGoal ?? 0) > 0 && (
-            <div style={{ marginTop: "14px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", marginBottom: "5px" }}>
-                <span style={{ color: "#AAAAAA" }}>月間目標 {monthlyGoal} km</span>
-                <span style={{ color: "#FF6B00", fontWeight: 700 }}>{monthlyProgressPct}%</span>
-              </div>
-              <div style={{ height: "6px", background: "#F0F0F0", borderRadius: "99px" }}>
-                <div style={{
-                  height: "100%", borderRadius: "99px",
-                  background: "linear-gradient(90deg, #FF6B00, #FF9500)",
-                  width: `${monthlyProgressPct}%`,
-                  transition: "width 0.5s ease",
-                }} />
-              </div>
+        {monthlyGoal > 0 && (
+          <div style={{ marginBottom: "20px", paddingLeft: "2px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", marginBottom: "4px" }}>
+              <span style={{ color: "#AAAAAA" }}>月間目標 {monthlyGoal} km</span>
+              <span style={{ color: "#FF6B00", fontWeight: 700 }}>{monthlyProgressPct}%</span>
             </div>
-          )}
-        </div>
-
-        {/* ── 達成率 + 罰金 ── */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "24px" }}>
-          {/* 達成率 */}
-          <div style={{
-            background: "white", borderRadius: "20px", padding: "18px 16px",
-            boxShadow: "0 1px 6px rgba(0,0,0,0.07)",
-            position: "relative", overflow: "hidden",
-          }}>
-            <div style={{ position: "absolute", right: "-10px", bottom: "-12px", pointerEvents: "none" }}>
-              <Image src="/stickman-assets/stickman-02.png" alt="" width={80} height={80} style={{ objectFit: "contain", opacity: 0.12 }} />
-            </div>
-            <p style={{ fontSize: "10px", color: "#AAAAAA", fontWeight: 700, letterSpacing: "0.1em", marginBottom: "4px" }}>達成率</p>
-            <div style={{ display: "flex", alignItems: "baseline", gap: "2px" }}>
-              <span className="metric-value" style={{ fontSize: "40px", color: "#111111" }}>{achieveRate}</span>
-              <span style={{ fontSize: "15px", color: "#AAAAAA", fontWeight: 600 }}>%</span>
+            <div style={{ height: "4px", background: "#EBEBEB", borderRadius: "99px" }}>
+              <div style={{
+                height: "100%", borderRadius: "99px",
+                background: "#FF6B00",
+                width: `${monthlyProgressPct}%`,
+                transition: "width 0.5s ease",
+              }} />
             </div>
           </div>
-          {/* 今月の罰金 */}
-          <div style={{
-            background: "white", borderRadius: "20px", padding: "18px 16px",
-            boxShadow: "0 1px 6px rgba(0,0,0,0.07)",
-            position: "relative", overflow: "hidden",
-          }}>
-            <div style={{ position: "absolute", right: "-10px", bottom: "-12px", pointerEvents: "none" }}>
-              <Image src="/stickman-assets/stickman-07.png" alt="" width={80} height={80} style={{ objectFit: "contain", opacity: 0.12 }} />
-            </div>
-            <p style={{ fontSize: "10px", color: "#AAAAAA", fontWeight: 700, letterSpacing: "0.1em", marginBottom: "4px" }}>今月の罰金</p>
-            <div style={{ display: "flex", alignItems: "baseline", gap: "1px" }}>
-              <span style={{ fontSize: "18px", color: "#AAAAAA", fontWeight: 700, marginRight: "1px" }}>¥</span>
-              <span className="metric-value" style={{
-                fontSize: "40px",
-                color: totalPenaltyMonth > 0 ? "#EF4444" : "#111111",
-              }}>
-                {totalPenaltyMonth >= 1000 ? `${(totalPenaltyMonth / 1000).toFixed(1)}k` : totalPenaltyMonth}
-              </span>
-            </div>
-          </div>
-        </div>
+        )}
 
         {/* ── 今週の目標 ── */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "10px", paddingLeft: "2px" }}>
