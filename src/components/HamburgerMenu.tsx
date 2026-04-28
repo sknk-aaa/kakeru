@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
-import { Menu, X, Shield, FileText, Receipt, MessageCircle, HelpCircle, ChevronRight } from "lucide-react";
+import { Menu, X, Shield, FileText, Receipt, MessageCircle, HelpCircle, LogOut } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 const MAIN_PAGES = ["/", "/goals", "/records", "/settings"];
@@ -21,6 +21,7 @@ const LEGAL_ITEMS = [
 
 export default function HamburgerMenu() {
   const pathname = usePathname();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
 
@@ -32,6 +33,14 @@ export default function HamburgerMenu() {
         .then(({ data }) => { if (data?.is_subscribed) setIsSubscribed(true); });
     });
   }, []);
+
+  async function handleLogout() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    setOpen(false);
+    router.push("/auth");
+    router.refresh();
+  }
 
   if (!MAIN_PAGES.includes(pathname)) return null;
 
@@ -97,27 +106,18 @@ export default function HamburgerMenu() {
               <Link
                 href={isSubscribed ? "/pro/manage" : "/pro"}
                 onClick={() => setOpen(false)}
-                style={{
-                  display: "flex", alignItems: "center", justifyContent: "space-between",
-                  padding: "12px 20px", textDecoration: "none",
-                  background: isSubscribed ? "linear-gradient(135deg, #FFF5EE, #FFF0E5)" : "transparent",
-                  borderBottom: "1px solid #F2F2F2",
-                }}
+                style={{ display: "flex", alignItems: "center", gap: "12px", padding: "13px 20px", color: "#333333", textDecoration: "none" }}
               >
-                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <span style={{
-                    display: "inline-block",
-                    background: "linear-gradient(135deg, #FF6B00, #FF9500)",
-                    color: "white", fontSize: "9px", fontWeight: 900,
-                    letterSpacing: "0.12em", padding: "3px 8px", borderRadius: "99px",
-                  }}>
-                    ★ PRO
-                  </span>
-                  <span style={{ fontSize: "14px", fontWeight: 600, color: "#111111" }}>
-                    {isSubscribed ? "PRO プラン利用中" : "PRO プランに加入する"}
-                  </span>
-                </div>
-                <ChevronRight size={15} color="#CCCCCC" />
+                <span style={{
+                  display: "inline-block",
+                  background: "linear-gradient(135deg, #FF6B00, #FF9500)",
+                  color: "white", fontSize: "9px", fontWeight: 900,
+                  letterSpacing: "0.12em", padding: "2px 6px", borderRadius: "4px",
+                  flexShrink: 0,
+                }}>PRO</span>
+                <span style={{ fontSize: "14px", fontWeight: 500 }}>
+                  {isSubscribed ? "プラン管理" : "プレミアムプラン"}
+                </span>
               </Link>
 
               <p style={{ fontSize: "10px", color: "#AAAAAA", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", padding: "12px 20px 4px" }}>
@@ -149,6 +149,20 @@ export default function HamburgerMenu() {
                 </Link>
               ))}
             </div>
+
+            {/* ログアウト */}
+            <button
+              onClick={handleLogout}
+              style={{
+                display: "flex", alignItems: "center", gap: "12px",
+                padding: "13px 20px", width: "100%",
+                background: "none", border: "none",
+                borderTop: "1px solid #F2F2F2", cursor: "pointer",
+              }}
+            >
+              <LogOut size={17} color="#EF4444" strokeWidth={1.8} />
+              <span style={{ fontSize: "14px", fontWeight: 500, color: "#EF4444" }}>ログアウト</span>
+            </button>
 
             {/* バージョン */}
             <div style={{ padding: "16px 20px", borderTop: "1px solid #F2F2F2" }}>
