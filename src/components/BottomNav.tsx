@@ -17,10 +17,11 @@ function TabItem({ href, label, icon: Icon, active }: { href: string; label: str
   return (
     <Link
       href={href}
+      aria-current={active ? "page" : undefined}
       className="flex-1 flex flex-col items-center justify-center gap-0.5 pt-2 pb-4 min-h-14"
       style={{ color: active ? "#FF6B00" : "#888888" }}
     >
-      <Icon size={21} strokeWidth={active ? 2.5 : 2} />
+      <Icon size={21} strokeWidth={active ? 2.5 : 2} aria-hidden="true" />
       <span style={{ fontSize: "9px", fontWeight: active ? 700 : 500, lineHeight: 1 }}>{label}</span>
     </Link>
   );

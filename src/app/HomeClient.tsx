@@ -133,8 +133,8 @@ export default function HomeClient({
         <h1 style={{ fontSize: "17px", fontWeight: 700, color: "#111111" }}>ホーム</h1>
         <div style={{ flex: 1, display: "flex", justifyContent: "flex-end" }}>
           <Link href="/goals/new">
-            <button style={{ width: "34px", height: "34px", borderRadius: "50%", background: "#FF6B00", display: "flex", alignItems: "center", justifyContent: "center", border: "none", cursor: "pointer" }}>
-              <Plus size={16} color="white" strokeWidth={2.5} />
+            <button aria-label="目標を追加" style={{ width: "34px", height: "34px", borderRadius: "50%", background: "#FF6B00", display: "flex", alignItems: "center", justifyContent: "center", border: "none", cursor: "pointer" }}>
+              <Plus size={16} color="white" strokeWidth={2.5} aria-hidden="true" />
             </button>
           </Link>
         </div>
@@ -252,8 +252,8 @@ export default function HomeClient({
                 <div key={instance.id} style={{ transition: "opacity 0.2s" }}>
                   {idx > 0 && <div style={{ height: "1px", background: "#F2F2F2", marginLeft: "72px" }} />}
 
-                  <div
-                    style={{ display: "flex", alignItems: "center", padding: "18px 16px", opacity: isFuture && !isPendingNotToday ? 0.45 : 1, cursor: isPendingNotToday ? "pointer" : "default" }}
+                  <button
+                    style={{ display: "flex", alignItems: "center", padding: "18px 16px", opacity: isFuture && !isPendingNotToday ? 0.45 : 1, cursor: isPendingNotToday ? "pointer" : "default", width: "100%", background: "none", border: "none", textAlign: "left" }}
                     onClick={handleCardTap}
                   >
                     {/* 日付 */}
@@ -273,13 +273,13 @@ export default function HomeClient({
                       <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
                         {instance.goals?.distance_km && (
                           <span style={{ display: "flex", alignItems: "center", gap: "3px", fontSize: "15px", fontWeight: 600, color: "#111111" }}>
-                            <MapPin size={13} color="#FF6B00" strokeWidth={2.5} />
+                            <MapPin size={13} color="#FF6B00" strokeWidth={2.5} aria-hidden="true" />
                             {instance.goals.distance_km}km
                           </span>
                         )}
                         {instance.goals?.duration_minutes && (
                           <span style={{ display: "flex", alignItems: "center", gap: "3px", fontSize: "15px", fontWeight: 600, color: "#111111" }}>
-                            <Clock size={13} color="#888888" strokeWidth={2.5} />
+                            <Clock size={13} color="#888888" strokeWidth={2.5} aria-hidden="true" />
                             {instance.goals.duration_minutes}分
                           </span>
                         )}
@@ -299,11 +299,11 @@ export default function HomeClient({
 
                     {/* アクション */}
                     <div style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: "6px" }}>
-                      {instance.status === "achieved" && <CheckCircle size={22} color="#22C55E" />}
-                      {instance.status === "failed" && <XCircle size={22} color="#EF4444" />}
+                      {instance.status === "achieved" && <CheckCircle size={22} color="#22C55E" aria-hidden="true" />}
+                      {instance.status === "failed" && <XCircle size={22} color="#EF4444" aria-hidden="true" />}
                       {instance.status === "skipped" && (
                         <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                          <SkipForward size={14} color="#AAAAAA" />
+                          <SkipForward size={14} color="#AAAAAA" aria-hidden="true" />
                           <span style={{ fontSize: "12px", color: "#AAAAAA", fontWeight: 500 }}>スキップ済み</span>
                         </div>
                       )}
@@ -326,10 +326,10 @@ export default function HomeClient({
                       )}
 
                       {isPendingNotToday && (
-                        <ChevronRight size={16} color="#CCCCCC" />
+                        <ChevronRight size={16} color="#CCCCCC" aria-hidden="true" />
                       )}
                     </div>
-                  </div>
+                  </button>
                 </div>
               );
             })}
