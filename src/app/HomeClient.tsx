@@ -150,6 +150,23 @@ export default function HomeClient({
         {/* 今日のミッションカード */}
         {todayGoalInstances.map((instance) => {
           if (!instance.goals) return null;
+
+          if (instance.status === "achieved") {
+            return (
+              <div key={instance.id} style={{
+                background: "white", borderRadius: "22px", padding: "20px",
+                marginBottom: "12px", textAlign: "center",
+                boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
+                borderLeft: "5px solid #22C55E",
+              }}>
+                <Image src="/stickman-assets/stickman-02.png" alt="" width={72} height={72} style={{ objectFit: "contain", marginBottom: "8px" }} />
+                <p style={{ fontSize: "9px", color: "#22C55E", fontWeight: 800, letterSpacing: "0.2em", marginBottom: "4px" }}>TODAY&apos;S MISSION</p>
+                <p style={{ fontSize: "16px", fontWeight: 800, color: "#111111" }}>目標達成！</p>
+                <p style={{ fontSize: "12px", color: "#888888", marginTop: "4px" }}>お疲れ様でした</p>
+              </div>
+            );
+          }
+
           const { distance_km, duration_minutes, penalty_amount } = instance.goals;
           const mainVal = distance_km ?? duration_minutes;
           const mainUnit = distance_km ? "km" : duration_minutes ? "分" : null;
@@ -275,9 +292,9 @@ export default function HomeClient({
             textAlign: "center", boxShadow: "0 1px 6px rgba(0,0,0,0.07)", marginBottom: "12px",
           }}>
             <div style={{ marginBottom: "12px" }}>
-              <Image src="/stickman-assets/stickman-06.png" alt="" width={80} height={80} style={{ objectFit: "contain" }} />
+              <Image src="/stickman-assets/stickman-13.png" alt="" width={80} height={80} style={{ objectFit: "contain" }} />
             </div>
-            <p style={{ color: "#888888", fontSize: "14px", marginBottom: "16px" }}>今週の目標がありません</p>
+            <p style={{ color: "#888888", fontSize: "14px", marginBottom: "16px" }}>目標を設定してみましょう</p>
             <Link href="/goals/new">
               <button className="btn-primary" style={{ minHeight: "44px", padding: "0 24px", fontSize: "14px" }}>目標を追加する</button>
             </Link>
