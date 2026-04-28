@@ -75,6 +75,7 @@ export default function ProPage() {
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(true);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [cardInfo, setCardInfo] = useState<{ brand: string; last4: string } | null>(null);
 
   useEffect(() => {
     const supabase = createClient();
@@ -84,11 +85,29 @@ export default function ProPage() {
         .then(({ data }) => {
           if (data?.is_subscribed) { router.replace("/pro/manage"); return; }
           setChecking(false);
+          fetch("/api/stripe/payment-method")
+            .then((r) => r.json())
+            .then((d: { card?: { brand: string; last4: string } }) => {
+              if (d.card) setCardInfo(d.card);
+            })
+            .catch(() => {});
         });
     });
   }, [router]);
 
-  async function handleSubscribe() {
+  async function handleDirectSubscribe() {
+    setLoading(true);
+    const res = await fetch("/api/stripe/subscribe", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ plan }),
+    });
+    const data = await res.json() as { success?: boolean };
+    if (data.success) window.location.href = "/pro/success";
+    else setLoading(false);
+  }
+
+  async function handleCheckout() {
     setLoading(true);
     const res = await fetch("/api/stripe/checkout", {
       method: "POST",
@@ -355,25 +374,68 @@ export default function ProPage() {
               )}
             </div>
 
-            <button
-              onClick={handleSubscribe}
-              disabled={loading}
-              style={{
-                width: "100%", minHeight: "56px",
-                background: loading ? "#E0E0E0" : "linear-gradient(135deg, #FF6B00 0%, #FF9500 100%)",
-                border: "none", borderRadius: "16px",
-                color: "white", fontSize: "16px", fontWeight: 800,
-                cursor: loading ? "not-allowed" : "pointer",
-                boxShadow: loading ? "none" : "0 6px 24px rgba(255,107,0,0.45)",
-                transition: "all 0.2s", marginBottom: "12px",
-                letterSpacing: "0.01em",
-              }}
-            >
-              {loading ? "処理中..." : `PRO を始める — ¥${plan === "monthly" ? "480/月" : "4,800/年"}`}
-            </button>
-            <p style={{ fontSize: "11px", color: "#BBBBBB", textAlign: "center" }}>
-              Stripe による安全な決済 · いつでも解約可能
-            </p>
+            {cardInfo ? (
+              <>
+                {/* 登録済みカードで1タップ加入 */}
+                <div style={{
+                  background: "#F8F8F8", borderRadius: "14px", padding: "14px 16px",
+                  display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px",
+                }}>
+                  <div style={{ width: "36px", height: "24px", background: "#1A1A2E", borderRadius: "4px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <span style={{ fontSize: "8px", color: "white", fontWeight: 700, letterSpacing: "0.05em" }}>CARD</span>
+                  </div>
+                  <div>
+                    <p style={{ fontSize: "13px", fontWeight: 600, color: "#111111", margin: 0 }}>
+                      {cardInfo.brand.toUpperCase()} **** {cardInfo.last4}
+                    </p>
+                    <p style={{ fontSize: "11px", color: "#AAAAAA", margin: 0 }}>登録済みのカード</p>
+                  </div>
+                </div>
+                <button
+                  onClick={handleDirectSubscribe}
+                  disabled={loading}
+                  style={{
+                    width: "100%", minHeight: "56px",
+                    background: loading ? "#E0E0E0" : "linear-gradient(135deg, #FF6B00 0%, #FF9500 100%)",
+                    border: "none", borderRadius: "16px",
+                    color: "white", fontSize: "16px", fontWeight: 800,
+                    cursor: loading ? "not-allowed" : "pointer",
+                    boxShadow: loading ? "none" : "0 6px 24px rgba(255,107,0,0.45)",
+                    transition: "all 0.2s", marginBottom: "10px",
+                  }}
+                >
+                  {loading ? "処理中..." : `このカードで加入する — ¥${plan === "monthly" ? "480/月" : "4,800/年"}`}
+                </button>
+                <button
+                  onClick={handleCheckout}
+                  disabled={loading}
+                  style={{ width: "100%", background: "none", border: "none", fontSize: "13px", color: "#AAAAAA", cursor: "pointer", padding: "4px" }}
+                >
+                  別のカードで支払う
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={handleCheckout}
+                  disabled={loading}
+                  style={{
+                    width: "100%", minHeight: "56px",
+                    background: loading ? "#E0E0E0" : "linear-gradient(135deg, #FF6B00 0%, #FF9500 100%)",
+                    border: "none", borderRadius: "16px",
+                    color: "white", fontSize: "16px", fontWeight: 800,
+                    cursor: loading ? "not-allowed" : "pointer",
+                    boxShadow: loading ? "none" : "0 6px 24px rgba(255,107,0,0.45)",
+                    transition: "all 0.2s", marginBottom: "12px",
+                  }}
+                >
+                  {loading ? "処理中..." : `PRO を始める — ¥${plan === "monthly" ? "480/月" : "4,800/年"}`}
+                </button>
+                <p style={{ fontSize: "11px", color: "#BBBBBB", textAlign: "center" }}>
+                  Stripe による安全な決済 · いつでも解約可能
+                </p>
+              </>
+            )}
           </div>
 
         {/* ═══ FAQ ═══ */}
@@ -422,7 +484,7 @@ export default function ProPage() {
             ¥480/月で、逃げない自分をつくる。
           </p>
           <button
-            onClick={handleSubscribe}
+            onClick={cardInfo ? handleDirectSubscribe : handleCheckout}
             disabled={loading}
             style={{
               width: "100%", minHeight: "56px",
