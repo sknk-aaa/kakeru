@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { Menu, X, Shield, FileText, Receipt, MessageCircle, HelpCircle } from "lucide-react";
+import { Menu, X, Shield, FileText, Receipt, MessageCircle, HelpCircle, ChevronRight } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 
 const MAIN_PAGES = ["/", "/goals", "/records", "/settings"];
 
@@ -21,6 +22,16 @@ const LEGAL_ITEMS = [
 export default function HamburgerMenu() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState(false);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return;
+      supabase.from("users").select("is_subscribed").eq("id", user.id).single()
+        .then(({ data }) => { if (data?.is_subscribed) setIsSubscribed(true); });
+    });
+  }, []);
 
   if (!MAIN_PAGES.includes(pathname)) return null;
 
@@ -81,7 +92,35 @@ export default function HamburgerMenu() {
 
             {/* メニュー項目 */}
             <div style={{ padding: "12px 0", flex: 1 }}>
-              <p style={{ fontSize: "10px", color: "#AAAAAA", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", padding: "8px 20px 4px" }}>
+
+              {/* PRO セクション */}
+              <Link
+                href={isSubscribed ? "/pro/manage" : "/pro"}
+                onClick={() => setOpen(false)}
+                style={{
+                  display: "flex", alignItems: "center", justifyContent: "space-between",
+                  padding: "12px 20px", textDecoration: "none",
+                  background: isSubscribed ? "linear-gradient(135deg, #FFF5EE, #FFF0E5)" : "transparent",
+                  borderBottom: "1px solid #F2F2F2",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <span style={{
+                    display: "inline-block",
+                    background: "linear-gradient(135deg, #FF6B00, #FF9500)",
+                    color: "white", fontSize: "9px", fontWeight: 900,
+                    letterSpacing: "0.12em", padding: "3px 8px", borderRadius: "99px",
+                  }}>
+                    ★ PRO
+                  </span>
+                  <span style={{ fontSize: "14px", fontWeight: 600, color: "#111111" }}>
+                    {isSubscribed ? "PRO プラン利用中" : "PRO プランに加入する"}
+                  </span>
+                </div>
+                <ChevronRight size={15} color="#CCCCCC" />
+              </Link>
+
+              <p style={{ fontSize: "10px", color: "#AAAAAA", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", padding: "12px 20px 4px" }}>
                 サポート
               </p>
               {SUPPORT_ITEMS.map(({ href, label, icon: Icon }) => (

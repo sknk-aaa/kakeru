@@ -29,7 +29,6 @@ export default function SettingsPage() {
   const [locationLng, setLocationLng] = useState<number | null>(null);
   const [cityQuery, setCityQuery] = useState("");
   const [citySuggestions, setCitySuggestions] = useState<{ name: string; admin1: string; latitude: number; longitude: number }[]>([]);
-  const [isSubscribed, setIsSubscribed] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const supabase = createClient();
@@ -41,11 +40,10 @@ export default function SettingsPage() {
       setIsEmailUser(user.app_metadata?.provider === "email");
       supabase
         .from("users")
-        .select("weight_kg, monthly_distance_goal_km, stripe_payment_method_id, notify_morning, notify_evening, city_name, location_lat, location_lng, is_subscribed")
+        .select("weight_kg, monthly_distance_goal_km, stripe_payment_method_id, notify_morning, notify_evening, city_name, location_lat, location_lng")
         .eq("id", user.id)
         .single()
         .then(({ data }) => {
-          if (data?.is_subscribed) setIsSubscribed(data.is_subscribed);
           if (data?.weight_kg) setWeightKg(String(data.weight_kg));
           if (data?.monthly_distance_goal_km) setMonthlyGoal(String(data.monthly_distance_goal_km));
           if (data?.notify_morning != null) setNotifyMorning(data.notify_morning);
@@ -119,12 +117,6 @@ export default function SettingsPage() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
     await supabase.from("users").update({ [field]: value }).eq("id", user.id);
-  }
-
-  async function handlePortal() {
-    const res = await fetch("/api/stripe/portal", { method: "POST" });
-    const { url } = await res.json();
-    if (url) window.location.href = url;
   }
 
   async function handleLogout() {
@@ -349,42 +341,6 @@ export default function SettingsPage() {
               </div>
             ))}
           </div>
-        </div>
-
-        {/* PRO プラン */}
-        <div className="mb-4">
-          <p className="text-xs text-[#888888] font-medium mb-2">PRO プラン</p>
-          {isSubscribed ? (
-            <div className="card">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <span style={{ background: "linear-gradient(135deg, #FF6B00, #FF9500)", color: "white", fontSize: "11px", fontWeight: 800, letterSpacing: "0.1em", padding: "3px 10px", borderRadius: "99px" }}>
-                    PRO
-                  </span>
-                  <span className="text-sm font-semibold text-text-main">加入中</span>
-                </div>
-                <CheckCircle size={18} color="#22C55E" />
-              </div>
-              <button
-                className="w-full flex items-center justify-between"
-                onClick={handlePortal}
-              >
-                <span className="text-sm text-text-sub">プランを管理する（解約・カード変更）</span>
-                <ChevronRight size={16} color="#CCCCCC" />
-              </button>
-            </div>
-          ) : (
-            <button
-              className="card w-full text-left"
-              onClick={() => router.push("/pro")}
-            >
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-[15px] font-semibold text-text-main">PRO プランで本気の習慣化</span>
-                <ChevronRight size={16} color="#CCCCCC" />
-              </div>
-              <p className="text-sm text-text-sub">エスカレーション・クーリングなど ¥480/月〜</p>
-            </button>
-          )}
         </div>
 
         {/* クレカ */}

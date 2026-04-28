@@ -15,12 +15,28 @@ export async function POST(request: NextRequest) {
 
   const { data: userData } = await supabase
     .from("users")
-    .select("stripe_customer_id")
+    .select("stripe_customer_id, stripe_payment_method_id")
     .eq("id", user.id)
     .single();
 
   const Stripe = (await import("stripe")).default;
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+  // 既存カードがあれば Checkout を介さず直接サブスク作成
+  if (userData?.stripe_customer_id && userData?.stripe_payment_method_id) {
+    try {
+      const subscription = await stripe.subscriptions.create({
+        customer: userData.stripe_customer_id,
+        items: [{ price: priceId }],
+        default_payment_method: userData.stripe_payment_method_id,
+      });
+      if (subscription.status === "active" || subscription.status === "trialing") {
+        return NextResponse.json({ success: true });
+      }
+    } catch {
+      // 失敗した場合は通常の Checkout にフォールバック
+    }
+  }
 
   const origin = request.headers.get("origin") ?? "https://www.kakeruapp.com";
 

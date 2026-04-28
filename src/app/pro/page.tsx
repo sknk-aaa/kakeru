@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import AppShell from "@/components/AppShell";
 import { createClient } from "@/lib/supabase/client";
-import { ChevronLeft, Check, ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronLeft, ChevronDown, ChevronUp } from "lucide-react";
 
 const PRO_FEATURES = [
   {
@@ -71,7 +71,6 @@ const FAQ_ITEMS = [
 
 export default function ProPage() {
   const router = useRouter();
-  const [isSubscribed, setIsSubscribed] = useState(false);
   const [plan, setPlan] = useState<"monthly" | "yearly">("monthly");
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(true);
@@ -83,11 +82,11 @@ export default function ProPage() {
       if (!user) { setChecking(false); return; }
       supabase.from("users").select("is_subscribed").eq("id", user.id).single()
         .then(({ data }) => {
-          if (data?.is_subscribed) setIsSubscribed(true);
+          if (data?.is_subscribed) { router.replace("/pro/manage"); return; }
           setChecking(false);
         });
     });
-  }, []);
+  }, [router]);
 
   async function handleSubscribe() {
     setLoading(true);
@@ -96,16 +95,9 @@ export default function ProPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ plan }),
     });
-    const data = await res.json() as { url?: string };
-    if (data.url) window.location.href = data.url;
-    else setLoading(false);
-  }
-
-  async function handlePortal() {
-    setLoading(true);
-    const res = await fetch("/api/stripe/portal", { method: "POST" });
-    const data = await res.json() as { url?: string };
-    if (data.url) window.location.href = data.url;
+    const data = await res.json() as { url?: string; success?: boolean };
+    if (data.success) window.location.href = "/pro/success";
+    else if (data.url) window.location.href = data.url;
     else setLoading(false);
   }
 
@@ -197,38 +189,21 @@ export default function ProPage() {
               </div>
             </div>
 
-            {/* ステータス表示 */}
+            {/* 価格表示 */}
             {!checking && (
-              isSubscribed ? (
-                <div style={{
-                  background: "linear-gradient(135deg, #F0FDF4, #DCFCE7)",
-                  borderRadius: "14px", padding: "16px 20px",
-                  border: "1.5px solid #BBF7D0",
-                  display: "flex", alignItems: "center", gap: "10px",
-                }}>
-                  <div style={{ width: "28px", height: "28px", background: "#22C55E", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                    <Check size={15} color="white" strokeWidth={3} aria-hidden="true" />
-                  </div>
-                  <div>
-                    <p style={{ fontSize: "14px", fontWeight: 700, color: "#16A34A" }}>PRO 加入中</p>
-                    <p style={{ fontSize: "12px", color: "#4ADE80" }}>すべての PRO 機能をご利用いただけます</p>
-                  </div>
+              <div style={{
+                background: "#F8F8F8", borderRadius: "14px", padding: "16px 20px",
+                borderLeft: "4px solid #FF6B00",
+              }}>
+                <p style={{ fontSize: "11px", color: "#AAAAAA", marginBottom: "4px", fontWeight: 600 }}>月額わずか</p>
+                <div style={{ display: "flex", alignItems: "baseline", gap: "4px" }}>
+                  <span className="metric-value" style={{ fontSize: "38px", color: "#111111", lineHeight: 1 }}>¥480</span>
+                  <span style={{ fontSize: "14px", color: "#888888" }}>/月</span>
                 </div>
-              ) : (
-                <div style={{
-                  background: "#F8F8F8", borderRadius: "14px", padding: "16px 20px",
-                  borderLeft: "4px solid #FF6B00",
-                }}>
-                  <p style={{ fontSize: "11px", color: "#AAAAAA", marginBottom: "4px", fontWeight: 600 }}>月額わずか</p>
-                  <div style={{ display: "flex", alignItems: "baseline", gap: "4px" }}>
-                    <span className="metric-value" style={{ fontSize: "38px", color: "#111111", lineHeight: 1 }}>¥480</span>
-                    <span style={{ fontSize: "14px", color: "#888888" }}>/月</span>
-                  </div>
-                  <p style={{ fontSize: "12px", color: "#FF6B00", fontWeight: 600, marginTop: "5px" }}>
-                    年額なら ¥4,800（2ヶ月分お得）
-                  </p>
-                </div>
-              )
+                <p style={{ fontSize: "12px", color: "#FF6B00", fontWeight: 600, marginTop: "5px" }}>
+                  年額なら ¥4,800（2ヶ月分お得）
+                </p>
+              </div>
             )}
           </div>
         </div>
@@ -309,8 +284,7 @@ export default function ProPage() {
         </div>
 
         {/* ═══ 料金プラン ═══ */}
-        {!isSubscribed && (
-          <div style={{ padding: "32px 16px 0" }}>
+        <div style={{ padding: "32px 16px 0" }}>
             <p style={{ fontSize: "10px", color: "#AAAAAA", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: "16px" }}>
               PRICING
             </p>
@@ -401,25 +375,6 @@ export default function ProPage() {
               Stripe による安全な決済 · いつでも解約可能
             </p>
           </div>
-        )}
-
-        {/* 加入済み: 管理ボタン */}
-        {isSubscribed && (
-          <div style={{ padding: "32px 16px 0" }}>
-            <button
-              onClick={handlePortal}
-              disabled={loading}
-              style={{
-                width: "100%", minHeight: "52px",
-                background: "white", border: "1.5px solid #E5E5E5",
-                borderRadius: "14px", color: "#555555",
-                fontSize: "15px", fontWeight: 600, cursor: "pointer",
-              }}
-            >
-              {loading ? "処理中..." : "プランを管理する（解約・カード変更）"}
-            </button>
-          </div>
-        )}
 
         {/* ═══ FAQ ═══ */}
         <div style={{ padding: "32px 16px 0" }}>
@@ -466,26 +421,20 @@ export default function ProPage() {
           <p style={{ fontSize: "13px", color: "#888888", marginBottom: "28px", lineHeight: 1.6 }}>
             ¥480/月で、逃げない自分をつくる。
           </p>
-          {isSubscribed ? (
-            <div style={{ background: "#F0FDF4", borderRadius: "14px", padding: "16px", border: "1px solid #BBF7D0" }}>
-              <p style={{ fontSize: "14px", fontWeight: 700, color: "#16A34A" }}>✓ すでに PRO 加入中です</p>
-            </div>
-          ) : (
-            <button
-              onClick={handleSubscribe}
-              disabled={loading}
-              style={{
-                width: "100%", minHeight: "56px",
-                background: loading ? "#E0E0E0" : "linear-gradient(135deg, #FF6B00, #FF9500)",
-                border: "none", borderRadius: "16px",
-                color: "white", fontSize: "16px", fontWeight: 800,
-                cursor: loading ? "not-allowed" : "pointer",
-                boxShadow: "0 6px 24px rgba(255,107,0,0.4)",
-              }}
-            >
-              {loading ? "処理中..." : "PRO を始める"}
-            </button>
-          )}
+          <button
+            onClick={handleSubscribe}
+            disabled={loading}
+            style={{
+              width: "100%", minHeight: "56px",
+              background: loading ? "#E0E0E0" : "linear-gradient(135deg, #FF6B00, #FF9500)",
+              border: "none", borderRadius: "16px",
+              color: "white", fontSize: "16px", fontWeight: 800,
+              cursor: loading ? "not-allowed" : "pointer",
+              boxShadow: "0 6px 24px rgba(255,107,0,0.4)",
+            }}
+          >
+            {loading ? "処理中..." : "PRO を始める"}
+          </button>
         </div>
 
       </div>
