@@ -77,7 +77,7 @@ export default function ProManagePage() {
 
         {/* 棒人間 */}
         <Image
-          src="/stickman-assets/stickman-02.png"
+          src="/stickman-assets/stickman-06.png"
           alt=""
           width={100}
           height={100}
