@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
-import { Menu, X, Shield, FileText, Receipt, MessageCircle, HelpCircle, LogOut } from "lucide-react";
+import { Menu, X, Shield, FileText, Receipt, MessageCircle, HelpCircle, LogOut, CreditCard } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 const MAIN_PAGES = ["/", "/goals", "/records", "/settings"];
@@ -24,11 +24,13 @@ export default function HamburgerMenu() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
 
   useEffect(() => {
     const supabase = createClient();
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) return;
+      setUserEmail(user.email ?? null);
       supabase.from("users").select("is_subscribed").eq("id", user.id).single()
         .then(({ data }) => { if (data?.is_subscribed) setIsSubscribed(true); });
     });
@@ -89,14 +91,33 @@ export default function HamburgerMenu() {
             onClick={(e) => e.stopPropagation()}
           >
             {/* ドロワーヘッダー */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", borderBottom: "1px solid #F2F2F2" }}>
-              <span style={{ fontSize: "16px", fontWeight: 800, color: "#FF6B00", letterSpacing: "-0.3px" }}>カケル</span>
-              <button
-                onClick={() => setOpen(false)}
-                style={{ width: "32px", height: "32px", display: "flex", alignItems: "center", justifyContent: "center", background: "#F2F2F7", border: "none", borderRadius: "8px", cursor: "pointer" }}
-              >
-                <X size={16} color="#888888" />
-              </button>
+            <div style={{ padding: "16px 20px", borderBottom: "1px solid #F2F2F2" }}>
+              <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "12px" }}>
+                <button
+                  onClick={() => setOpen(false)}
+                  style={{ width: "32px", height: "32px", display: "flex", alignItems: "center", justifyContent: "center", background: "#F2F2F7", border: "none", borderRadius: "8px", cursor: "pointer" }}
+                >
+                  <X size={16} color="#888888" />
+                </button>
+              </div>
+              <p style={{ fontSize: "13px", fontWeight: 600, color: "#111111", marginBottom: "6px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {userEmail ?? ""}
+              </p>
+              {isSubscribed ? (
+                <span style={{
+                  display: "inline-block",
+                  background: "linear-gradient(135deg, #FF6B00, #FF9500)",
+                  color: "white", fontSize: "10px", fontWeight: 900,
+                  letterSpacing: "0.1em", padding: "3px 10px", borderRadius: "99px",
+                }}>★ PRO</span>
+              ) : (
+                <span style={{
+                  display: "inline-block",
+                  background: "#F2F2F7", color: "#888888",
+                  fontSize: "10px", fontWeight: 700,
+                  letterSpacing: "0.08em", padding: "3px 10px", borderRadius: "99px",
+                }}>FREE</span>
+              )}
             </div>
 
             {/* メニュー項目 */}
@@ -108,13 +129,7 @@ export default function HamburgerMenu() {
                 onClick={() => setOpen(false)}
                 style={{ display: "flex", alignItems: "center", gap: "12px", padding: "13px 20px", color: "#333333", textDecoration: "none" }}
               >
-                <span style={{
-                  display: "inline-block",
-                  background: "linear-gradient(135deg, #FF6B00, #FF9500)",
-                  color: "white", fontSize: "9px", fontWeight: 900,
-                  letterSpacing: "0.12em", padding: "2px 6px", borderRadius: "4px",
-                  flexShrink: 0,
-                }}>PRO</span>
+                <CreditCard size={17} color="#888888" strokeWidth={1.8} />
                 <span style={{ fontSize: "14px", fontWeight: 500 }}>
                   {isSubscribed ? "プラン管理" : "プレミアムプラン"}
                 </span>
