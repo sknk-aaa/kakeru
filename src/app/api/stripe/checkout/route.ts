@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
@@ -13,7 +12,7 @@ export async function POST(request: NextRequest) {
 
   const { data: userData } = await supabase
     .from("users")
-    .select("stripe_customer_id, stripe_payment_method_id, is_subscribed")
+    .select("stripe_customer_id, is_subscribed")
     .eq("id", user.id)
     .single();
 
@@ -27,40 +26,10 @@ export async function POST(request: NextRequest) {
 
   const Stripe = (await import("stripe")).default;
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-  const admin = createAdminClient();
-
-  if (userData?.stripe_customer_id) {
-    // Stripe 上にアクティブなサブスクが既に存在する場合は新規作成しない
-    const existingSubs = await stripe.subscriptions.list({
-      customer: userData.stripe_customer_id,
-      status: "active",
-      limit: 1,
-    });
-    if (existingSubs.data.length > 0) {
-      await admin.from("users").update({ is_subscribed: true }).eq("id", user.id);
-      return NextResponse.json({ success: true });
-    }
-
-    // 既存カードで直接サブスク作成
-    if (userData.stripe_payment_method_id) {
-      try {
-        const subscription = await stripe.subscriptions.create({
-          customer: userData.stripe_customer_id,
-          items: [{ price: priceId }],
-          default_payment_method: userData.stripe_payment_method_id,
-        });
-        if (subscription.status === "active" || subscription.status === "trialing") {
-          await admin.from("users").update({ is_subscribed: true }).eq("id", user.id);
-          return NextResponse.json({ success: true });
-        }
-      } catch {
-        // 失敗した場合は Checkout にフォールバック
-      }
-    }
-  }
 
   const origin = request.headers.get("origin") ?? "https://www.kakeruapp.com";
 
+  // stripe_customer_id を渡すと Stripe Checkout が既存カードを自動表示する
   const session = await stripe.checkout.sessions.create({
     client_reference_id: user.id,
     customer: userData?.stripe_customer_id ?? undefined,
