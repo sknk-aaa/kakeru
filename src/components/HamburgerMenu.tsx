@@ -165,7 +165,7 @@ export default function HamburgerMenu() {
             </button>
 
             {/* バージョン */}
-            <div style={{ padding: "16px 20px", borderTop: "1px solid #F2F2F2" }}>
+            <div style={{ padding: "16px 20px calc(env(safe-area-inset-bottom) + 72px)", borderTop: "1px solid #F2F2F2" }}>
               <p style={{ fontSize: "11px", color: "#CCCCCC" }}>www.kakeruapp.com</p>
             </div>
           </div>
