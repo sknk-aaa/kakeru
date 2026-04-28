@@ -35,6 +35,7 @@ export async function POST(request: NextRequest) {
     customer: userData?.stripe_customer_id ?? undefined,
     customer_email: userData?.stripe_customer_id ? undefined : user.email!,
     mode: "subscription",
+    payment_method_collection: userData?.stripe_customer_id ? "if_required" : "always",
     line_items: [{ price: priceId, quantity: 1 }],
     success_url: `${origin}/pro/success?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${origin}/pro`,
