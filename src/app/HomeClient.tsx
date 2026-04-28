@@ -119,7 +119,7 @@ export default function HomeClient({
         position: "sticky", top: 0, zIndex: 10,
         background: "rgba(255,255,255,0.92)", backdropFilter: "blur(12px)",
         borderBottom: "1px solid #EBEBEB",
-        padding: "0 16px", height: "54px",
+        padding: "0 16px 0 56px", height: "54px",
         display: "flex", alignItems: "center", justifyContent: "space-between",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
