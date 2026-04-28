@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import AppShell from "@/components/AppShell";
+import ProModal from "@/components/ProModal";
 
 const DAYS = ["日", "月", "火", "水", "木", "金", "土"];
 
@@ -73,6 +74,7 @@ export default function NewGoalPage() {
   const [error, setError] = useState<string | null>(null);
   const [overlapDays, setOverlapDays] = useState<string[]>([]);
   const [showOverlapConfirm, setShowOverlapConfirm] = useState(false);
+  const [proModal, setProModal] = useState<{ name: string; desc: string } | null>(null);
 
   // サブスク機能
   const [isSubscribed, setIsSubscribed] = useState(false);
@@ -109,13 +111,13 @@ export default function NewGoalPage() {
     setSelectedDays((prev) => prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]);
   }
 
-  function handleProToggle(setter: (v: boolean) => void, current: boolean) {
-    if (!isSubscribed) { alert("サブスクリプション限定の機能です"); return; }
+  function handleProToggle(setter: (v: boolean) => void, current: boolean, featureName: string, desc: string) {
+    if (!isSubscribed) { setProModal({ name: featureName, desc }); return; }
     setter(!current);
   }
 
   function handleCoolingSelect(weeks: number | null) {
-    if (!isSubscribed && weeks !== null) { alert("サブスクリプション限定の機能です"); return; }
+    if (!isSubscribed && weeks !== null) { setProModal({ name: "クーリング期間", desc: "設定後N週間は目標を変更・削除不可にする PRO 限定機能です。" }); return; }
     setCoolingWeeks(weeks);
   }
 
@@ -445,7 +447,7 @@ export default function NewGoalPage() {
                     <span style={{ fontSize: "15px", color: "#111111", fontWeight: 500 }}>連続失敗で罰金増加</span>
                     <span style={{ fontSize: "10px", fontWeight: 700, color: "#FF6B00", background: "#FFF0E5", padding: "2px 6px", borderRadius: "4px" }}>PRO</span>
                   </div>
-                  <Toggle value={escalationEnabled} onChange={() => handleProToggle(setEscalationEnabled, escalationEnabled)} disabled={!isSubscribed} />
+                  <Toggle value={escalationEnabled} onChange={() => handleProToggle(setEscalationEnabled, escalationEnabled, "連続失敗で罰金増加", "連続して失敗するたびに罰金が増加するエスカレーション機能は PRO 限定です。")} disabled={!isSubscribed} />
                 </div>
                 {escalationEnabled && (
                   <>
@@ -523,7 +525,7 @@ export default function NewGoalPage() {
                     <span style={{ fontSize: "15px", color: "#111111", fontWeight: 500 }}>取り消し不可能にする</span>
                     <span style={{ fontSize: "10px", fontWeight: 700, color: "#FF6B00", background: "#FFF0E5", padding: "2px 6px", borderRadius: "4px" }}>PRO</span>
                   </div>
-                  <Toggle value={isLocked} onChange={() => handleProToggle(setIsLocked, isLocked)} disabled={!isSubscribed} />
+                  <Toggle value={isLocked} onChange={() => handleProToggle(setIsLocked, isLocked, "目標ロック", "当日まで削除・変更できなくする目標ロック機能は PRO 限定です。")} disabled={!isSubscribed} />
                 </div>
                 {isLocked && (
                   <>
@@ -565,6 +567,14 @@ export default function NewGoalPage() {
           )}
         </div>
       </div>
+
+      {proModal && (
+        <ProModal
+          featureName={proModal.name}
+          description={proModal.desc}
+          onClose={() => setProModal(null)}
+        />
+      )}
     </AppShell>
   );
 }

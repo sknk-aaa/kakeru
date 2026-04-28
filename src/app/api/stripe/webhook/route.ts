@@ -133,5 +133,25 @@ export async function POST(request: NextRequest) {
     });
   }
 
+  if (
+    event.type === "customer.subscription.created" ||
+    event.type === "customer.subscription.updated"
+  ) {
+    const sub = event.data.object as import("stripe").Stripe.Subscription;
+    const isActive = sub.status === "active" || sub.status === "trialing";
+    await admin
+      .from("users")
+      .update({ is_subscribed: isActive })
+      .eq("stripe_customer_id", sub.customer as string);
+  }
+
+  if (event.type === "customer.subscription.deleted") {
+    const sub = event.data.object as import("stripe").Stripe.Subscription;
+    await admin
+      .from("users")
+      .update({ is_subscribed: false })
+      .eq("stripe_customer_id", sub.customer as string);
+  }
+
   return NextResponse.json({ received: true });
 }
