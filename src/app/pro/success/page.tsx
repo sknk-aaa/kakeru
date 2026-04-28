@@ -1,10 +1,31 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import AppShell from "@/components/AppShell";
 
 export default function ProSuccessPage() {
+  const searchParams = useSearchParams();
+  const [activated, setActivated] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const sessionId = searchParams.get("session_id");
+    if (!sessionId) { setActivated(true); return; }
+
+    fetch("/api/stripe/activate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sessionId }),
+    })
+      .then((r) => r.json())
+      .then((d: { activated?: boolean }) => setActivated(d.activated ?? false))
+      .catch(() => setActivated(false));
+  }, [searchParams]);
+
   return (
     <AppShell>
       <div style={{ minHeight: "70vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "48px 24px", textAlign: "center" }}>
@@ -30,26 +51,59 @@ export default function ProSuccessPage() {
           </span>
         </div>
 
-        <h1 style={{ fontSize: "28px", fontWeight: 900, color: "#111111", marginBottom: "12px", letterSpacing: "-0.01em" }}>
-          PRO 加入完了！
-        </h1>
-        <p style={{ fontSize: "15px", color: "#777777", lineHeight: 1.75, marginBottom: "36px" }}>
-          すべての PRO 機能が使えるようになりました。<br />
-          本気の習慣化を、一緒に始めましょう。
-        </p>
+        {activated === null ? (
+          <>
+            <h1 style={{ fontSize: "24px", fontWeight: 900, color: "#111111", marginBottom: "12px" }}>
+              加入を確認中...
+            </h1>
+            <p style={{ fontSize: "14px", color: "#888888" }}>少々お待ちください</p>
+          </>
+        ) : activated ? (
+          <>
+            <h1 style={{ fontSize: "28px", fontWeight: 900, color: "#111111", marginBottom: "12px", letterSpacing: "-0.01em" }}>
+              PRO 加入完了！
+            </h1>
+            <p style={{ fontSize: "15px", color: "#777777", lineHeight: 1.75, marginBottom: "36px" }}>
+              すべての PRO 機能が使えるようになりました。<br />
+              本気の習慣化を、一緒に始めましょう。
+            </p>
 
-        <Link href="/" style={{ width: "100%", maxWidth: "320px" }}>
-          <button style={{
-            width: "100%", minHeight: "54px",
-            background: "linear-gradient(135deg, #FF6B00, #FF9500)",
-            border: "none", borderRadius: "16px",
-            color: "white", fontSize: "16px", fontWeight: 800,
-            cursor: "pointer",
-            boxShadow: "0 6px 24px rgba(255,107,0,0.4)",
-          }}>
-            ホームへ
-          </button>
-        </Link>
+            <Link href="/" style={{ width: "100%", maxWidth: "320px" }}>
+              <button style={{
+                width: "100%", minHeight: "54px",
+                background: "linear-gradient(135deg, #FF6B00, #FF9500)",
+                border: "none", borderRadius: "16px",
+                color: "white", fontSize: "16px", fontWeight: 800,
+                cursor: "pointer",
+                boxShadow: "0 6px 24px rgba(255,107,0,0.4)",
+              }}>
+                ホームへ
+              </button>
+            </Link>
+          </>
+        ) : (
+          <>
+            <h1 style={{ fontSize: "22px", fontWeight: 900, color: "#111111", marginBottom: "12px" }}>
+              加入処理中です
+            </h1>
+            <p style={{ fontSize: "14px", color: "#888888", lineHeight: 1.75, marginBottom: "32px" }}>
+              Stripe での決済は完了しています。<br />
+              反映まで少し時間がかかる場合があります。<br />
+              しばらく経ってからアプリを開き直してください。
+            </p>
+            <Link href="/" style={{ width: "100%", maxWidth: "320px" }}>
+              <button style={{
+                width: "100%", minHeight: "54px",
+                background: "#F2F2F7",
+                border: "none", borderRadius: "16px",
+                color: "#333333", fontSize: "16px", fontWeight: 700,
+                cursor: "pointer",
+              }}>
+                ホームへ
+              </button>
+            </Link>
+          </>
+        )}
       </div>
     </AppShell>
   );

@@ -138,7 +138,7 @@ export async function POST(request: NextRequest) {
     if (session.mode === "subscription" && session.client_reference_id && session.customer) {
       await admin
         .from("users")
-        .update({ stripe_customer_id: session.customer as string })
+        .update({ stripe_customer_id: session.customer as string, is_subscribed: true })
         .eq("id", session.client_reference_id);
     }
   }
