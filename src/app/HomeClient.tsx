@@ -124,18 +124,19 @@ export default function HomeClient({
         </div>
       )}
 
-      {/* ── ヘッダー（黒） ── */}
+      {/* ── ヘッダー（白） ── */}
       <div style={{
         position: "sticky", top: 0, zIndex: 10,
-        background: "#111111",
+        background: "rgba(255,255,255,0.92)", backdropFilter: "blur(12px)",
+        borderBottom: "1px solid #EBEBEB",
         padding: "0 16px", height: "54px",
         display: "flex", alignItems: "center", justifyContent: "space-between",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-          <Image src="/stickman-assets/stickman-01.png" alt="" width={26} height={26} style={{ objectFit: "contain" }} />
+          <Image src="/stickman-assets/stickman-01.png" alt="" width={24} height={24} style={{ objectFit: "contain" }} />
           <span style={{
             fontFamily: "var(--font-display)",
-            fontSize: "22px", fontWeight: 900, fontStyle: "italic",
+            fontSize: "21px", fontWeight: 900, fontStyle: "italic",
             color: "#FF6B00", letterSpacing: "0.06em",
           }}>KAKERU</span>
         </div>
@@ -153,54 +154,27 @@ export default function HomeClient({
         </Link>
       </div>
 
-      {/* ── ヒーロー帯（黒→コンテンツへ） ── */}
-      <div style={{
-        background: "#111111",
-        position: "relative", overflow: "hidden",
-        padding: "12px 20px 40px",
-      }}>
-        {/* 背景装飾：薄いオレンジ円 */}
-        <div style={{
-          position: "absolute", top: "-60px", right: "-60px",
-          width: "240px", height: "240px",
-          background: "radial-gradient(circle, rgba(255,107,0,0.12) 0%, transparent 70%)",
-          pointerEvents: "none",
-        }} />
-
-        <p style={{ fontSize: "11px", color: "#FF6B00", fontWeight: 700, letterSpacing: "0.18em", marginBottom: "6px" }}>
-          {monthNum}月{dayNum}日（{dayName}）
-        </p>
-        <p style={{
-          fontSize: "34px", fontWeight: 900, color: "white",
-          lineHeight: 1.15, letterSpacing: "-0.01em",
-        }}>
-          {hasGoalToday ? (
-            <>今日も、<span style={{ color: "#FF6B00" }}>走れ。</span></>
-          ) : (
-            <>今日は、<span style={{ color: "#FF6B00" }}>休息日。</span></>
-          )}
-        </p>
-
-        {/* 棒人間（右下に飛び出し） */}
-        <div style={{
-          position: "absolute", right: "0px", bottom: "-4px",
-          pointerEvents: "none",
-        }}>
-          <Image
-            src={hasGoalToday ? "/stickman-assets/stickman-01.png" : "/stickman-assets/stickman-06.png"}
-            alt=""
-            width={130}
-            height={130}
-            style={{ objectFit: "contain" }}
-          />
+      {/* ── 日付・グリーティング ── */}
+      <div style={{ padding: "20px 16px 0", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div>
+          <p style={{ fontSize: "11px", color: "#AAAAAA", fontWeight: 600, letterSpacing: "0.14em", marginBottom: "4px" }}>
+            {monthNum}月{dayNum}日（{dayName}）
+          </p>
+          <p style={{ fontSize: "26px", fontWeight: 900, color: "#111111", lineHeight: 1.2, letterSpacing: "-0.01em" }}>
+            {hasGoalToday ? (
+              <>今日も、<span style={{ color: "#FF6B00" }}>走れ。</span></>
+            ) : (
+              <>今日は、<span style={{ color: "#FF6B00" }}>休息日。</span></>
+            )}
+          </p>
         </div>
-
-        {/* 下端のオレンジライン */}
-        <div style={{
-          position: "absolute", bottom: 0, left: 0, right: 0,
-          height: "2px",
-          background: "linear-gradient(90deg, #FF6B00 0%, transparent 60%)",
-        }} />
+        <Image
+          src={hasGoalToday ? "/stickman-assets/stickman-01.png" : "/stickman-assets/stickman-06.png"}
+          alt=""
+          width={80}
+          height={80}
+          style={{ objectFit: "contain", flexShrink: 0 }}
+        />
       </div>
 
       {/* ── メインコンテンツ ── */}
@@ -220,40 +194,41 @@ export default function HomeClient({
 
           return (
             <div key={instance.id} style={{
-              background: "linear-gradient(135deg, #FF6B00 0%, #FF9500 100%)",
+              background: "white",
               borderRadius: "22px", padding: "20px",
               marginBottom: "12px",
               position: "relative", overflow: "hidden",
-              boxShadow: "0 8px 32px rgba(255,107,0,0.28)",
+              boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
+              borderLeft: "5px solid #FF6B00",
             }}>
               {/* ゴーストの棒人間 */}
               <div style={{ position: "absolute", right: "-6px", bottom: "-8px", pointerEvents: "none" }}>
-                <Image src="/stickman-assets/stickman-08.png" alt="" width={108} height={108} style={{ objectFit: "contain", opacity: 0.22 }} />
+                <Image src="/stickman-assets/stickman-08.png" alt="" width={108} height={108} style={{ objectFit: "contain", opacity: 0.1 }} />
               </div>
 
               <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "14px" }}>
                 <div>
-                  <p style={{ fontSize: "9px", color: "rgba(255,255,255,0.7)", fontWeight: 800, letterSpacing: "0.2em", marginBottom: "4px" }}>
+                  <p style={{ fontSize: "9px", color: "#FF6B00", fontWeight: 800, letterSpacing: "0.2em", marginBottom: "4px" }}>
                     TODAY&apos;S MISSION
                   </p>
                   {mainVal ? (
                     <div style={{ display: "flex", alignItems: "baseline", gap: "5px" }}>
-                      <span className="metric-value" style={{ fontSize: "54px", color: "white" }}>{mainVal}</span>
-                      <span style={{ fontSize: "22px", color: "rgba(255,255,255,0.8)", fontWeight: 700 }}>{mainUnit}</span>
+                      <span className="metric-value" style={{ fontSize: "54px", color: "#111111" }}>{mainVal}</span>
+                      <span style={{ fontSize: "22px", color: "#FF6B00", fontWeight: 700 }}>{mainUnit}</span>
                     </div>
                   ) : (
-                    <span style={{ fontSize: "26px", fontWeight: 800, color: "white" }}>フリーラン</span>
+                    <span style={{ fontSize: "26px", fontWeight: 800, color: "#111111" }}>フリーラン</span>
                   )}
-                  <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.75)", marginTop: "2px", fontWeight: 600 }}>
+                  <p style={{ fontSize: "12px", color: "#EF4444", marginTop: "2px", fontWeight: 600 }}>
                     サボると ¥{penalty_amount.toLocaleString()} 課金
                   </p>
                 </div>
                 <Link href={`/run?goalInstanceId=${instance.id}`} style={{ flexShrink: 0 }}>
                   <button style={{
-                    background: "white", color: "#FF6B00", border: "none",
+                    background: "#FF6B00", color: "white", border: "none",
                     borderRadius: "99px", padding: "8px 22px",
                     fontSize: "14px", fontWeight: 800, cursor: "pointer",
-                    boxShadow: "0 2px 12px rgba(0,0,0,0.15)",
+                    boxShadow: "0 4px 14px rgba(255,107,0,0.35)",
                     marginTop: "6px",
                   }}>
                     走る →
@@ -263,17 +238,17 @@ export default function HomeClient({
 
               {mainVal && (progressRatio > 0 || distance_km) && (
                 <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "rgba(255,255,255,0.85)", marginBottom: "5px", fontWeight: 600 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#888888", marginBottom: "5px", fontWeight: 600 }}>
                     <span>
                       {distance_km
                         ? `${todayRunDistanceKm.toFixed(2)} km 完了`
                         : `${Math.floor(todayRunDurationSec / 60)} 分完了`}
                     </span>
-                    <span>{Math.round(progressRatio * 100)}%</span>
+                    <span style={{ color: "#FF6B00" }}>{Math.round(progressRatio * 100)}%</span>
                   </div>
-                  <div style={{ height: "6px", background: "rgba(255,255,255,0.3)", borderRadius: "99px" }}>
+                  <div style={{ height: "6px", background: "#F0F0F0", borderRadius: "99px" }}>
                     <div style={{
-                      height: "100%", background: "white", borderRadius: "99px",
+                      height: "100%", background: "#FF6B00", borderRadius: "99px",
                       width: `${Math.round(progressRatio * 100)}%`,
                       transition: "width 0.4s ease",
                     }} />
