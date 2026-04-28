@@ -76,6 +76,7 @@ export default function ProPage() {
   const [checking, setChecking] = useState(true);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [cardInfo, setCardInfo] = useState<{ brand: string; last4: string } | null>(null);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   useEffect(() => {
     const supabase = createClient();
@@ -392,7 +393,7 @@ export default function ProPage() {
                   </div>
                 </div>
                 <button
-                  onClick={handleDirectSubscribe}
+                  onClick={() => setShowConfirm(true)}
                   disabled={loading}
                   style={{
                     width: "100%", minHeight: "56px",
@@ -484,7 +485,7 @@ export default function ProPage() {
             ¥480/月で、逃げない自分をつくる。
           </p>
           <button
-            onClick={cardInfo ? handleDirectSubscribe : handleCheckout}
+            onClick={cardInfo ? () => setShowConfirm(true) : handleCheckout}
             disabled={loading}
             style={{
               width: "100%", minHeight: "56px",
@@ -500,6 +501,66 @@ export default function ProPage() {
         </div>
 
       </div>
+      {showConfirm && (
+        <>
+          <div
+            onClick={() => setShowConfirm(false)}
+            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 100 }}
+          />
+          <div style={{
+            position: "fixed", bottom: 0, left: 0, right: 0,
+            background: "white", borderRadius: "24px 24px 0 0",
+            padding: "28px 24px calc(env(safe-area-inset-bottom) + 28px)",
+            zIndex: 101,
+            boxShadow: "0 -4px 32px rgba(0,0,0,0.12)",
+          }}>
+            <p style={{ fontSize: "18px", fontWeight: 800, color: "#111111", marginBottom: "20px", textAlign: "center" }}>
+              PRO プランに加入しますか？
+            </p>
+            <div style={{
+              background: "#F8F8F8", borderRadius: "12px", padding: "14px 16px",
+              display: "flex", alignItems: "center", gap: "12px", marginBottom: "8px",
+            }}>
+              <div style={{ width: "36px", height: "24px", background: "#1A1A2E", borderRadius: "4px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <span style={{ fontSize: "8px", color: "white", fontWeight: 700 }}>CARD</span>
+              </div>
+              <span style={{ fontSize: "14px", fontWeight: 600, color: "#111111" }}>
+                {cardInfo!.brand.toUpperCase()} **** {cardInfo!.last4}
+              </span>
+            </div>
+            <div style={{ background: "#FFF5EE", borderRadius: "12px", padding: "14px 16px", marginBottom: "24px", textAlign: "center" }}>
+              <p style={{ fontSize: "22px", fontWeight: 900, color: "#FF6B00", margin: 0 }}>
+                ¥{plan === "monthly" ? "480 / 月" : "4,800 / 年"}
+              </p>
+              <p style={{ fontSize: "11px", color: "#AAAAAA", margin: "4px 0 0" }}>いつでも解約できます</p>
+            </div>
+            <button
+              onClick={() => { setShowConfirm(false); handleDirectSubscribe(); }}
+              disabled={loading}
+              style={{
+                width: "100%", minHeight: "54px",
+                background: "linear-gradient(135deg, #FF6B00, #FF9500)",
+                border: "none", borderRadius: "14px",
+                color: "white", fontSize: "16px", fontWeight: 800,
+                cursor: "pointer", marginBottom: "10px",
+                boxShadow: "0 4px 20px rgba(255,107,0,0.4)",
+              }}
+            >
+              加入する
+            </button>
+            <button
+              onClick={() => setShowConfirm(false)}
+              style={{
+                width: "100%", minHeight: "48px",
+                background: "none", border: "none",
+                fontSize: "15px", color: "#888888", cursor: "pointer",
+              }}
+            >
+              キャンセル
+            </button>
+          </div>
+        </>
+      )}
     </AppShell>
   );
 }
