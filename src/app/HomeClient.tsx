@@ -337,12 +337,14 @@ export default function HomeClient({
 
         {visibleInstances.length === 0 ? (
           <div style={{
-            background: "white", borderRadius: "22px", padding: "42px 20px 38px",
-            textAlign: "center", boxShadow: "0 1px 8px rgba(0,0,0,0.06)", marginBottom: "12px",
+            background: "white", borderRadius: "22px",
+            boxShadow: "0 1px 8px rgba(0,0,0,0.06)", marginBottom: "12px",
+            display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+            minHeight: "45vh", padding: "24px 20px",
           }}>
             <Image src="/stickman-assets/stickman-13.png" alt="" width={108} height={78} style={{ objectFit: "contain", marginBottom: "14px" }} />
             <p style={{ color: "#111111", fontSize: "16px", fontWeight: 800, marginBottom: "7px" }}>今週の目標がまだありません</p>
-            <p style={{ color: "#888888", fontSize: "13px", lineHeight: 1.6, marginBottom: "20px" }}>目標を立てると、達成できなかった分だけ罰金が発生します。自分と、約束しよう。</p>
+            <p style={{ color: "#888888", fontSize: "13px", lineHeight: 1.6, marginBottom: "20px", textAlign: "center" }}>まずは目標を一つ立ててみましょう！</p>
             <Link href="/goals/new">
               <button className="btn-primary" style={{ minHeight: "44px", padding: "0 28px", fontSize: "14px" }}>目標を立てる</button>
             </Link>
@@ -359,7 +361,7 @@ export default function HomeClient({
               }}>
                 <Image src="/stickman-assets/stickman-13.png" alt="" width={108} height={78} style={{ objectFit: "contain", marginBottom: "14px" }} />
                 <p style={{ color: "#111111", fontSize: "16px", fontWeight: 800, marginBottom: "7px" }}>今週の目標をすべてクリア！</p>
-                <p style={{ color: "#888888", fontSize: "13px", lineHeight: 1.6, marginBottom: "24px", textAlign: "center" }}>来週も怠けないために、次の目標を今のうちに入れておきましょう。</p>
+                <p style={{ color: "#888888", fontSize: "13px", lineHeight: 1.6, marginBottom: "24px", textAlign: "center" }}>この流れのまま、次の目標を今のうちに入れておきましょう！</p>
                 <Link href="/goals/new">
                   <button className="btn-primary" style={{ minHeight: "44px", padding: "0 28px", fontSize: "14px" }}>目標を立てる</button>
                 </Link>
