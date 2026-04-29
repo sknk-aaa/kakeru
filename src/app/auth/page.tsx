@@ -127,9 +127,15 @@ export default function AuthPage() {
         <div style={{ position: "relative", padding: "24px 24px 0", display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
           {/* テキスト */}
           <div style={{ flex: 1, paddingRight: "8px" }}>
-            <h1 style={{ fontSize: "36px", fontWeight: 900, lineHeight: 1.25, margin: 0, color: "#1A1A1A" }}>
-              走らなければ、<br />
-              課金される
+            <h1 style={{ margin: 0 }}>
+              <Image
+                src="/その他素材/走らなければ-transparent.png"
+                alt="走らなければ、課金される。"
+                width={250}
+                height={164}
+                priority
+                style={{ display: "block", maxWidth: "100%", height: "auto" }}
+              />
             </h1>
             <p style={{ fontSize: "13px", color: "#666666", lineHeight: 1.7, marginTop: "14px", marginBottom: 0 }}>
               Kakeruは、あなたの「やる気」を守る<br />ランニング習慣化アプリです。
@@ -180,11 +186,11 @@ export default function AuthPage() {
                 {mode === "reset" ? "パスワードをリセット" : "さあ、今日から変わろう。"}
                 <span style={{ marginLeft: "6px" }}>╱</span>
               </p>
-              <p style={{ textAlign: "center", fontSize: "13px", color: "#888888", marginBottom: "20px" }}>
-                {mode === "reset"
-                  ? "メールアドレスを入力してください"
-                  : "アカウントを作成して、あなたの挑戦を始めよう！"}
-              </p>
+              {mode === "reset" && (
+                <p style={{ textAlign: "center", fontSize: "13px", color: "#888888", marginBottom: "20px" }}>
+                  メールアドレスを入力してください
+                </p>
+              )}
 
               {mode !== "reset" && (
                 <>
@@ -315,32 +321,32 @@ export default function AuthPage() {
       </div>
 
       {/* ── フィーチャー ── */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px", padding: "20px 20px 48px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "10px", padding: "20px 16px 48px" }}>
         {/* GPS */}
         <div style={{ textAlign: "center" }}>
-          <div style={{ width: "64px", height: "64px", borderRadius: "50%", background: "#FFF0E5", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 8px" }}>
-            <Image src="/その他素材/地図っぽい-transparent.png" alt="" width={44} height={44} style={{ objectFit: "contain" }} />
+          <div style={{ width: "76px", height: "76px", borderRadius: "50%", background: "#FFF0E5", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 10px" }}>
+            <Image src="/その他素材/地図っぽい-transparent.png" alt="" width={54} height={54} style={{ objectFit: "contain" }} />
           </div>
-          <p style={{ fontSize: "12px", fontWeight: 700, color: "#111111", marginBottom: "4px" }}>GPSで正確に記録</p>
-          <p style={{ fontSize: "11px", color: "#888888", lineHeight: 1.5 }}>距離・時間・ペースを自動で計測</p>
+          <p style={{ fontSize: "13px", fontWeight: 700, color: "#111111", marginBottom: "5px" }}>GPSで正確に記録</p>
+          <p style={{ fontSize: "12px", color: "#888888", lineHeight: 1.5 }}>距離・時間・ペースを自動で計測</p>
         </div>
 
         {/* 自動課金 */}
         <div style={{ textAlign: "center" }}>
-          <div style={{ width: "64px", height: "64px", borderRadius: "50%", background: "#FFF9E5", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 8px" }}>
-            <Image src="/その他素材/課金焦り-transparent.png" alt="" width={44} height={44} style={{ objectFit: "contain" }} />
+          <div style={{ width: "76px", height: "76px", borderRadius: "50%", background: "#FFF9E5", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 10px" }}>
+            <Image src="/その他素材/課金焦り-transparent.png" alt="" width={54} height={54} style={{ objectFit: "contain" }} />
           </div>
-          <p style={{ fontSize: "12px", fontWeight: 700, color: "#111111", marginBottom: "4px" }}>未達成なら自動課金</p>
-          <p style={{ fontSize: "11px", color: "#888888", lineHeight: 1.5 }}>目標を達成できないと登録カードに罰金が発生</p>
+          <p style={{ fontSize: "13px", fontWeight: 700, color: "#111111", marginBottom: "5px" }}>未達成なら自動課金</p>
+          <p style={{ fontSize: "12px", color: "#888888", lineHeight: 1.5 }}>目標を達成できないと登録カードに罰金が発生</p>
         </div>
 
         {/* 習慣化 */}
         <div style={{ textAlign: "center" }}>
-          <div style={{ width: "64px", height: "64px", borderRadius: "50%", background: "#E5F9F3", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 8px" }}>
-            <Image src="/その他素材/山-transparent.png" alt="" width={44} height={44} style={{ objectFit: "contain" }} />
+          <div style={{ width: "76px", height: "76px", borderRadius: "50%", background: "#E5F9F3", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 10px" }}>
+            <Image src="/その他素材/山-transparent.png" alt="" width={54} height={54} style={{ objectFit: "contain" }} />
           </div>
-          <p style={{ fontSize: "12px", fontWeight: 700, color: "#111111", marginBottom: "4px" }}>習慣化をサポート</p>
-          <p style={{ fontSize: "11px", color: "#888888", lineHeight: 1.5 }}>リマインダーや記録で継続を後押し</p>
+          <p style={{ fontSize: "13px", fontWeight: 700, color: "#111111", marginBottom: "5px" }}>習慣化をサポート</p>
+          <p style={{ fontSize: "12px", color: "#888888", lineHeight: 1.5 }}>リマインダーや記録で継続を後押し</p>
         </div>
       </div>
 
