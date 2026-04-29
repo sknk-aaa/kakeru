@@ -4,28 +4,22 @@ import { requireUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import AppShell from "@/components/AppShell";
 import GoalsClient from "./GoalsClient";
-import { checkRainy } from "@/lib/prefectures";
+
+const GOAL_SELECT = "id, type, days_of_week, scheduled_date, challenge_start_date, distance_km, duration_minutes, penalty_amount, is_active, created_at";
 
 export default async function GoalsPage() {
   const user = await requireUser();
   const supabase = await createClient();
 
-  const [{ data: goals }, { data: userProfile }] = await Promise.all([
-    supabase
-      .from("goals")
-      .select("*")
-      .eq("user_id", user.id)
-      .eq("is_active", true)
-      .order("created_at", { ascending: false }),
-    supabase.from("users").select("location_lat, location_lng").eq("id", user.id).single(),
-  ]);
-
-  const isRainy = (userProfile?.location_lat && userProfile?.location_lng)
-    ? await checkRainy(userProfile.location_lat, userProfile.location_lng)
-    : false;
+  const { data: goals } = await supabase
+    .from("goals")
+    .select(GOAL_SELECT)
+    .eq("user_id", user.id)
+    .eq("is_active", true)
+    .order("created_at", { ascending: false });
 
   // JSTで日付を計算（サーバーはUTCで動くため+9時間補正）
-  const nowJst = new Date(Date.now() + 9 * 60 * 60 * 1000);
+  const nowJst = new Date(new Date().getTime() + 9 * 60 * 60 * 1000);
   const todayStr = nowJst.toISOString().split("T")[0];
   const dayOfWeek = nowJst.getUTCDay();
   const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
@@ -58,7 +52,7 @@ export default async function GoalsPage() {
       : Promise.resolve({ data: [] }),
     supabase
       .from("goals")
-      .select("*")
+      .select(GOAL_SELECT)
       .eq("user_id", user.id)
       .eq("is_active", false)
       .eq("type", "recurring")
@@ -107,7 +101,7 @@ export default async function GoalsPage() {
         todayStr={todayStr}
         pastOneoffInstances={pastOneoffInstances ?? []}
         pastRecurringGoals={pastRecurringGoals}
-        isRainy={isRainy}
+        initialIsRainy={false}
         challengeProgress={challengeProgress}
       />
     </AppShell>

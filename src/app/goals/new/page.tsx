@@ -4,7 +4,7 @@ export const dynamic = "force-dynamic";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { createBrowserSupabaseClient } from "@/lib/supabase/client-lazy";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import AppShell from "@/components/AppShell";
 import ProModal from "@/components/ProModal";
@@ -85,13 +85,20 @@ export default function NewGoalPage() {
   const [coolingWeeks, setCoolingWeeks] = useState<number | null>(null);
 
   useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    let cancelled = false;
+
+    async function loadSubscription() {
+      const supabase = await createBrowserSupabaseClient();
+      const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-      supabase.from("users").select("is_subscribed").eq("id", user.id).single().then(({ data }) => {
+      const { data } = await supabase.from("users").select("is_subscribed").eq("id", user.id).single();
+      if (!cancelled) {
         setIsSubscribed(data?.is_subscribed ?? false);
-      });
-    });
+      }
+    }
+
+    loadSubscription();
+    return () => { cancelled = true; };
   }, []);
 
   const todayStr = new Date().toISOString().split("T")[0];
@@ -138,7 +145,7 @@ export default function NewGoalPage() {
     if (!validate()) return;
     if (type === "challenge") { setStep("confirm"); return; }
 
-    const supabase = createClient();
+    const supabase = await createBrowserSupabaseClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { router.push("/auth"); return; }
 
@@ -174,7 +181,7 @@ export default function NewGoalPage() {
   async function handleSubmit() {
     setLoading(true);
     setError(null);
-    const supabase = createClient();
+    const supabase = await createBrowserSupabaseClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { router.push("/auth"); return; }
 

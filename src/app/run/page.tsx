@@ -10,7 +10,7 @@ import { Pause, Play, Flag, Navigation } from "lucide-react";
 import GpsPermissionModal from "@/components/GpsPermissionModal";
 import { haversineDistance, speedKmh, calcCalories, formatDuration, type GpsPoint } from "@/lib/haversine";
 import AppShell from "@/components/AppShell";
-import { createClient } from "@/lib/supabase/client";
+import { createBrowserSupabaseClient } from "@/lib/supabase/client-lazy";
 
 const RunMap = dynamicImport(() => import("@/components/RunMap"), { ssr: false });
 
@@ -95,15 +95,18 @@ function RunPageInner() {
   }, []);
 
   useEffect(() => {
-    const supabase = createClient();
+    let cancelled = false;
     const d = new Date();
     const todayStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    async function loadRunContext() {
+      const supabase = await createBrowserSupabaseClient();
+      if (cancelled) return;
+      const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
       supabase.from("users").select("weight_kg").eq("id", user.id).single().then(({ data }) => {
-        if (data?.weight_kg) setWeightKg(data.weight_kg);
+        if (!cancelled && data?.weight_kg) setWeightKg(data.weight_kg);
       });
 
       if (urlInstanceId) {
@@ -113,6 +116,7 @@ function RunPageInner() {
           .eq("id", urlInstanceId)
           .single()
           .then(({ data }) => {
+            if (cancelled) return;
             if (data?.goals) setGoalInstance(data.goals as unknown as { distance_km: number | null; duration_minutes: number | null; penalty_amount: number });
             setIsLoadingGoal(false);
           });
@@ -123,6 +127,7 @@ function RunPageInner() {
           .eq("scheduled_date", todayStr)
           .eq("status", "pending")
           .then(({ data }) => {
+            if (cancelled) return;
             const goals = (data ?? []).map((d) => ({
               id: d.id as string,
               goals: d.goals as unknown as { distance_km: number | null; duration_minutes: number | null; penalty_amount: number } | null,
@@ -135,7 +140,10 @@ function RunPageInner() {
             setIsLoadingGoal(false);
           });
       }
-    });
+    }
+
+    loadRunContext();
+    return () => { cancelled = true; };
   }, [urlInstanceId]);
 
   const startGps = useCallback(() => {
@@ -253,7 +261,7 @@ function RunPageInner() {
     if (timerRef.current) clearInterval(timerRef.current);
     releaseWakeLock();
 
-    const supabase = createClient();
+    const supabase = await createBrowserSupabaseClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 

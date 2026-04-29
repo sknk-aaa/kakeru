@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ChevronRight, Plus, Repeat, Calendar, Trophy } from "lucide-react";
@@ -315,7 +315,7 @@ export default function GoalsClient({
   todayStr,
   pastOneoffInstances,
   pastRecurringGoals,
-  isRainy,
+  initialIsRainy,
   challengeProgress,
 }: {
   goals: Goal[];
@@ -323,10 +323,26 @@ export default function GoalsClient({
   todayStr: string;
   pastOneoffInstances: Instance[];
   pastRecurringGoals: PastRecurringGoal[];
-  isRainy: boolean;
+  initialIsRainy: boolean;
   challengeProgress: Record<string, { totalDistKm: number; totalSec: number }>;
 }) {
   const [skippedIds, setSkippedIds] = useState<Set<string>>(new Set());
+  const [isRainy, setIsRainy] = useState(initialIsRainy);
+  const hasPendingToday = instances.some((i) => i.scheduled_date === todayStr && i.status === "pending");
+
+  useEffect(() => {
+    if (!hasPendingToday) return;
+
+    const controller = new AbortController();
+    fetch("/api/goals/rain-status", { signal: controller.signal })
+      .then((res) => res.ok ? res.json() : null)
+      .then((data: { isRainy?: boolean } | null) => {
+        if (data) setIsRainy(Boolean(data.isRainy));
+      })
+      .catch(() => {});
+
+    return () => controller.abort();
+  }, [hasPendingToday]);
 
   const recurringGoals = goals.filter((g) => g.type === "recurring");
   const challengeGoals = goals.filter((g) => g.type === "challenge");

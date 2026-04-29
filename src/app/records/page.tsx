@@ -9,21 +9,16 @@ export default async function RecordsPage() {
   const user = await requireUser();
   const supabase = await createClient();
 
-  const nowJst = new Date(Date.now() + 9 * 60 * 60 * 1000);
+  const nowJst = new Date(new Date().getTime() + 9 * 60 * 60 * 1000);
   const startOfMonth = `${nowJst.getUTCFullYear()}-${String(nowJst.getUTCMonth() + 1).padStart(2, "0")}-01`;
 
-  const [{ data: userProfile }, { data: allRuns }, { data: allPenalties }] = await Promise.all([
+  const [{ data: userProfile }, { data: allRuns }] = await Promise.all([
     supabase.from("users").select("monthly_distance_goal_km").eq("id", user.id).single(),
     supabase
       .from("runs")
-      .select("*")
+      .select("id, distance_km, duration_seconds, pace_seconds_per_km, calories, started_at")
       .eq("user_id", user.id)
       .order("started_at", { ascending: false }),
-    supabase
-      .from("penalties")
-      .select("amount, status, charged_at")
-      .eq("user_id", user.id)
-      .eq("status", "charged"),
   ]);
 
   const monthGoal = userProfile?.monthly_distance_goal_km ?? 0;

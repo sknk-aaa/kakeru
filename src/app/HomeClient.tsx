@@ -21,8 +21,6 @@ interface GoalInstance {
 
 interface UserProfile {
   skip_count_this_month: number;
-  monthly_distance_goal_km: number | null;
-  stripe_payment_method_id: string | null;
 }
 
 interface Props {

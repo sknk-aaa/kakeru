@@ -5,12 +5,14 @@ import { createClient } from "@/lib/supabase/server";
 import AppShell from "@/components/AppShell";
 import HomeClient from "./HomeClient";
 
+type HomeClientProps = Parameters<typeof HomeClient>[0];
+
 export default async function HomePage() {
   const user = await requireUser();
   const supabase = await createClient();
 
   // JSTで日付を計算（サーバーはUTCで動くため+9時間補正）
-  const nowJst = new Date(Date.now() + 9 * 60 * 60 * 1000);
+  const nowJst = new Date(new Date().getTime() + 9 * 60 * 60 * 1000);
   const todayStr = nowJst.toISOString().split("T")[0];
   const startOfWeek = new Date(nowJst);
   startOfWeek.setUTCDate(nowJst.getUTCDate() - nowJst.getUTCDay());
@@ -21,10 +23,14 @@ export default async function HomePage() {
 
   const [{ data: userProfile }, { data: weekInstances }, { data: monthRuns }, { data: monthPenalties }, { data: todayRuns }, { data: allTimeInstances }] =
     await Promise.all([
-      supabase.from("users").select("*").eq("id", user.id).single(),
+      supabase
+        .from("users")
+        .select("skip_count_this_month")
+        .eq("id", user.id)
+        .single(),
       supabase
         .from("goal_instances")
-        .select("*, goals(*)")
+        .select("id, scheduled_date, status, goals(id, type, distance_km, duration_minutes, penalty_amount)")
         .eq("user_id", user.id)
         .gte("scheduled_date", startOfWeek.toISOString().split("T")[0])
         .lte("scheduled_date", endOfWeek.toISOString().split("T")[0])
@@ -36,7 +42,7 @@ export default async function HomePage() {
         .gte("started_at", `${startOfMonth}T00:00:00`),
       supabase
         .from("penalties")
-        .select("amount, status")
+        .select("amount")
         .eq("user_id", user.id)
         .gte("charged_at", `${startOfMonth}T00:00:00`)
         .eq("status", "charged"),
@@ -60,10 +66,10 @@ export default async function HomePage() {
     (acc, p) => acc + (p.amount ?? 0),
     0
   );
-  const monthGoal = userProfile?.monthly_distance_goal_km ?? 0;
-  const progressPct = monthGoal > 0 ? Math.min((totalDistanceMonth / monthGoal) * 100, 100) : 0;
-
-  const allInstances = weekInstances ?? [];
+  const allInstances = (weekInstances ?? []).map((instance) => ({
+    ...instance,
+    goals: Array.isArray(instance.goals) ? instance.goals[0] ?? null : instance.goals,
+  })) as unknown as HomeClientProps["weekInstances"];
   const achievedCount = (allTimeInstances ?? []).filter((i) => i.status === "achieved").length;
   const failedCount = (allTimeInstances ?? []).filter((i) => i.status === "failed").length;
   const achieveRate = achievedCount + failedCount > 0

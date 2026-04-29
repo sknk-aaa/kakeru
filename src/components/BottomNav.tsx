@@ -1,7 +1,8 @@
 "use client";
 
+import { useCallback, useEffect, useRef } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Home, Target, Timer, BarChart2, Settings } from "lucide-react";
 
 const leftTabs = [
@@ -13,13 +14,30 @@ const rightTabs = [
   { href: "/settings", label: "設定", icon: Settings },
 ];
 
-function TabItem({ href, label, icon: Icon, active }: { href: string; label: string; icon: React.ElementType; active: boolean }) {
+const PREFETCH_HREFS = ["/", "/goals", "/run", "/records", "/settings"];
+
+function TabItem({
+  href,
+  label,
+  icon: Icon,
+  active,
+  onPrefetch,
+}: {
+  href: string;
+  label: string;
+  icon: React.ElementType;
+  active: boolean;
+  onPrefetch: (href: string) => void;
+}) {
   return (
     <Link
       href={href}
       aria-current={active ? "page" : undefined}
       className="flex-1 flex flex-col items-center justify-center gap-1 pt-0.5 pb-4 min-h-14"
       style={{ color: active ? "#FF6B00" : "#888888" }}
+      onPointerEnter={() => onPrefetch(href)}
+      onFocus={() => onPrefetch(href)}
+      onTouchStart={() => onPrefetch(href)}
     >
       <Icon size={24} strokeWidth={active ? 2.5 : 2} aria-hidden="true" />
       <span style={{ fontSize: "10px", fontWeight: active ? 700 : 500, lineHeight: 1 }}>{label}</span>
@@ -29,7 +47,38 @@ function TabItem({ href, label, icon: Icon, active }: { href: string; label: str
 
 export default function BottomNav() {
   const pathname = usePathname();
+  const router = useRouter();
+  const prefetched = useRef(new Set<string>());
   const isRunActive = pathname === "/run" || pathname.startsWith("/run/");
+
+  const prefetchRoute = useCallback((href: string) => {
+    if (prefetched.current.has(href)) return;
+    prefetched.current.add(href);
+    router.prefetch(href);
+  }, [router]);
+
+  useEffect(() => {
+    const win = window as Window & typeof globalThis & {
+      requestIdleCallback?: (callback: () => void, options?: { timeout?: number }) => number;
+      cancelIdleCallback?: (handle: number) => void;
+    };
+    const prefetchAll = () => {
+      PREFETCH_HREFS.forEach(prefetchRoute);
+    };
+    const scheduleIdle = win.requestIdleCallback;
+    const usedIdleCallback = Boolean(scheduleIdle);
+    const idleId = scheduleIdle
+      ? scheduleIdle(prefetchAll, { timeout: 1800 })
+      : window.setTimeout(prefetchAll, 450);
+
+    return () => {
+      if (usedIdleCallback && win.cancelIdleCallback) {
+        win.cancelIdleCallback(idleId);
+      } else {
+        window.clearTimeout(idleId);
+      }
+    };
+  }, [prefetchRoute]);
 
   function isActive(href: string) {
     return pathname === href || (href !== "/" && pathname.startsWith(href));
@@ -41,11 +90,17 @@ export default function BottomNav() {
       style={{ paddingBottom: "env(safe-area-inset-bottom)", overflow: "visible", boxShadow: "0 -8px 28px rgba(0,0,0,0.05)" }}
     >
       <div className="flex items-end" style={{ minHeight: "58px" }}>
-        {leftTabs.map((tab) => <TabItem key={tab.href} {...tab} active={isActive(tab.href)} />)}
+        {leftTabs.map((tab) => <TabItem key={tab.href} {...tab} active={isActive(tab.href)} onPrefetch={prefetchRoute} />)}
 
         {/* 計測ボタン（中央・突出） */}
         <div className="flex-1 flex flex-col items-center" style={{ marginBottom: "10px" }}>
-          <Link href="/run" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+          <Link
+            href="/run"
+            style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}
+            onPointerEnter={() => prefetchRoute("/run")}
+            onFocus={() => prefetchRoute("/run")}
+            onTouchStart={() => prefetchRoute("/run")}
+          >
             <div
               style={{
                 width: "62px",
@@ -77,7 +132,7 @@ export default function BottomNav() {
           </Link>
         </div>
 
-        {rightTabs.map((tab) => <TabItem key={tab.href} {...tab} active={isActive(tab.href)} />)}
+        {rightTabs.map((tab) => <TabItem key={tab.href} {...tab} active={isActive(tab.href)} onPrefetch={prefetchRoute} />)}
       </div>
     </nav>
   );
