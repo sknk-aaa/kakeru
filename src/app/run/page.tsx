@@ -46,6 +46,7 @@ function RunPageInner() {
   const [isLoadingGoal, setIsLoadingGoal] = useState(true);
 
   const watchIdRef = useRef<number | null>(null);
+  const warmupWatchIdRef = useRef<number | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const isPausedRef = useRef(false);
   const wakeLockRef = useRef<{ release: () => Promise<void> } | null>(null);
@@ -110,9 +111,16 @@ function RunPageInner() {
   }, [urlInstanceId]);
 
   const startGps = useCallback(() => {
+    // ウォームアップを停止してから記録用 watch を開始
+    if (warmupWatchIdRef.current !== null) {
+      navigator.geolocation.clearWatch(warmupWatchIdRef.current);
+      warmupWatchIdRef.current = null;
+    }
+
     setPhase("running");
     setStartedAt(new Date());
     acquireWakeLock();
+    const startTime = Date.now();
 
     timerRef.current = setInterval(() => {
       if (!isPausedRef.current) {
@@ -123,7 +131,9 @@ function RunPageInner() {
     watchIdRef.current = navigator.geolocation.watchPosition(
       (pos) => {
         if (isPausedRef.current) return;
-        if (pos.coords.accuracy > 30) return;
+        // 走り始め30秒は精度50m以内、以降は30m以内を要求
+        const threshold = Date.now() - startTime < 30_000 ? 50 : 30;
+        if (pos.coords.accuracy > threshold) return;
         const newPoint: GpsPoint = {
           lat: pos.coords.latitude,
           lng: pos.coords.longitude,
@@ -146,7 +156,7 @@ function RunPageInner() {
         });
       },
       (err) => console.error("GPS error:", err),
-      { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
+      { enableHighAccuracy: true, maximumAge: 3000, timeout: 10000 }
     );
   }, [weightKg]);
 
@@ -156,6 +166,27 @@ function RunPageInner() {
     const timeOk = !goalInstance.duration_minutes || elapsedSec >= goalInstance.duration_minutes * 60;
     if (distOk && timeOk) setGoalReached(true);
   }, [distanceKm, elapsedSec, goalInstance, goalReached, phase]);
+
+  // GPS ウォームアップ：権限が既に granted の場合のみ、ハードウェアを事前に起動しておく
+  useEffect(() => {
+    if (!navigator.geolocation || !navigator.permissions) return;
+    navigator.permissions.query({ name: "geolocation" as PermissionName })
+      .then((result) => {
+        if (result.state !== "granted") return;
+        warmupWatchIdRef.current = navigator.geolocation.watchPosition(
+          () => {},
+          () => {},
+          { enableHighAccuracy: true, maximumAge: 0, timeout: 30000 }
+        );
+      })
+      .catch(() => {});
+    return () => {
+      if (warmupWatchIdRef.current !== null) {
+        navigator.geolocation.clearWatch(warmupWatchIdRef.current);
+        warmupWatchIdRef.current = null;
+      }
+    };
+  }, []);
 
   useEffect(() => {
     function handleVisibility() {
@@ -174,6 +205,10 @@ function RunPageInner() {
   }
 
   async function handleFinish() {
+    if (warmupWatchIdRef.current !== null) {
+      navigator.geolocation.clearWatch(warmupWatchIdRef.current);
+      warmupWatchIdRef.current = null;
+    }
     if (watchIdRef.current !== null) navigator.geolocation.clearWatch(watchIdRef.current);
     if (timerRef.current) clearInterval(timerRef.current);
     releaseWakeLock();
