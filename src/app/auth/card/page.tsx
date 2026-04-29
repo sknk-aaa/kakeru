@@ -4,7 +4,7 @@ export const dynamic = "force-dynamic";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { CreditCard, Lock } from "lucide-react";
+import { CreditCard, Lock, ArrowLeft } from "lucide-react";
 
 export default function CardPage() {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
@@ -48,6 +48,19 @@ export default function CardPage() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col px-6 pt-16 pb-8">
+      <button
+        onClick={() => router.back()}
+        style={{
+          position: "fixed", top: "12px", left: "12px",
+          width: "36px", height: "36px",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          background: "#F2F2F7", border: "none", borderRadius: "50%", cursor: "pointer",
+        }}
+        aria-label="戻る"
+      >
+        <ArrowLeft size={18} color="#555555" strokeWidth={2} />
+      </button>
+
       <div className="mb-8">
         <div className="w-14 h-14 rounded-full bg-[#FFF0E5] flex items-center justify-center mb-4">
           <CreditCard size={28} color="#FF6B00" />
