@@ -82,7 +82,7 @@ export default function HomeClient({
   const historyInstances = visibleInstances.filter((i) => i.status !== "pending");
 
   return (
-    <div style={{ background: "#F7F7FA", minHeight: "100vh" }}>
+    <div style={{ background: "linear-gradient(180deg, #FFFFFF 0%, #FFF9F5 46%, #F7F7FA 100%)", minHeight: "100vh" }}>
 
       {/* ── スキップ確認モーダル ── */}
       {skipTargetId && (
@@ -121,16 +121,16 @@ export default function HomeClient({
       {/* ── ヘッダー ── */}
       <div style={{
         position: "sticky", top: 0, zIndex: 10,
-        background: "rgba(255,255,255,0.94)", backdropFilter: "blur(14px)",
-        borderBottom: "1px solid #EBEBEB",
-        padding: "0 16px 0 56px", height: "54px",
+        background: "rgba(255,255,255,0.88)", backdropFilter: "blur(16px)",
+        borderBottom: "1px solid rgba(235,235,235,0.75)",
+        padding: "0 16px 0 56px", height: "60px",
         display: "flex", alignItems: "center", justifyContent: "space-between",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-          <Image src="/stickman-assets/stickman-01.png" alt="" width={24} height={24} style={{ objectFit: "contain" }} priority />
+          <Image src="/stickman-assets/stickman-01.png" alt="" width={28} height={28} style={{ objectFit: "contain" }} priority />
           <span style={{
             fontFamily: "var(--font-display)",
-            fontSize: "21px", fontWeight: 900, fontStyle: "italic",
+            fontSize: "24px", fontWeight: 900, fontStyle: "italic",
             color: "#FF6B00", letterSpacing: "0.06em",
           }}>KAKERU</span>
         </div>
@@ -138,18 +138,19 @@ export default function HomeClient({
           <button
             aria-label="目標を追加"
             style={{
-              width: "34px", height: "34px", borderRadius: "50%",
-              background: "#FF6B00", border: "none", cursor: "pointer",
+              width: "42px", height: "42px", borderRadius: "50%",
+              background: "white", border: "1px solid rgba(255,107,0,0.14)", cursor: "pointer",
               display: "flex", alignItems: "center", justifyContent: "center",
+              boxShadow: "0 8px 22px rgba(255,107,0,0.15)",
             }}
           >
-            <Plus size={16} color="white" strokeWidth={2.5} aria-hidden="true" />
+            <Plus size={22} color="#FF6B00" strokeWidth={2.6} aria-hidden="true" />
           </button>
         </Link>
       </div>
 
       {/* ── メインコンテンツ ── */}
-      <div style={{ padding: "16px 14px 100px" }}>
+      <div style={{ padding: "18px 14px 104px" }}>
 
         {/* ── 今日のミッション ── */}
         {todayGoalInstances.map((instance) => {
@@ -186,57 +187,62 @@ export default function HomeClient({
           return (
             <div key={instance.id} style={{
               background: "white",
-              borderRadius: "22px",
-              marginBottom: "14px",
+              borderRadius: "24px",
+              marginBottom: "18px",
               overflow: "hidden",
-              boxShadow: "0 4px 24px rgba(255,107,0,0.13)",
+              boxShadow: "0 12px 34px rgba(255,107,0,0.13)",
+              border: "1px solid rgba(255,107,0,0.08)",
             }}>
-              {/* オレンジトップバー */}
-              <div style={{ height: "4px", background: "linear-gradient(90deg, #FF6B00, #FF9500)" }} />
-
               {/* メトリクス部分 */}
-              <div style={{ padding: "18px 20px 16px", position: "relative", overflow: "hidden" }}>
-                {/* ゴースト棒人間 */}
-                <div style={{ position: "absolute", right: "-2px", bottom: "-10px", pointerEvents: "none" }}>
-                  <Image src="/stickman-assets/stickman-08.png" alt="" width={110} height={110} style={{ objectFit: "contain", opacity: 0.07 }} />
+              <div style={{
+                padding: "20px 20px 18px",
+                position: "relative",
+                overflow: "hidden",
+                background: "linear-gradient(135deg, #FFF5EE 0%, #FFFFFF 58%)",
+              }}>
+                <div style={{ position: "absolute", right: "-12px", top: "4px", pointerEvents: "none" }}>
+                  <Image src="/stickman-assets/stickman-06.png" alt="" width={138} height={138} style={{ objectFit: "contain", opacity: 0.95 }} />
                 </div>
+                <div style={{ position: "absolute", right: "24px", bottom: "16px", width: "62px", height: "62px", borderRadius: "50%", background: "#FFE8D9", opacity: 0.72, pointerEvents: "none" }} />
 
                 <p style={{ fontSize: "10px", color: "#FF6B00", fontWeight: 800, letterSpacing: "0.2em", marginBottom: "10px" }}>
                   TODAY&apos;S MISSION
                 </p>
 
-                {mainVal ? (
-                  <div style={{ display: "flex", alignItems: "baseline", gap: "5px", marginBottom: "6px" }}>
-                    <span className="metric-value" style={{ fontSize: "62px", lineHeight: 1, color: "#111111" }}>{mainVal}</span>
-                    <span style={{ fontSize: "24px", fontWeight: 700, color: "#FF6B00" }}>{mainUnit}</span>
-                  </div>
-                ) : (
-                  <p style={{ fontSize: "30px", fontWeight: 800, color: "#111111", marginBottom: "6px" }}>フリーラン</p>
-                )}
+                <div style={{ position: "relative", zIndex: 1, maxWidth: "62%" }}>
+                  {mainVal ? (
+                    <div style={{ display: "flex", alignItems: "baseline", gap: "5px", marginBottom: "6px" }}>
+                      <span className="metric-value" style={{ fontSize: "64px", lineHeight: 1, color: "#111111" }}>{mainVal}</span>
+                      <span style={{ fontSize: "25px", fontWeight: 800, color: "#FF6B00" }}>{mainUnit}</span>
+                    </div>
+                  ) : (
+                    <p style={{ fontSize: "28px", fontWeight: 800, color: "#111111", marginBottom: "8px", lineHeight: 1.2 }}>フリーラン</p>
+                  )}
 
-                <p style={{ fontSize: "13px", color: "#EF4444", fontWeight: 600 }}>
-                  サボると ¥{penalty_amount.toLocaleString()} 課金
-                </p>
+                  <p style={{ fontSize: "13px", color: "#E65A00", fontWeight: 700, lineHeight: 1.35 }}>
+                    サボると ¥{penalty_amount.toLocaleString()} 課金
+                  </p>
+                </div>
 
                 {/* 進捗バー */}
                 {mainVal && (
-                  <div style={{ marginTop: "16px" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", fontWeight: 600, marginBottom: "6px" }}>
-                      <span style={{ color: "#AAAAAA" }}>
+                  <div style={{ marginTop: "18px", position: "relative", zIndex: 1 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", fontWeight: 700, marginBottom: "8px" }}>
+                      <span style={{ color: "#555555" }}>
                         {distance_km
                           ? `${todayRunDistanceKm.toFixed(2)} km 完了`
                           : `${Math.floor(todayRunDurationSec / 60)} 分完了`}
                       </span>
-                      <span style={{ color: progressPct > 0 ? "#FF6B00" : "#CCCCCC" }}>{progressPct}%</span>
+                      <span style={{ color: progressPct > 0 ? "#FF6B00" : "#BBBBBB" }}>{progressPct}%</span>
                     </div>
-                    <div style={{ height: "7px", background: "#F2F2F2", borderRadius: "99px", overflow: "hidden" }}>
+                    <div style={{ height: "8px", background: "#EFEFEF", borderRadius: "99px", overflow: "hidden" }}>
                       <div style={{
                         height: "100%",
                         background: "linear-gradient(90deg, #FF6B00, #FF9500)",
                         borderRadius: "99px",
                         width: `${progressPct}%`,
                         transition: "width 0.5s ease",
-                        minWidth: progressPct > 0 ? "7px" : "0",
+                        minWidth: progressPct > 0 ? "8px" : "0",
                       }} />
                     </div>
                   </div>
@@ -269,47 +275,51 @@ export default function HomeClient({
 
         {/* ── 今月のサマリー ── */}
         <div style={{ marginBottom: "20px" }}>
-          <p style={{ fontSize: "11px", color: "#999999", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: "10px", paddingLeft: "2px" }}>
+          <h2 style={{ fontSize: "17px", color: "#111111", fontWeight: 800, letterSpacing: "0.01em", marginBottom: "12px", padding: "0 2px" }}>
             今月のサマリー
-          </p>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "9px" }}>
+          </h2>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "10px" }}>
 
             {/* 今月の距離 */}
-            <div style={{ background: "white", borderRadius: "16px", padding: "14px 6px 12px", textAlign: "center", boxShadow: "0 1px 6px rgba(0,0,0,0.05)" }}>
-              <div style={{ height: "42px", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "6px" }}>
-                <Image src="/stickman-assets/stickman-05.png" alt="" width={34} height={42} style={{ objectFit: "contain" }} />
+            <div style={{ background: "white", borderRadius: "18px", padding: "13px 8px 12px", boxShadow: "0 8px 24px rgba(0,0,0,0.06)", border: "1px solid rgba(0,0,0,0.03)", overflow: "hidden", minHeight: "108px" }}>
+              <div style={{ height: "34px", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "8px" }}>
+                <Image src="/その他素材/今月の距離-transparent.png" alt="" width={42} height={40} style={{ objectFit: "contain" }} />
               </div>
-              <p style={{ fontSize: "9px", color: "#BBBBBB", fontWeight: 600, marginBottom: "3px", letterSpacing: "0.04em" }}>今月の距離</p>
-              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: "1px" }}>
-                <span className="metric-value" style={{ fontSize: "26px", color: "#FF6B00" }}>{totalDistanceMonth}</span>
-                <span style={{ fontSize: "10px", color: "#BBBBBB", fontWeight: 600 }}>km</span>
+              <p style={{ fontSize: "10px", color: "#777777", fontWeight: 700, marginBottom: "2px", letterSpacing: "0.02em", textAlign: "center" }}>今月の距離</p>
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: "2px" }}>
+                <span className="metric-value" style={{ fontSize: "30px", color: "#111111" }}>{totalDistanceMonth}</span>
+                <span style={{ fontSize: "12px", color: "#333333", fontWeight: 800 }}>km</span>
               </div>
+              <div style={{ width: "44px", height: "4px", background: "#FF6B00", borderRadius: "99px", margin: "5px auto 0" }} />
             </div>
 
             {/* 達成率 */}
-            <div style={{ background: "white", borderRadius: "16px", padding: "14px 6px 12px", textAlign: "center", boxShadow: "0 1px 6px rgba(0,0,0,0.05)" }}>
-              <div style={{ height: "42px", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "6px" }}>
-                <Image src="/stickman-assets/stickman-02.png" alt="" width={34} height={42} style={{ objectFit: "contain" }} />
+            <div style={{ background: "white", borderRadius: "18px", padding: "13px 8px 12px", boxShadow: "0 8px 24px rgba(0,0,0,0.06)", border: "1px solid rgba(0,0,0,0.03)", overflow: "hidden", minHeight: "108px" }}>
+              <div style={{ height: "34px", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "8px" }}>
+                <Image src="/その他素材/今月の達成率-transparent.png" alt="" width={48} height={48} style={{ objectFit: "contain" }} />
               </div>
-              <p style={{ fontSize: "9px", color: "#BBBBBB", fontWeight: 600, marginBottom: "3px", letterSpacing: "0.04em" }}>達成率</p>
-              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: "1px" }}>
-                <span className="metric-value" style={{ fontSize: "26px", color: achieveRate >= 80 ? "#22C55E" : "#111111" }}>{achieveRate}</span>
-                <span style={{ fontSize: "10px", color: "#BBBBBB", fontWeight: 600 }}>%</span>
+              <p style={{ fontSize: "10px", color: "#777777", fontWeight: 700, marginBottom: "2px", letterSpacing: "0.02em", textAlign: "center" }}>達成率</p>
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: "2px" }}>
+                <span className="metric-value" style={{ fontSize: "32px", color: "#111111" }}>{achieveRate}</span>
+                <span style={{ fontSize: "13px", color: "#111111", fontWeight: 800 }}>%</span>
               </div>
             </div>
 
             {/* 今月の罰金 */}
-            <div style={{ background: "white", borderRadius: "16px", padding: "14px 6px 12px", textAlign: "center", boxShadow: "0 1px 6px rgba(0,0,0,0.05)" }}>
-              <div style={{ height: "42px", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "6px" }}>
-                <Image src="/stickman-assets/stickman-08.png" alt="" width={34} height={42} style={{ objectFit: "contain" }} />
+            <div style={{ background: "white", borderRadius: "18px", padding: "13px 8px 12px", boxShadow: "0 8px 24px rgba(0,0,0,0.06)", border: "1px solid rgba(0,0,0,0.03)", overflow: "hidden", minHeight: "108px" }}>
+              <div style={{ height: "34px", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "9px" }}>
+                <Image src="/その他素材/今月の課金額-transparent.png" alt="" width={44} height={44} style={{ objectFit: "contain" }} />
               </div>
-              <p style={{ fontSize: "9px", color: "#BBBBBB", fontWeight: 600, marginBottom: "3px", letterSpacing: "0.04em" }}>今月の罰金</p>
+              <p style={{ fontSize: "10px", color: "#777777", fontWeight: 700, marginBottom: "2px", letterSpacing: "0.02em", textAlign: "center" }}>今月の罰金</p>
               <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: "1px" }}>
-                <span style={{ fontSize: "11px", color: "#BBBBBB", fontWeight: 700 }}>¥</span>
-                <span className="metric-value" style={{ fontSize: "26px", color: totalPenaltyMonth > 0 ? "#EF4444" : "#111111" }}>
+                <span style={{ fontSize: "14px", color: totalPenaltyMonth > 0 ? "#EF4444" : "#111111", fontWeight: 900 }}>¥</span>
+                <span className="metric-value" style={{ fontSize: "30px", color: totalPenaltyMonth > 0 ? "#EF4444" : "#111111" }}>
                   {totalPenaltyMonth >= 1000 ? `${(totalPenaltyMonth / 1000).toFixed(1)}k` : totalPenaltyMonth}
                 </span>
               </div>
+              {totalPenaltyMonth === 0 && (
+                <p style={{ fontSize: "10px", color: "#FF6B00", textAlign: "center", fontWeight: 800, marginTop: "2px" }}>すばらしい！</p>
+              )}
             </div>
 
           </div>
@@ -327,13 +337,14 @@ export default function HomeClient({
 
         {visibleInstances.length === 0 ? (
           <div style={{
-            background: "white", borderRadius: "22px", padding: "44px 20px",
+            background: "white", borderRadius: "22px", padding: "42px 20px 38px",
             textAlign: "center", boxShadow: "0 1px 8px rgba(0,0,0,0.06)", marginBottom: "12px",
           }}>
-            <Image src="/stickman-assets/stickman-13.png" alt="" width={88} height={88} style={{ objectFit: "contain", marginBottom: "12px" }} />
-            <p style={{ color: "#888888", fontSize: "14px", marginBottom: "18px" }}>目標を設定してみましょう</p>
+            <Image src="/stickman-assets/stickman-13.png" alt="" width={108} height={78} style={{ objectFit: "contain", marginBottom: "14px" }} />
+            <p style={{ color: "#111111", fontSize: "16px", fontWeight: 800, marginBottom: "7px" }}>今週の予定をつくりましょう</p>
+            <p style={{ color: "#888888", fontSize: "13px", lineHeight: 1.6, marginBottom: "20px" }}>走る日を決めておくと、今日やることが迷わず見えます。</p>
             <Link href="/goals/new">
-              <button className="btn-primary" style={{ minHeight: "44px", padding: "0 28px", fontSize: "14px" }}>目標を追加する</button>
+              <button className="btn-primary" style={{ minHeight: "44px", padding: "0 28px", fontSize: "14px" }}>目標を立てる</button>
             </Link>
           </div>
         ) : (
@@ -342,9 +353,13 @@ export default function HomeClient({
             boxShadow: "0 1px 8px rgba(0,0,0,0.06)", marginBottom: "14px",
           }}>
             {pendingInstances.length === 0 && (
-              <div style={{ padding: "36px 20px", textAlign: "center" }}>
-                <Image src="/stickman-assets/stickman-02.png" alt="" width={72} height={72} style={{ objectFit: "contain", marginBottom: "10px" }} />
-                <p style={{ fontSize: "14px", color: "#888888" }}>今週の予定はすべて完了しました</p>
+              <div style={{ padding: "42px 20px 38px", textAlign: "center" }}>
+                <Image src="/stickman-assets/stickman-13.png" alt="" width={108} height={78} style={{ objectFit: "contain", marginBottom: "14px" }} />
+                <p style={{ color: "#111111", fontSize: "16px", fontWeight: 800, marginBottom: "7px" }}>今週の予定はすべて完了しました</p>
+                <p style={{ color: "#888888", fontSize: "13px", lineHeight: 1.6, marginBottom: "20px" }}>この調子で、次の目標も準備しておきましょう。</p>
+                <Link href="/goals/new">
+                  <button className="btn-primary" style={{ minHeight: "44px", padding: "0 28px", fontSize: "14px" }}>目標を立てる</button>
+                </Link>
               </div>
             )}
 
@@ -529,33 +544,6 @@ export default function HomeClient({
             )}
           </div>
         )}
-
-        {/* ── 目標追加カード ── */}
-        <Link href="/goals/new">
-          <div style={{
-            background: "white", borderRadius: "18px", padding: "16px 18px",
-            display: "flex", alignItems: "center", justifyContent: "space-between",
-            boxShadow: "0 1px 6px rgba(0,0,0,0.05)",
-            overflow: "hidden", position: "relative",
-          }}>
-            <div style={{ position: "absolute", right: "10px", bottom: "-6px", pointerEvents: "none" }}>
-              <Image src="/stickman-assets/stickman-13.png" alt="" width={56} height={56} style={{ objectFit: "contain", opacity: 0.18 }} />
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-              <div style={{
-                width: "36px", height: "36px", background: "#FFF0E6", borderRadius: "50%",
-                display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-              }}>
-                <Plus size={16} color="#FF6B00" strokeWidth={2.5} aria-hidden="true" />
-              </div>
-              <div>
-                <p style={{ fontSize: "14px", fontWeight: 700, color: "#111111" }}>新しい目標を追加</p>
-                <p style={{ fontSize: "11px", color: "#BBBBBB", marginTop: "1px" }}>継続が力になる</p>
-              </div>
-            </div>
-            <ChevronRight size={16} color="#DDDDDD" aria-hidden="true" />
-          </div>
-        </Link>
 
       </div>
     </div>

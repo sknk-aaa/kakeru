@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { ChevronRight, Plus, Repeat, Calendar, Trophy } from "lucide-react";
 
 interface Goal {
@@ -30,6 +31,50 @@ interface PastRecurringGoal extends Goal {
 
 const DAY_NAMES = ["日", "月", "火", "水", "木", "金", "土"];
 const WEEK_ORDER = [1, 2, 3, 4, 5, 6, 0];
+const ORANGE = "#FF6B00";
+
+const sectionTitleStyle = {
+  fontSize: "17px",
+  color: "#111111",
+  fontWeight: 800,
+  marginBottom: "12px",
+  paddingLeft: "2px",
+  lineHeight: 1.35,
+};
+
+const sectionCardStyle = {
+  background: "white",
+  borderRadius: "22px",
+  overflow: "hidden",
+  boxShadow: "0 10px 28px rgba(17,17,17,0.055)",
+  border: "1px solid rgba(17,17,17,0.04)",
+};
+
+const dividerStyle = {
+  height: "1px",
+  background: "#F1F1F3",
+  marginLeft: "78px",
+};
+
+function TodayBadge() {
+  return (
+    <span style={{
+      display: "inline-flex",
+      alignItems: "center",
+      height: "21px",
+      padding: "0 9px",
+      borderRadius: "999px",
+      background: ORANGE,
+      color: "white",
+      fontSize: "11px",
+      fontWeight: 800,
+      lineHeight: 1,
+      flexShrink: 0,
+    }}>
+      TODAY
+    </span>
+  );
+}
 
 function formatGoalSummary(goal: Goal) {
   if (goal.type === "challenge") {
@@ -204,35 +249,44 @@ function ChallengeCard({
 
   return (
     <Link href={`/goals/${goal.id}`}>
-      <div style={{ padding: "16px 16px", cursor: "pointer" }}>
+      <div style={{ padding: "18px 16px", cursor: "pointer" }}>
         <div style={{ display: "flex", alignItems: "flex-start", gap: "14px" }}>
-          <div style={{ width: "44px", height: "44px", borderRadius: "12px", background: "#FFF9E5", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            <Trophy size={20} color="#F59E0B" />
+          <div style={{
+            width: "50px",
+            height: "50px",
+            borderRadius: "16px",
+            background: "linear-gradient(135deg, #FFF7D6 0%, #FFE8A3 100%)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
+          }}>
+            <Trophy size={22} color="#F59E0B" />
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-              <div>
-                <p style={{ fontSize: "16px", fontWeight: 700, color: "#111111" }}>{formatGoalSummary(goal)}</p>
+              <div style={{ minWidth: 0 }}>
+                <p style={{ fontSize: "17px", fontWeight: 800, color: "#111111", lineHeight: 1.3 }}>{formatGoalSummary(goal)}</p>
                 {daysLeft !== null && (
-                  <p style={{ fontSize: "12px", color: daysLeft <= 7 ? "#EF4444" : "#888888", marginTop: "2px" }}>
+                  <p style={{ fontSize: "12px", color: daysLeft <= 7 ? "#EF4444" : "#888888", marginTop: "4px", fontWeight: 600 }}>
                     残り{daysLeft}日 {formatSchedule(goal)}
                   </p>
                 )}
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "6px", flexShrink: 0 }}>
-                <p style={{ fontSize: "13px", color: "#888888", fontWeight: 600 }}>¥{goal.penalty_amount.toLocaleString()}</p>
+                <p style={{ fontSize: "13px", color: "#777777", fontWeight: 700 }}>¥{goal.penalty_amount.toLocaleString()}</p>
                 <ChevronRight size={18} color="#CCCCCC" />
               </div>
             </div>
 
             {distPct !== null && (
-              <div style={{ marginTop: "10px" }}>
+              <div style={{ marginTop: "12px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#888888", marginBottom: "4px" }}>
-                  <span style={{ color: "#FF6B00", fontWeight: 600 }}>{progress.totalDistKm}km</span>
+                  <span style={{ color: ORANGE, fontWeight: 800 }}>{progress.totalDistKm}km</span>
                   <span>目標 {goal.distance_km}km（{Math.round(distPct)}%）</span>
                 </div>
-                <div style={{ height: "5px", background: "#F0F0F0", borderRadius: "3px", overflow: "hidden" }}>
-                  <div style={{ height: "100%", background: "#FF6B00", borderRadius: "3px", width: `${distPct}%` }} />
+                <div style={{ height: "6px", background: "#F1F1F3", borderRadius: "999px", overflow: "hidden" }}>
+                  <div style={{ height: "100%", background: ORANGE, borderRadius: "999px", width: `${distPct}%` }} />
                 </div>
               </div>
             )}
@@ -240,11 +294,11 @@ function ChallengeCard({
             {timePct !== null && (
               <div style={{ marginTop: "8px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#888888", marginBottom: "4px" }}>
-                  <span style={{ color: "#FF6B00", fontWeight: 600 }}>{Math.round(progress.totalSec / 60)}分</span>
+                  <span style={{ color: ORANGE, fontWeight: 800 }}>{Math.round(progress.totalSec / 60)}分</span>
                   <span>目標 {goal.duration_minutes}分（{Math.round(timePct)}%）</span>
                 </div>
-                <div style={{ height: "5px", background: "#F0F0F0", borderRadius: "3px", overflow: "hidden" }}>
-                  <div style={{ height: "100%", background: "#FF6B00", borderRadius: "3px", width: `${timePct}%` }} />
+                <div style={{ height: "6px", background: "#F1F1F3", borderRadius: "999px", overflow: "hidden" }}>
+                  <div style={{ height: "100%", background: ORANGE, borderRadius: "999px", width: `${timePct}%` }} />
                 </div>
               </div>
             )}
@@ -290,46 +344,74 @@ export default function GoalsClient({
   }
 
   return (
-    <div>
+    <div style={{
+      minHeight: "100vh",
+      background: "linear-gradient(180deg, #FFFFFF 0%, #FFF9F5 36%, #F7F7FA 100%)",
+    }}>
       <div style={{
         position: "sticky", top: 0, zIndex: 10,
-        background: "rgba(255,255,255,0.92)", backdropFilter: "blur(12px)",
-        borderBottom: "1px solid #E5E5E5",
-        padding: "0 16px", height: "54px",
+        background: "rgba(255,255,255,0.88)", backdropFilter: "blur(14px)",
+        borderBottom: "1px solid rgba(229,229,229,0.72)",
+        padding: "0 18px", height: "60px",
         display: "flex", alignItems: "center",
       }}>
         <div style={{ flex: 1 }} />
-        <h1 style={{ fontSize: "17px", fontWeight: 700, color: "#111111" }}>目標</h1>
+        <h1 style={{ fontSize: "20px", fontWeight: 900, color: "#111111", letterSpacing: "0" }}>目標</h1>
         <div style={{ flex: 1, display: "flex", justifyContent: "flex-end" }}>
           <Link href="/goals/new">
-            <button style={{ width: "34px", height: "34px", borderRadius: "50%", background: "#FF6B00", display: "flex", alignItems: "center", justifyContent: "center", border: "none", cursor: "pointer" }}>
-              <Plus size={18} color="white" strokeWidth={2.5} />
+            <button style={{
+              width: "42px",
+              height: "42px",
+              borderRadius: "50%",
+              background: "white",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              border: "1px solid rgba(255,107,0,0.08)",
+              boxShadow: "0 8px 22px rgba(255,107,0,0.16), 0 4px 16px rgba(17,17,17,0.08)",
+              cursor: "pointer",
+            }}>
+              <Plus size={24} color={ORANGE} strokeWidth={2.6} />
             </button>
           </Link>
         </div>
       </div>
 
-      <div style={{ padding: "0 16px 24px" }}>
+      <div style={{ padding: "16px 16px 24px" }}>
 
         {goals.length === 0 && (
-          <div style={{ background: "white", borderRadius: "16px", padding: "48px 20px", textAlign: "center", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
-            <p style={{ color: "#AAAAAA", fontSize: "15px", marginBottom: "16px" }}>設定中の目標がありません</p>
+          <div style={{
+            background: "white",
+            borderRadius: "24px",
+            padding: "36px 22px 30px",
+            textAlign: "center",
+            boxShadow: "0 12px 32px rgba(17,17,17,0.06)",
+            border: "1px solid rgba(255,107,0,0.10)",
+            overflow: "hidden",
+            position: "relative",
+          }}>
+            <div style={{ position: "absolute", right: "-28px", bottom: "-24px", pointerEvents: "none" }}>
+              <Image src="/その他素材/山-transparent.png" alt="" width={156} height={108} style={{ objectFit: "contain", opacity: 0.16 }} />
+            </div>
+            <Image src="/stickman-assets/stickman-13.png" alt="" width={122} height={88} style={{ display: "block", objectFit: "contain", margin: "0 auto 14px", position: "relative", zIndex: 1 }} />
+            <p style={{ color: "#111111", fontSize: "19px", fontWeight: 900, marginBottom: "8px", position: "relative", zIndex: 1 }}>目標を設定してみましょう</p>
+            <p style={{ color: "#888888", fontSize: "13px", lineHeight: 1.7, marginBottom: "20px", position: "relative", zIndex: 1 }}>
+              走る日と内容を先に決めておくと、今日やることが迷わず見えます。
+            </p>
             <Link href="/goals/new">
-              <button className="btn-primary" style={{ minHeight: "48px", padding: "0 28px" }}>目標を追加する</button>
+              <button className="btn-primary" style={{ minHeight: "48px", padding: "0 28px", position: "relative", zIndex: 1 }}>目標を追加する</button>
             </Link>
           </div>
         )}
 
         {/* チャレンジ */}
         {challengeGoals.length > 0 && (
-          <div style={{ marginBottom: "20px" }}>
-            <p style={{ fontSize: "12px", color: "#888888", fontWeight: 600, marginBottom: "10px", paddingLeft: "4px", textTransform: "uppercase", letterSpacing: "0.04em" }}>
-              進行中のチャレンジ
-            </p>
-            <div style={{ background: "white", borderRadius: "16px", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
+          <div style={{ marginBottom: "24px" }}>
+            <p style={sectionTitleStyle}>進行中のチャレンジ</p>
+            <div style={sectionCardStyle}>
               {challengeGoals.map((goal, idx) => (
                 <div key={goal.id}>
-                  {idx > 0 && <div style={{ height: "1px", background: "#F2F2F2", marginLeft: "74px" }} />}
+                  {idx > 0 && <div style={dividerStyle} />}
                   <ChallengeCard
                     goal={goal}
                     progress={challengeProgress[goal.id] ?? { totalDistKm: 0, totalSec: 0 }}
@@ -343,24 +425,31 @@ export default function GoalsClient({
 
         {/* 毎週の目標 */}
         {recurringGoals.length > 0 && (
-          <div style={{ marginBottom: "20px" }}>
-            <p style={{ fontSize: "12px", color: "#888888", fontWeight: 600, marginBottom: "10px", paddingLeft: "4px", textTransform: "uppercase", letterSpacing: "0.04em" }}>
-              毎週の目標
-            </p>
-            <div style={{ background: "white", borderRadius: "16px", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
+          <div style={{ marginBottom: "24px" }}>
+            <p style={sectionTitleStyle}>毎週の目標</p>
+            <div style={sectionCardStyle}>
               {recurringGoals.map((goal, idx) => {
                 const todayInstance = getTodayPendingInstance(goal.id);
                 return (
                   <div key={goal.id}>
-                    {idx > 0 && <div style={{ height: "1px", background: "#F2F2F2", marginLeft: "68px" }} />}
+                    {idx > 0 && <div style={dividerStyle} />}
                     <Link href={`/goals/${goal.id}`}>
-                      <div style={{ display: "flex", alignItems: "center", padding: "16px 16px", gap: "14px" }}>
-                        <div style={{ width: "44px", height: "44px", borderRadius: "12px", background: "#FFF0E5", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                          <Repeat size={20} color="#FF6B00" />
+                      <div style={{
+                        display: "flex",
+                        alignItems: "center",
+                        padding: "17px 16px",
+                        gap: "14px",
+                        borderLeft: todayInstance ? `4px solid ${ORANGE}` : "4px solid transparent",
+                      }}>
+                        <div style={{ width: "50px", height: "50px", borderRadius: "16px", background: "#FFF0E5", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                          <Repeat size={22} color={ORANGE} />
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <p style={{ fontSize: "16px", fontWeight: 700, color: "#111111" }}>{formatGoalSummary(goal)}</p>
-                          <p style={{ fontSize: "12px", color: "#888888", marginTop: "2px" }}>{formatSchedule(goal)}</p>
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px", minWidth: 0 }}>
+                            <p style={{ fontSize: "17px", fontWeight: 800, color: "#111111", lineHeight: 1.3, minWidth: 0 }}>{formatGoalSummary(goal)}</p>
+                            {todayInstance && <TodayBadge />}
+                          </div>
+                          <p style={{ fontSize: "12px", color: "#777777", marginTop: "4px", fontWeight: 600 }}>{formatSchedule(goal)}</p>
                           <WeekDots goal={goal} instances={instances} todayStr={todayStr} />
                           {isRainy && todayInstance && (
                             <RainSkipButton
@@ -370,7 +459,7 @@ export default function GoalsClient({
                           )}
                         </div>
                         <div style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: "8px" }}>
-                          <p style={{ fontSize: "13px", color: "#888888", fontWeight: 600 }}>¥{goal.penalty_amount.toLocaleString()}</p>
+                          <p style={{ fontSize: "13px", color: "#777777", fontWeight: 700 }}>¥{goal.penalty_amount.toLocaleString()}</p>
                           <ChevronRight size={18} color="#CCCCCC" />
                         </div>
                       </div>
@@ -384,24 +473,31 @@ export default function GoalsClient({
 
         {/* 1回のみの目標 */}
         {activeOneoffGoals.length > 0 && (
-          <div style={{ marginBottom: "20px" }}>
-            <p style={{ fontSize: "12px", color: "#888888", fontWeight: 600, marginBottom: "10px", paddingLeft: "4px", textTransform: "uppercase", letterSpacing: "0.04em" }}>
-              1回のみの目標
-            </p>
-            <div style={{ background: "white", borderRadius: "16px", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
+          <div style={{ marginBottom: "24px" }}>
+            <p style={sectionTitleStyle}>1回のみの目標</p>
+            <div style={sectionCardStyle}>
               {activeOneoffGoals.map((goal, idx) => {
                 const todayInstance = getTodayPendingInstance(goal.id);
                 return (
                   <div key={goal.id}>
-                    {idx > 0 && <div style={{ height: "1px", background: "#F2F2F2", marginLeft: "68px" }} />}
+                    {idx > 0 && <div style={dividerStyle} />}
                     <Link href={`/goals/${goal.id}`}>
-                      <div style={{ display: "flex", alignItems: "center", padding: "16px 16px", gap: "14px" }}>
-                        <div style={{ width: "44px", height: "44px", borderRadius: "12px", background: "#F0F5FF", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                          <Calendar size={20} color="#4285F4" />
+                      <div style={{
+                        display: "flex",
+                        alignItems: "center",
+                        padding: "17px 16px",
+                        gap: "14px",
+                        borderLeft: todayInstance ? `4px solid ${ORANGE}` : "4px solid transparent",
+                      }}>
+                        <div style={{ width: "50px", height: "50px", borderRadius: "16px", background: "#EEF5FF", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                          <Calendar size={22} color="#4285F4" />
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <p style={{ fontSize: "16px", fontWeight: 700, color: "#111111" }}>{formatGoalSummary(goal)}</p>
-                          <p style={{ fontSize: "12px", color: "#888888", marginTop: "2px" }}>{formatSchedule(goal)}</p>
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px", minWidth: 0 }}>
+                            <p style={{ fontSize: "17px", fontWeight: 800, color: "#111111", lineHeight: 1.3, minWidth: 0 }}>{formatGoalSummary(goal)}</p>
+                            {todayInstance && <TodayBadge />}
+                          </div>
+                          <p style={{ fontSize: "12px", color: "#777777", marginTop: "4px", fontWeight: 600 }}>{formatSchedule(goal)}</p>
                           <OneoffDot goal={goal} instances={instances} todayStr={todayStr} />
                           {isRainy && todayInstance && (
                             <RainSkipButton
@@ -411,7 +507,7 @@ export default function GoalsClient({
                           )}
                         </div>
                         <div style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: "8px" }}>
-                          <p style={{ fontSize: "13px", color: "#888888", fontWeight: 600 }}>¥{goal.penalty_amount.toLocaleString()}</p>
+                          <p style={{ fontSize: "13px", color: "#777777", fontWeight: 700 }}>¥{goal.penalty_amount.toLocaleString()}</p>
                           <ChevronRight size={18} color="#CCCCCC" />
                         </div>
                       </div>
@@ -426,10 +522,12 @@ export default function GoalsClient({
         {/* 過去の目標 */}
         {(pastOneoffGoals.length > 0 || pastRecurringGoals.length > 0) && (
           <div style={{ marginBottom: "20px" }}>
-            <p style={{ fontSize: "12px", color: "#888888", fontWeight: 600, marginBottom: "10px", paddingLeft: "4px", textTransform: "uppercase", letterSpacing: "0.04em" }}>
-              過去の目標
-            </p>
-            <div style={{ background: "white", borderRadius: "16px", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
+            <p style={sectionTitleStyle}>過去の目標</p>
+            <div style={{
+              ...sectionCardStyle,
+              boxShadow: "0 8px 22px rgba(17,17,17,0.04)",
+              background: "rgba(255,255,255,0.92)",
+            }}>
               {[...pastOneoffGoals, ...pastRecurringGoals].map((goal, idx) => {
                 const isPastRecurring = "achievedCount" in goal;
                 const instance = pastOneoffInstances.find((i) => i.goal_id === goal.id);
@@ -437,21 +535,34 @@ export default function GoalsClient({
                 const statusColor = instance?.status === "achieved" ? "#22C55E" : "#EF4444";
                 return (
                   <div key={goal.id}>
-                    {idx > 0 && <div style={{ height: "1px", background: "#F2F2F2", marginLeft: "68px" }} />}
+                    {idx > 0 && <div style={dividerStyle} />}
                     <div style={{ display: "flex", alignItems: "center", padding: "16px 16px", gap: "14px" }}>
-                      <div style={{ width: "44px", height: "44px", borderRadius: "12px", background: "#F5F5F5", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                        {isPastRecurring ? <Repeat size={20} color="#AAAAAA" /> : <Calendar size={20} color="#AAAAAA" />}
+                      <div style={{ width: "50px", height: "50px", borderRadius: "16px", background: "#F3F3F3", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                        {isPastRecurring ? <Repeat size={22} color="#A6A6A6" /> : <Calendar size={22} color="#A6A6A6" />}
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ fontSize: "16px", fontWeight: 700, color: "#888888" }}>{formatGoalSummary(goal)}</p>
-                        <p style={{ fontSize: "12px", color: "#AAAAAA", marginTop: "2px" }}>{formatSchedule(goal)}</p>
+                        <p style={{ fontSize: "17px", fontWeight: 800, color: "#888888", lineHeight: 1.3 }}>{formatGoalSummary(goal)}</p>
+                        <p style={{ fontSize: "12px", color: "#AAAAAA", marginTop: "4px", fontWeight: 600 }}>{formatSchedule(goal)}</p>
                       </div>
                       <div style={{ textAlign: "right", flexShrink: 0 }}>
-                        <p style={{ fontSize: "13px", color: "#AAAAAA", fontWeight: 600 }}>¥{goal.penalty_amount.toLocaleString()}</p>
+                        <p style={{ fontSize: "13px", color: "#999999", fontWeight: 700 }}>¥{goal.penalty_amount.toLocaleString()}</p>
                         {isPastRecurring ? (
-                          <p style={{ fontSize: "11px", color: "#AAAAAA", marginTop: "2px" }}>{(goal as PastRecurringGoal).achievedCount}回達成</p>
+                          <p style={{ fontSize: "11px", color: "#999999", marginTop: "4px", fontWeight: 700 }}>{(goal as PastRecurringGoal).achievedCount}回達成</p>
                         ) : statusLabel ? (
-                          <p style={{ fontSize: "11px", color: statusColor, marginTop: "2px" }}>{statusLabel}</p>
+                          <p style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            minWidth: "38px",
+                            height: "22px",
+                            padding: "0 8px",
+                            borderRadius: "999px",
+                            background: instance?.status === "achieved" ? "rgba(34,197,94,0.10)" : "rgba(239,68,68,0.10)",
+                            fontSize: "11px",
+                            color: statusColor,
+                            marginTop: "5px",
+                            fontWeight: 800,
+                          }}>{statusLabel}</p>
                         ) : null}
                       </div>
                     </div>
