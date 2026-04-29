@@ -341,8 +341,8 @@ export default function HomeClient({
             textAlign: "center", boxShadow: "0 1px 8px rgba(0,0,0,0.06)", marginBottom: "12px",
           }}>
             <Image src="/stickman-assets/stickman-13.png" alt="" width={108} height={78} style={{ objectFit: "contain", marginBottom: "14px" }} />
-            <p style={{ color: "#111111", fontSize: "16px", fontWeight: 800, marginBottom: "7px" }}>今週の予定をつくりましょう</p>
-            <p style={{ color: "#888888", fontSize: "13px", lineHeight: 1.6, marginBottom: "20px" }}>走る日を決めておくと、今日やることが迷わず見えます。</p>
+            <p style={{ color: "#111111", fontSize: "16px", fontWeight: 800, marginBottom: "7px" }}>今週の目標がまだありません</p>
+            <p style={{ color: "#888888", fontSize: "13px", lineHeight: 1.6, marginBottom: "20px" }}>目標を立てると、達成できなかった分だけ罰金が発生します。自分と、約束しよう。</p>
             <Link href="/goals/new">
               <button className="btn-primary" style={{ minHeight: "44px", padding: "0 28px", fontSize: "14px" }}>目標を立てる</button>
             </Link>
@@ -358,8 +358,8 @@ export default function HomeClient({
                 display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
               }}>
                 <Image src="/stickman-assets/stickman-13.png" alt="" width={108} height={78} style={{ objectFit: "contain", marginBottom: "14px" }} />
-                <p style={{ color: "#111111", fontSize: "16px", fontWeight: 800, marginBottom: "7px" }}>今週の予定はすべて完了しました</p>
-                <p style={{ color: "#888888", fontSize: "13px", lineHeight: 1.6, marginBottom: "24px", textAlign: "center" }}>この調子で、次の目標も準備しておきましょう。</p>
+                <p style={{ color: "#111111", fontSize: "16px", fontWeight: 800, marginBottom: "7px" }}>今週の目標をすべてクリア！</p>
+                <p style={{ color: "#888888", fontSize: "13px", lineHeight: 1.6, marginBottom: "24px", textAlign: "center" }}>来週も怠けないために、次の目標を今のうちに入れておきましょう。</p>
                 <Link href="/goals/new">
                   <button className="btn-primary" style={{ minHeight: "44px", padding: "0 28px", fontSize: "14px" }}>目標を立てる</button>
                 </Link>
