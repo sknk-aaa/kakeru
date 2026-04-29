@@ -353,10 +353,13 @@ export default function HomeClient({
             boxShadow: "0 1px 8px rgba(0,0,0,0.06)", marginBottom: "14px",
           }}>
             {pendingInstances.length === 0 && (
-              <div style={{ padding: "42px 20px 38px", textAlign: "center" }}>
+              <div style={{
+                minHeight: "45vh", padding: "20px",
+                display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+              }}>
                 <Image src="/stickman-assets/stickman-13.png" alt="" width={108} height={78} style={{ objectFit: "contain", marginBottom: "14px" }} />
                 <p style={{ color: "#111111", fontSize: "16px", fontWeight: 800, marginBottom: "7px" }}>今週の予定はすべて完了しました</p>
-                <p style={{ color: "#888888", fontSize: "13px", lineHeight: 1.6, marginBottom: "20px" }}>この調子で、次の目標も準備しておきましょう。</p>
+                <p style={{ color: "#888888", fontSize: "13px", lineHeight: 1.6, marginBottom: "24px", textAlign: "center" }}>この調子で、次の目標も準備しておきましょう。</p>
                 <Link href="/goals/new">
                   <button className="btn-primary" style={{ minHeight: "44px", padding: "0 28px", fontSize: "14px" }}>目標を立てる</button>
                 </Link>
