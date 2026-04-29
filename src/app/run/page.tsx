@@ -14,6 +14,19 @@ import { createClient } from "@/lib/supabase/client";
 
 const RunMap = dynamicImport(() => import("@/components/RunMap"), { ssr: false });
 
+type GpsStatus = "idle" | "locating" | "improving" | "ready" | "timeout" | "denied" | "error";
+
+const RECORDING_ACCURACY_THRESHOLD_M = 30;
+
+function toGpsPoint(pos: GeolocationPosition): GpsPoint {
+  return {
+    lat: pos.coords.latitude,
+    lng: pos.coords.longitude,
+    timestamp: pos.timestamp || Date.now(),
+    accuracy: pos.coords.accuracy,
+  };
+}
+
 export default function RunPage() {
   return (
     <Suspense fallback={<div style={{ height: "100dvh", display: "flex", alignItems: "center", justifyContent: "center" }}><p>Loading...</p></div>}>
@@ -39,11 +52,13 @@ function RunPageInner() {
   } | null>(null);
   const [effectiveInstanceId, setEffectiveInstanceId] = useState<string | null>(urlInstanceId);
   const [weightKg, setWeightKg] = useState(60);
-  const [goalReached, setGoalReached] = useState(false);
   const [startedAt, setStartedAt] = useState<Date | null>(null);
   const [todayGoals, setTodayGoals] = useState<{ id: string; goals: { distance_km: number | null; duration_minutes: number | null; penalty_amount: number } | null }[]>([]);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [isLoadingGoal, setIsLoadingGoal] = useState(true);
+  const [currentPosition, setCurrentPosition] = useState<GpsPoint | null>(null);
+  const [gpsStatus, setGpsStatus] = useState<GpsStatus>("idle");
+  const [lastAccuracy, setLastAccuracy] = useState<number | null>(null);
 
   const watchIdRef = useRef<number | null>(null);
   const warmupWatchIdRef = useRef<number | null>(null);
@@ -65,6 +80,19 @@ function RunPageInner() {
     wakeLockRef.current?.release();
     wakeLockRef.current = null;
   }
+
+  const handleGpsError = useCallback((err: GeolocationPositionError) => {
+    console.error("GPS error:", err);
+    if (err.code === err.PERMISSION_DENIED) {
+      setGpsStatus("denied");
+      return;
+    }
+    if (err.code === err.TIMEOUT) {
+      setGpsStatus((status) => status === "ready" ? status : "timeout");
+      return;
+    }
+    setGpsStatus((status) => status === "ready" ? status : "error");
+  }, []);
 
   useEffect(() => {
     const supabase = createClient();
@@ -111,6 +139,12 @@ function RunPageInner() {
   }, [urlInstanceId]);
 
   const startGps = useCallback(() => {
+    if (!navigator.geolocation) {
+      setPhase("running");
+      setGpsStatus("error");
+      return;
+    }
+
     // ウォームアップを停止してから記録用 watch を開始
     if (warmupWatchIdRef.current !== null) {
       navigator.geolocation.clearWatch(warmupWatchIdRef.current);
@@ -118,9 +152,11 @@ function RunPageInner() {
     }
 
     setPhase("running");
+    setGpsStatus("locating");
+    setLastAccuracy(null);
+    setSaveError(null);
     setStartedAt(new Date());
     acquireWakeLock();
-    const startTime = Date.now();
 
     timerRef.current = setInterval(() => {
       if (!isPausedRef.current) {
@@ -128,44 +164,49 @@ function RunPageInner() {
       }
     }, 1000);
 
+    const handlePosition = (pos: GeolocationPosition, source: "initial" | "watch") => {
+      if (isPausedRef.current) return;
+      const newPoint = toGpsPoint(pos);
+      const accuracy = Number.isFinite(pos.coords.accuracy) ? pos.coords.accuracy : null;
+      setCurrentPosition(newPoint);
+      setLastAccuracy(accuracy === null ? null : Math.round(accuracy));
+
+      if (accuracy === null || accuracy > RECORDING_ACCURACY_THRESHOLD_M) {
+        setGpsStatus((status) => source === "initial" && status === "ready" ? status : "improving");
+        return;
+      }
+
+      setGpsStatus("ready");
+      if (source === "initial") return;
+
+      setGpsPoints((prev) => {
+        const last = prev[prev.length - 1];
+        if (last) {
+          const speed = speedKmh(last, newPoint);
+          if (speed > 30) return prev;
+          const jumpKm = haversineDistance(last, newPoint);
+          if (jumpKm > 0.2) return prev;
+        }
+        const newPoints = [...prev, newPoint];
+        const dist = newPoints.slice(1).reduce((acc, p, i) => acc + haversineDistance(newPoints[i], p), 0);
+        setDistanceKm(dist);
+        setCalories(calcCalories(dist, weightKg));
+        return newPoints;
+      });
+    };
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => handlePosition(pos, "initial"),
+      handleGpsError,
+      { enableHighAccuracy: false, maximumAge: 15000, timeout: 5000 }
+    );
+
     watchIdRef.current = navigator.geolocation.watchPosition(
-      (pos) => {
-        if (isPausedRef.current) return;
-        // 走り始め30秒は精度50m以内、以降は30m以内を要求
-        const threshold = Date.now() - startTime < 30_000 ? 50 : 30;
-        if (pos.coords.accuracy > threshold) return;
-        const newPoint: GpsPoint = {
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude,
-          timestamp: Date.now(),
-          accuracy: pos.coords.accuracy,
-        };
-        setGpsPoints((prev) => {
-          const last = prev[prev.length - 1];
-          if (last) {
-            const speed = speedKmh(last, newPoint);
-            if (speed > 30) return prev;
-            const jumpKm = haversineDistance(last, newPoint);
-            if (jumpKm > 0.2) return prev;
-          }
-          const newPoints = [...prev, newPoint];
-          const dist = newPoints.slice(1).reduce((acc, p, i) => acc + haversineDistance(newPoints[i], p), 0);
-          setDistanceKm(dist);
-          setCalories(calcCalories(dist, weightKg));
-          return newPoints;
-        });
-      },
-      (err) => console.error("GPS error:", err),
+      (pos) => handlePosition(pos, "watch"),
+      handleGpsError,
       { enableHighAccuracy: true, maximumAge: 3000, timeout: 10000 }
     );
-  }, [weightKg]);
-
-  useEffect(() => {
-    if (!goalInstance || goalReached || phase !== "running") return;
-    const distOk = !goalInstance.distance_km || distanceKm >= goalInstance.distance_km;
-    const timeOk = !goalInstance.duration_minutes || elapsedSec >= goalInstance.duration_minutes * 60;
-    if (distOk && timeOk) setGoalReached(true);
-  }, [distanceKm, elapsedSec, goalInstance, goalReached, phase]);
+  }, [handleGpsError, weightKg]);
 
   // GPS ウォームアップ：権限が既に granted の場合のみ、ハードウェアを事前に起動しておく
   useEffect(() => {
@@ -196,7 +237,6 @@ function RunPageInner() {
     }
     document.addEventListener("visibilitychange", handleVisibility);
     return () => document.removeEventListener("visibilitychange", handleVisibility);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase]);
 
   function handlePauseResume() {
@@ -288,6 +328,30 @@ function RunPageInner() {
   const remainMinutes = goalInstance?.duration_minutes
     ? Math.max(0, Math.ceil((goalInstance.duration_minutes * 60 - elapsedSec) / 60))
     : null;
+  const goalReached = Boolean(
+    goalInstance &&
+    (phase === "running" || phase === "paused") &&
+    (!goalInstance.distance_km || distanceKm >= goalInstance.distance_km) &&
+    (!goalInstance.duration_minutes || elapsedSec >= goalInstance.duration_minutes * 60)
+  );
+
+  const gpsStatusColor = phase === "paused"
+    ? "#FBBF24"
+    : gpsStatus === "ready"
+    ? "#22C55E"
+    : gpsStatus === "denied" || gpsStatus === "timeout" || gpsStatus === "error"
+    ? "#EF4444"
+    : "#F59E0B";
+  const gpsStatusText = (() => {
+    if (phase === "paused") return "一時停止中";
+    if (gpsStatus === "locating") return "現在地を探しています";
+    if (gpsStatus === "improving") return lastAccuracy ? `GPS精度を調整中（±${lastAccuracy}m）` : "GPS精度を調整中";
+    if (gpsStatus === "ready") return lastAccuracy ? `GPS計測中（±${lastAccuracy}m）` : "GPS計測中";
+    if (gpsStatus === "timeout") return "GPSが安定しません。屋外で空が見える場所へ";
+    if (gpsStatus === "denied") return "位置情報が許可されていません";
+    if (gpsStatus === "error") return "GPSを取得できません";
+    return "GPS待機中";
+  })();
 
   // ── 開始前画面 ──
   if (phase === "idle" || phase === "gpsPrompt" || phase === "goalSelect") {
@@ -473,7 +537,7 @@ function RunPageInner() {
             className={phase === "running" ? "animate-pulse" : ""}
             style={{
               width: "8px", height: "8px", borderRadius: "50%",
-              background: phase === "paused" ? "#FBBF24" : "#22C55E",
+              background: gpsStatusColor,
             }}
           />
           <span style={{ fontSize: "12px", color: "#888888", fontWeight: 600 }}>
@@ -498,7 +562,22 @@ function RunPageInner() {
 
       {/* 地図 */}
       <div style={{ flex: 1, minHeight: 0, overflow: "hidden", position: "relative" }}>
-        <RunMap points={gpsPoints} />
+        <RunMap points={gpsPoints} currentPosition={currentPosition} />
+        {gpsStatus !== "idle" && (
+          <div style={{ position: "absolute", top: "12px", left: "12px", right: "12px", zIndex: 500, display: "flex", justifyContent: "center", pointerEvents: "none" }}>
+            <div style={{
+              maxWidth: "100%",
+              display: "flex", alignItems: "center", gap: "6px",
+              padding: "8px 12px", borderRadius: "999px",
+              background: "rgba(17,17,17,0.78)", color: "white",
+              fontSize: "12px", fontWeight: 700, lineHeight: 1.35,
+              boxShadow: "0 4px 16px rgba(0,0,0,0.18)",
+            }}>
+              <Navigation size={14} color={gpsStatusColor} />
+              <span>{gpsStatusText}</span>
+            </div>
+          </div>
+        )}
         {phase === "paused" && (
           <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.28)", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <span style={{ color: "white", fontWeight: 700, fontSize: "16px", background: "rgba(0,0,0,0.55)", padding: "8px 20px", borderRadius: "999px" }}>一時停止中</span>

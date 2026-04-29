@@ -1,21 +1,23 @@
 "use client";
 
 import "leaflet/dist/leaflet.css";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Map, Polyline, Marker, Circle } from "leaflet";
 import type { GpsPoint } from "@/lib/haversine";
 
 interface Props {
   points: GpsPoint[];
+  currentPosition?: GpsPoint | null;
 }
 
-export default function RunMap({ points }: Props) {
+export default function RunMap({ points, currentPosition }: Props) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<Map | null>(null);
   const polylineRef = useRef<Polyline | null>(null);
   const polylineBorderRef = useRef<Polyline | null>(null);
   const markerRef = useRef<Marker | null>(null);
   const accuracyCircleRef = useRef<Circle | null>(null);
+  const [mapVersion, setMapVersion] = useState(0);
 
   useEffect(() => {
     if (!mapRef.current) return;
@@ -45,6 +47,7 @@ export default function RunMap({ points }: Props) {
       L.control.zoom({ position: "bottomright" }).addTo(map);
 
       mapInstanceRef.current = map;
+      setMapVersion((v) => v + 1);
       setTimeout(() => { if (!cancelled) map?.invalidateSize(); }, 100);
     });
 
@@ -62,29 +65,42 @@ export default function RunMap({ points }: Props) {
   }, []);
 
   useEffect(() => {
-    if (!mapInstanceRef.current || points.length === 0) return;
+    if (!mapInstanceRef.current) return;
     import("leaflet").then((L) => {
       const map = mapInstanceRef.current;
       if (!map) return;
-      const latLngs = points.map((p) => [p.lat, p.lng] as [number, number]);
 
-      if (polylineBorderRef.current) {
-        polylineBorderRef.current.setLatLngs(latLngs);
-        polylineRef.current?.setLatLngs(latLngs);
+      if (points.length === 0) {
+        if (polylineBorderRef.current) {
+          map.removeLayer(polylineBorderRef.current);
+          polylineBorderRef.current = null;
+        }
+        if (polylineRef.current) {
+          map.removeLayer(polylineRef.current);
+          polylineRef.current = null;
+        }
       } else {
-        polylineBorderRef.current = L.polyline(latLngs, {
-          color: "white",
-          weight: 8,
-          opacity: 0.9,
-        }).addTo(map);
-        polylineRef.current = L.polyline(latLngs, {
-          color: "#FF6B00",
-          weight: 5,
-          opacity: 1,
-        }).addTo(map);
+        const latLngs = points.map((p) => [p.lat, p.lng] as [number, number]);
+
+        if (polylineBorderRef.current) {
+          polylineBorderRef.current.setLatLngs(latLngs);
+          polylineRef.current?.setLatLngs(latLngs);
+        } else {
+          polylineBorderRef.current = L.polyline(latLngs, {
+            color: "white",
+            weight: 8,
+            opacity: 0.9,
+          }).addTo(map);
+          polylineRef.current = L.polyline(latLngs, {
+            color: "#FF6B00",
+            weight: 5,
+            opacity: 1,
+          }).addTo(map);
+        }
       }
 
-      const last = points[points.length - 1];
+      const last = currentPosition ?? points[points.length - 1];
+      if (!last) return;
       const latlng: [number, number] = [last.lat, last.lng];
 
       if (last.accuracy) {
@@ -100,6 +116,9 @@ export default function RunMap({ points }: Props) {
             opacity: 0.4,
           }).addTo(map);
         }
+      } else if (accuracyCircleRef.current) {
+        map.removeLayer(accuracyCircleRef.current);
+        accuracyCircleRef.current = null;
       }
 
       if (markerRef.current) {
@@ -116,7 +135,7 @@ export default function RunMap({ points }: Props) {
 
       map.setView(latlng, map.getZoom());
     });
-  }, [points]);
+  }, [points, currentPosition, mapVersion]);
 
   return (
     <div
