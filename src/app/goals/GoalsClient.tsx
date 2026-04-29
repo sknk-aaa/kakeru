@@ -350,31 +350,26 @@ export default function GoalsClient({
     }}>
       <div style={{
         position: "sticky", top: 0, zIndex: 10,
-        background: "rgba(255,255,255,0.88)", backdropFilter: "blur(14px)",
-        borderBottom: "1px solid rgba(229,229,229,0.72)",
-        padding: "0 18px", height: "60px",
-        display: "flex", alignItems: "center",
+        background: "rgba(255,255,255,0.88)", backdropFilter: "blur(16px)",
+        borderBottom: "1px solid rgba(235,235,235,0.75)",
+        padding: "0 16px 0 56px", height: "60px",
+        display: "flex", alignItems: "center", justifyContent: "space-between",
       }}>
-        <div style={{ flex: 1 }} />
-        <h1 style={{ fontSize: "20px", fontWeight: 900, color: "#111111", letterSpacing: "0" }}>目標</h1>
-        <div style={{ flex: 1, display: "flex", justifyContent: "flex-end" }}>
-          <Link href="/goals/new">
-            <button style={{
-              width: "42px",
-              height: "42px",
-              borderRadius: "50%",
-              background: "white",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              border: "1px solid rgba(255,107,0,0.08)",
-              boxShadow: "0 8px 22px rgba(255,107,0,0.16), 0 4px 16px rgba(17,17,17,0.08)",
-              cursor: "pointer",
-            }}>
-              <Plus size={24} color={ORANGE} strokeWidth={2.6} />
-            </button>
-          </Link>
+        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          <Image src="/stickman-assets/stickman-01.png" alt="" width={28} height={28} style={{ objectFit: "contain" }} priority />
+          <span style={{ fontFamily: "var(--font-display)", fontSize: "24px", fontWeight: 900, fontStyle: "italic", color: "#FF6B00", letterSpacing: "0.06em" }}>KAKERU</span>
         </div>
+        <Link href="/goals/new">
+          <button style={{
+            width: "42px", height: "42px", borderRadius: "50%",
+            background: "white", display: "flex", alignItems: "center", justifyContent: "center",
+            border: "1px solid rgba(255,107,0,0.14)",
+            boxShadow: "0 8px 22px rgba(255,107,0,0.15)",
+            cursor: "pointer",
+          }}>
+            <Plus size={22} color={ORANGE} strokeWidth={2.6} />
+          </button>
+        </Link>
       </div>
 
       <div style={{ padding: "16px 16px 24px" }}>

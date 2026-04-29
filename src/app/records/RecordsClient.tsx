@@ -86,14 +86,14 @@ export default function RecordsClient({ runs, bestPaceSecPerKm, longestRunKm, to
       {/* ヘッダー */}
       <div style={{
         position: "sticky", top: 0, zIndex: 10,
-        background: "rgba(255,255,255,0.94)", backdropFilter: "blur(14px)",
-        borderBottom: "1px solid #EBEBEB",
-        padding: "0 16px 0 56px", height: "54px",
+        background: "rgba(255,255,255,0.88)", backdropFilter: "blur(16px)",
+        borderBottom: "1px solid rgba(235,235,235,0.75)",
+        padding: "0 16px 0 56px", height: "60px",
         display: "flex", alignItems: "center",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-          <Image src="/stickman-assets/stickman-01.png" alt="" width={24} height={24} style={{ objectFit: "contain" }} priority />
-          <span style={{ fontFamily: "var(--font-display)", fontSize: "21px", fontWeight: 900, fontStyle: "italic", color: "#FF6B00", letterSpacing: "0.06em" }}>KAKERU</span>
+          <Image src="/stickman-assets/stickman-01.png" alt="" width={28} height={28} style={{ objectFit: "contain" }} priority />
+          <span style={{ fontFamily: "var(--font-display)", fontSize: "24px", fontWeight: 900, fontStyle: "italic", color: "#FF6B00", letterSpacing: "0.06em" }}>KAKERU</span>
         </div>
       </div>
 

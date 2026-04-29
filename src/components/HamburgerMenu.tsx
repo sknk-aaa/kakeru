@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
-import { Menu, X, Shield, FileText, Receipt, MessageCircle, HelpCircle, LogOut, CreditCard } from "lucide-react";
+import Image from "next/image";
+import { Menu, X, Shield, FileText, Receipt, MessageCircle, HelpCircle, LogOut, CreditCard, Zap } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 const MAIN_PAGES = ["/", "/goals", "/records", "/settings"];
@@ -53,7 +54,7 @@ export default function HamburgerMenu() {
         onClick={() => setOpen(true)}
         style={{
           position: "fixed",
-          top: "9px",
+          top: "12px",
           left: "12px",
           zIndex: 30,
           width: "36px",
@@ -90,77 +91,128 @@ export default function HamburgerMenu() {
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* ドロワーヘッダー */}
-            <div style={{ padding: "16px 20px", borderBottom: "1px solid #F2F2F2" }}>
-              <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "12px" }}>
-                <button
-                  onClick={() => setOpen(false)}
-                  style={{ width: "32px", height: "32px", display: "flex", alignItems: "center", justifyContent: "center", background: "#F2F2F7", border: "none", borderRadius: "8px", cursor: "pointer" }}
-                >
-                  <X size={16} color="#888888" />
-                </button>
+            {/* ドロワーヘッダー：ロゴ + X */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px 12px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                <Image src="/stickman-assets/stickman-01.png" alt="" width={20} height={20} style={{ objectFit: "contain" }} />
+                <span style={{ fontFamily: "var(--font-display)", fontSize: "18px", fontWeight: 900, fontStyle: "italic", color: "#FF6B00", letterSpacing: "0.06em" }}>KAKERU</span>
               </div>
-              <p style={{ fontSize: "13px", fontWeight: 600, color: "#111111", marginBottom: "6px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                {userEmail ?? ""}
-              </p>
-              {isSubscribed ? (
-                <span style={{
-                  display: "inline-block",
-                  background: "linear-gradient(135deg, #FF6B00, #FF9500)",
-                  color: "white", fontSize: "10px", fontWeight: 900,
-                  letterSpacing: "0.1em", padding: "3px 10px", borderRadius: "99px",
-                }}>★ PRO</span>
-              ) : (
-                <span style={{
-                  display: "inline-block",
-                  background: "#F2F2F7", color: "#888888",
-                  fontSize: "10px", fontWeight: 700,
-                  letterSpacing: "0.08em", padding: "3px 10px", borderRadius: "99px",
-                }}>FREE</span>
-              )}
+              <button
+                onClick={() => setOpen(false)}
+                style={{ width: "32px", height: "32px", display: "flex", alignItems: "center", justifyContent: "center", background: "#F2F2F7", border: "none", borderRadius: "8px", cursor: "pointer" }}
+              >
+                <X size={16} color="#888888" />
+              </button>
             </div>
 
-            {/* メニュー項目 */}
-            <div style={{ padding: "12px 0", flex: 1 }}>
+            {/* ユーザーカード */}
+            <div style={{ margin: "0 14px 14px", background: "#F9F9FB", borderRadius: "16px", padding: "14px 16px", display: "flex", alignItems: "center", gap: "12px" }}>
+              {/* アバター */}
+              <div style={{
+                width: "40px", height: "40px", borderRadius: "50%", flexShrink: 0,
+                background: "linear-gradient(135deg, #FF6B00, #FF9500)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <span style={{ fontSize: "16px", fontWeight: 800, color: "white" }}>
+                  {(userEmail ?? "?")[0].toUpperCase()}
+                </span>
+              </div>
+              <div style={{ minWidth: 0 }}>
+                <p style={{ fontSize: "13px", fontWeight: 600, color: "#111111", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {userEmail ?? ""}
+                </p>
+                <div style={{ marginTop: "4px" }}>
+                  {isSubscribed ? (
+                    <span style={{
+                      display: "inline-block",
+                      background: "linear-gradient(135deg, #FF6B00, #FF9500)",
+                      color: "white", fontSize: "10px", fontWeight: 900,
+                      letterSpacing: "0.1em", padding: "2px 9px", borderRadius: "99px",
+                    }}>★ PRO</span>
+                  ) : (
+                    <span style={{
+                      display: "inline-block",
+                      background: "#EBEBF0", color: "#999999",
+                      fontSize: "10px", fontWeight: 700,
+                      letterSpacing: "0.08em", padding: "2px 9px", borderRadius: "99px",
+                    }}>FREE</span>
+                  )}
+                </div>
+              </div>
+            </div>
 
-              {/* PRO セクション */}
+            {/* PROアップグレードCTA（FREEのみ） */}
+            {!isSubscribed && (
+              <div style={{ margin: "0 14px 14px" }}>
+                <Link
+                  href="/pro"
+                  onClick={() => setOpen(false)}
+                  style={{ textDecoration: "none" }}
+                >
+                  <div style={{
+                    background: "linear-gradient(135deg, #FF6B00, #FF9500)",
+                    borderRadius: "14px", padding: "14px 16px",
+                    display: "flex", alignItems: "center", gap: "10px",
+                  }}>
+                    <Zap size={18} color="white" fill="white" />
+                    <div>
+                      <p style={{ fontSize: "13px", fontWeight: 800, color: "white", letterSpacing: "0.02em" }}>PROにアップグレード</p>
+                      <p style={{ fontSize: "11px", color: "rgba(255,255,255,0.8)", marginTop: "2px" }}>全機能を解放する</p>
+                    </div>
+                  </div>
+                </Link>
+              </div>
+            )}
+
+            {/* メニュー項目 */}
+            <div style={{ flex: 1, overflowY: "auto" }}>
+
+              {/* PLANセクション */}
+              <p style={{ fontSize: "10px", color: "#BBBBBB", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", padding: "4px 20px 4px" }}>
+                Plan
+              </p>
               <Link
                 href={isSubscribed ? "/pro/manage" : "/pro"}
                 onClick={() => setOpen(false)}
-                style={{ display: "flex", alignItems: "center", gap: "12px", padding: "13px 20px", color: "#333333", textDecoration: "none" }}
+                style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px 20px", color: "#333333", textDecoration: "none" }}
               >
-                <CreditCard size={17} color="#888888" strokeWidth={1.8} />
+                <CreditCard size={17} color="#FF6B00" strokeWidth={1.8} />
                 <span style={{ fontSize: "14px", fontWeight: 500 }}>
                   {isSubscribed ? "プラン管理" : "プレミアムプラン"}
                 </span>
               </Link>
 
-              <p style={{ fontSize: "10px", color: "#AAAAAA", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", padding: "12px 20px 4px" }}>
-                サポート
+              <div style={{ height: "1px", background: "#F2F2F2", margin: "4px 0" }} />
+
+              <p style={{ fontSize: "10px", color: "#BBBBBB", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", padding: "8px 20px 4px" }}>
+                Support
               </p>
               {SUPPORT_ITEMS.map(({ href, label, icon: Icon }) => (
                 <Link
                   key={href}
                   href={href}
                   onClick={() => setOpen(false)}
-                  style={{ display: "flex", alignItems: "center", gap: "12px", padding: "13px 20px", color: "#333333", textDecoration: "none" }}
+                  style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px 20px", color: "#333333", textDecoration: "none" }}
                 >
-                  <Icon size={17} color="#888888" strokeWidth={1.8} />
+                  <Icon size={17} color="#FF6B00" strokeWidth={1.8} />
                   <span style={{ fontSize: "14px", fontWeight: 500 }}>{label}</span>
                 </Link>
               ))}
-              <p style={{ fontSize: "10px", color: "#AAAAAA", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", padding: "16px 20px 4px" }}>
-                法的情報
+
+              <div style={{ height: "1px", background: "#F2F2F2", margin: "4px 0" }} />
+
+              <p style={{ fontSize: "10px", color: "#BBBBBB", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", padding: "8px 20px 4px" }}>
+                Legal
               </p>
               {LEGAL_ITEMS.map(({ href, label, icon: Icon }) => (
                 <Link
                   key={href}
                   href={href}
                   onClick={() => setOpen(false)}
-                  style={{ display: "flex", alignItems: "center", gap: "12px", padding: "13px 20px", color: "#333333", textDecoration: "none" }}
+                  style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px 20px", color: "#555555", textDecoration: "none" }}
                 >
-                  <Icon size={17} color="#888888" strokeWidth={1.8} />
-                  <span style={{ fontSize: "14px", fontWeight: 500 }}>{label}</span>
+                  <Icon size={17} color="#BBBBBB" strokeWidth={1.8} />
+                  <span style={{ fontSize: "13px", fontWeight: 400 }}>{label}</span>
                 </Link>
               ))}
             </div>
