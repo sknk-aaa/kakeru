@@ -81,19 +81,22 @@ export default async function GoalsPage() {
     }))
     .filter((g) => g.achievedCount > 0);
 
-  // チャレンジゴールの進捗fetch
-  const challengeGoals = (goals ?? []).filter((g) => g.type === "challenge");
+  // チャレンジゴールの進捗fetch（N+1解消: 1クエリで全ラン取得してJSで集計）
+  const challengeGoals = (goals ?? []).filter((g) => g.type === "challenge" && g.challenge_start_date);
   const challengeProgress: Record<string, { totalDistKm: number; totalSec: number }> = {};
-  for (const cg of challengeGoals) {
-    if (!cg.challenge_start_date) continue;
-    const { data: cgRuns } = await supabase
+  if (challengeGoals.length > 0) {
+    const minDate = challengeGoals.reduce((m, g) => (g.challenge_start_date! < m ? g.challenge_start_date! : m), challengeGoals[0].challenge_start_date!);
+    const { data: allChallengeRuns } = await supabase
       .from("runs")
-      .select("distance_km, duration_seconds")
+      .select("distance_km, duration_seconds, started_at")
       .eq("user_id", user.id)
-      .gte("started_at", cg.challenge_start_date + "T00:00:00");
-    const totalDistKm = (cgRuns ?? []).reduce((s, r) => s + (r.distance_km ?? 0), 0);
-    const totalSec = (cgRuns ?? []).reduce((s, r) => s + (r.duration_seconds ?? 0), 0);
-    challengeProgress[cg.id] = { totalDistKm: Math.round(totalDistKm * 10) / 10, totalSec };
+      .gte("started_at", minDate + "T00:00:00");
+    for (const cg of challengeGoals) {
+      const runs = (allChallengeRuns ?? []).filter((r) => r.started_at >= cg.challenge_start_date! + "T00:00:00");
+      const totalDistKm = runs.reduce((s, r) => s + (r.distance_km ?? 0), 0);
+      const totalSec = runs.reduce((s, r) => s + (r.duration_seconds ?? 0), 0);
+      challengeProgress[cg.id] = { totalDistKm: Math.round(totalDistKm * 10) / 10, totalSec };
+    }
   }
 
   return (

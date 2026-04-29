@@ -60,11 +60,16 @@ export default function HomeClient({
 
   async function handleSkip(instanceId: string) {
     setProcessing(true);
-    await fetch("/api/goals/skip", {
+    const res = await fetch("/api/goals/skip", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ goalInstanceId: instanceId }),
-    });
+    }).catch(() => null);
+    if (!res?.ok) {
+      setSkipTargetId(null);
+      setProcessing(false);
+      return;
+    }
     setInstances((prev) =>
       prev.map((i) => i.id === instanceId ? { ...i, status: "skipped" } : i)
     );
@@ -123,7 +128,7 @@ export default function HomeClient({
         display: "flex", alignItems: "center", justifyContent: "space-between",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-          <Image src="/stickman-assets/stickman-01.png" alt="" width={24} height={24} style={{ objectFit: "contain" }} />
+          <Image src="/stickman-assets/stickman-01.png" alt="" width={24} height={24} style={{ objectFit: "contain" }} priority />
           <span style={{
             fontFamily: "var(--font-display)",
             fontSize: "21px", fontWeight: 900, fontStyle: "italic",

@@ -40,6 +40,7 @@ function RunPageInner() {
   const [goalReached, setGoalReached] = useState(false);
   const [startedAt, setStartedAt] = useState<Date | null>(null);
   const [todayGoals, setTodayGoals] = useState<{ id: string; goals: { distance_km: number | null; duration_minutes: number | null; penalty_amount: number } | null }[]>([]);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const watchIdRef = useRef<number | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -183,7 +184,7 @@ function RunPageInner() {
     const finishedAt = new Date();
     const avgPace = distanceKm > 0 ? elapsedSec / distanceKm : 0;
 
-    const { data: run } = await supabase.from("runs").insert({
+    const { data: run, error: runError } = await supabase.from("runs").insert({
       goal_instance_id: effectiveInstanceId || null,
       user_id: user.id,
       distance_km: Math.round(distanceKm * 100) / 100,
@@ -194,6 +195,12 @@ function RunPageInner() {
       started_at: startedAt?.toISOString() ?? finishedAt.toISOString(),
       finished_at: finishedAt.toISOString(),
     }).select().single();
+
+    if (runError) {
+      setSaveError("ランの保存に失敗しました。もう一度お試しください。");
+      setPhase("paused");
+      return;
+    }
 
     // 今日の累積ランを取得して目標達成を判定（複数回に分けて走る対応）
     let cumulativeGoalReached = false;
@@ -404,6 +411,9 @@ function RunPageInner() {
 
         {/* ボタン */}
         <div style={{ padding: `0 12px calc(env(safe-area-inset-bottom) + 8px)` }}>
+          {saveError && (
+            <p style={{ fontSize: "13px", color: "#EF4444", textAlign: "center", marginBottom: "8px" }}>{saveError}</p>
+          )}
           <div style={{ display: "flex", gap: "10px" }}>
             <button
               className="btn-secondary"
