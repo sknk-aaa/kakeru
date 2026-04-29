@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { formatPace, formatDuration } from "@/lib/haversine";
 import { Trophy, Clock, Flame, MapPin } from "lucide-react";
 
@@ -80,17 +81,20 @@ export default function RecordsClient({ runs, bestPaceSecPerKm, longestRunKm, to
   const filteredTotal = filteredRuns.reduce((s, r) => s + r.distance_km, 0);
 
   return (
-    <div style={{ background: "#F7F7FA", minHeight: "100vh" }}>
+    <div style={{ background: "linear-gradient(180deg, #FFFFFF 0%, #FFF9F5 46%, #F7F7FA 100%)", minHeight: "100vh" }}>
 
       {/* ヘッダー */}
       <div style={{
         position: "sticky", top: 0, zIndex: 10,
         background: "rgba(255,255,255,0.94)", backdropFilter: "blur(14px)",
         borderBottom: "1px solid #EBEBEB",
-        padding: "0 16px", height: "54px",
-        display: "flex", alignItems: "center", justifyContent: "center",
+        padding: "0 16px 0 56px", height: "54px",
+        display: "flex", alignItems: "center",
       }}>
-        <h1 style={{ fontSize: "17px", fontWeight: 700, color: "#111111" }}>記録</h1>
+        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          <Image src="/stickman-assets/stickman-01.png" alt="" width={24} height={24} style={{ objectFit: "contain" }} priority />
+          <span style={{ fontFamily: "var(--font-display)", fontSize: "21px", fontWeight: 900, fontStyle: "italic", color: "#FF6B00", letterSpacing: "0.06em" }}>KAKERU</span>
+        </div>
       </div>
 
       <div style={{ padding: "16px 14px 100px" }}>

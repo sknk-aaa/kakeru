@@ -3,6 +3,7 @@
 export const dynamic = "force-dynamic";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import AppShell from "@/components/AppShell";
@@ -144,13 +145,16 @@ export default function SettingsPage() {
         position: "sticky", top: 0, zIndex: 10,
         background: "rgba(255,255,255,0.94)", backdropFilter: "blur(14px)",
         borderBottom: "1px solid #EBEBEB",
-        padding: "0 16px", height: "54px",
-        display: "flex", alignItems: "center", justifyContent: "center",
+        padding: "0 16px 0 56px", height: "54px",
+        display: "flex", alignItems: "center",
       }}>
-        <h1 style={{ fontSize: "17px", fontWeight: 700, color: "#111111" }}>設定</h1>
+        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          <Image src="/stickman-assets/stickman-01.png" alt="" width={24} height={24} style={{ objectFit: "contain" }} priority />
+          <span style={{ fontFamily: "var(--font-display)", fontSize: "21px", fontWeight: 900, fontStyle: "italic", color: "#FF6B00", letterSpacing: "0.06em" }}>KAKERU</span>
+        </div>
       </div>
 
-      <div style={{ padding: "16px 14px 100px", background: "#F7F7FA", minHeight: "100vh" }}>
+      <div style={{ padding: "16px 14px 100px", background: "linear-gradient(180deg, #FFFFFF 0%, #FFF9F5 46%, #F7F7FA 100%)", minHeight: "100vh" }}>
 
         {/* ─── プロフィール ─── */}
         <p style={sectionLabel}><User size={12} />プロフィール</p>
