@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { formatPace, formatDuration } from "@/lib/haversine";
 import { Trophy, Clock, Flame, MapPin } from "lucide-react";
@@ -18,6 +18,11 @@ type Period = "month" | "prev" | "all";
 
 interface Props {
   runs: Run[];
+  weeklyData: { label: string; total: number }[];
+  allTimeDistanceKm: number;
+  allTimeRunCount: number;
+  prevMonthDistanceKm: number;
+  prevMonthRunCount: number;
   bestPaceSecPerKm: number | null;
   longestRunKm: number;
   totalDurationSec: number;
@@ -45,40 +50,73 @@ const card: React.CSSProperties = {
   boxShadow: "0 1px 8px rgba(0,0,0,0.06)",
 };
 
-export default function RecordsClient({ runs, bestPaceSecPerKm, longestRunKm, totalDurationSec, totalCalories, monthGoal, monthDistanceKm }: Props) {
+export default function RecordsClient({
+  runs, weeklyData, allTimeDistanceKm, allTimeRunCount,
+  prevMonthDistanceKm, prevMonthRunCount,
+  bestPaceSecPerKm, longestRunKm, totalDurationSec, totalCalories,
+  monthGoal, monthDistanceKm,
+}: Props) {
   const [period, setPeriod] = useState<Period>("month");
+  const [allPeriodRuns, setAllPeriodRuns] = useState<Run[]>([]);
+  const [allPeriodOffset, setAllPeriodOffset] = useState(0);
+  const [hasMoreAll, setHasMoreAll] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(5);
 
   const now = new Date();
-  const filteredRuns = runs.filter((r) => {
+  const monthRuns = runs.filter(r => {
     const d = new Date(r.started_at);
-    if (period === "month") return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
-    if (period === "prev") {
-      const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      return d.getFullYear() === prev.getFullYear() && d.getMonth() === prev.getMonth();
-    }
-    return true;
+    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+  });
+  const prevRuns = runs.filter(r => {
+    const d = new Date(r.started_at);
+    const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    return d.getFullYear() === prev.getFullYear() && d.getMonth() === prev.getMonth();
   });
 
-  // 週別グラフデータ（直近7週）
-  const weeklyData = Array.from({ length: 7 }, (_, i) => {
-    const weekStart = new Date(now);
-    weekStart.setDate(now.getDate() - now.getDay() - i * 7);
-    weekStart.setHours(0, 0, 0, 0);
-    const weekEnd = new Date(weekStart);
-    weekEnd.setDate(weekStart.getDate() + 6);
-    weekEnd.setHours(23, 59, 59, 999);
-    const total = runs.filter((r) => {
-      const d = new Date(r.started_at);
-      return d >= weekStart && d <= weekEnd;
-    }).reduce((s, r) => s + r.distance_km, 0);
-    return { label: `${weekStart.getMonth() + 1}/${weekStart.getDate()}`, total: Math.round(total * 10) / 10 };
-  }).reverse();
+  useEffect(() => {
+    if (period !== "all") {
+      setVisibleCount(5);
+      return;
+    }
+    setIsLoadingMore(true);
+    fetch("/api/runs?limit=10&offset=0")
+      .then(r => r.json())
+      .then(({ runs: fetched, hasMore: more }: { runs: Run[]; hasMore: boolean }) => {
+        setAllPeriodRuns(fetched);
+        setAllPeriodOffset(10);
+        setHasMoreAll(more);
+        setIsLoadingMore(false);
+      });
+  }, [period]);
 
-  const maxWeekly = Math.max(...weeklyData.map((w) => w.total), 5);
+  const loadMoreAll = () => {
+    setIsLoadingMore(true);
+    fetch(`/api/runs?limit=10&offset=${allPeriodOffset}`)
+      .then(r => r.json())
+      .then(({ runs: fetched, hasMore: more }: { runs: Run[]; hasMore: boolean }) => {
+        setAllPeriodRuns(prev => [...prev, ...fetched]);
+        setAllPeriodOffset(o => o + 10);
+        setHasMoreAll(more);
+        setIsLoadingMore(false);
+      });
+  };
+
+  const filteredTotal = period === "month" ? monthDistanceKm
+    : period === "prev" ? prevMonthDistanceKm
+    : allTimeDistanceKm;
+  const filteredCount = period === "month" ? monthRuns.length
+    : period === "prev" ? prevMonthRunCount
+    : allTimeRunCount;
+
+  const currentPeriodRuns = period === "month" ? monthRuns : prevRuns;
+  const displayedRuns = period === "all" ? allPeriodRuns : currentPeriodRuns.slice(0, visibleCount);
+  const hasMoreLocal = period !== "all" && currentPeriodRuns.length > visibleCount;
+  const isInitialAllLoad = period === "all" && isLoadingMore && allPeriodRuns.length === 0;
+
+  const maxWeekly = Math.max(...weeklyData.map(w => w.total), 5);
   const yMax = Math.ceil(maxWeekly / 5) * 5;
   const yTicks = [yMax, Math.round(yMax * 0.5), 0];
-
-  const filteredTotal = filteredRuns.reduce((s, r) => s + r.distance_km, 0);
 
   return (
     <div style={{ background: "linear-gradient(180deg, #FFFFFF 0%, #FFF9F5 46%, #F7F7FA 100%)", minHeight: "100vh" }}>
@@ -136,7 +174,7 @@ export default function RecordsClient({ runs, bestPaceSecPerKm, longestRunKm, to
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
               <span style={{ fontSize: "20px", color: "#DDDDDD" }}>·</span>
-              <span className="metric-value" style={{ fontSize: "22px", color: "#BBBBBB" }}>{filteredRuns.length}</span>
+              <span className="metric-value" style={{ fontSize: "22px", color: "#BBBBBB" }}>{filteredCount}</span>
               <span style={{ fontSize: "13px", color: "#BBBBBB", fontWeight: 600 }}>回</span>
             </div>
           </div>
@@ -161,13 +199,11 @@ export default function RecordsClient({ runs, bestPaceSecPerKm, longestRunKm, to
         <div style={{ ...card, padding: "20px 18px", marginBottom: "14px" }}>
           <p style={sectionLabel}>週別走行距離</p>
           <div style={{ display: "flex", gap: "8px" }}>
-            {/* y軸 */}
             <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", alignItems: "flex-end", paddingBottom: "20px", flexShrink: 0 }}>
               {yTicks.map((tick) => (
                 <span key={tick} style={{ fontSize: "9px", color: "#CCCCCC", lineHeight: 1 }}>{tick}</span>
               ))}
             </div>
-            {/* グラフ本体 */}
             <div style={{ flex: 1, position: "relative" }}>
               {yTicks.map((_, i) => (
                 <div key={i} style={{
@@ -252,49 +288,69 @@ export default function RecordsClient({ runs, bestPaceSecPerKm, longestRunKm, to
         {/* 履歴リスト */}
         <p style={sectionLabel}>履歴</p>
 
-        {filteredRuns.length === 0 ? (
+        {isInitialAllLoad ? (
+          <div style={{ ...card, padding: "40px 20px", textAlign: "center" }}>
+            <p style={{ color: "#BBBBBB", fontSize: "14px" }}>読み込み中...</p>
+          </div>
+        ) : displayedRuns.length === 0 ? (
           <div style={{ ...card, padding: "40px 20px", textAlign: "center" }}>
             <MapPin size={28} color="#DDDDDD" style={{ margin: "0 auto 12px" }} />
             <p style={{ color: "#BBBBBB", fontSize: "14px" }}>記録がありません</p>
           </div>
         ) : (
-          <div style={{ ...card, overflow: "hidden" }}>
-            {filteredRuns.slice(0, 20).map((run, idx) => {
-              const d = new Date(run.started_at);
-              const dayName = ["日", "月", "火", "水", "木", "金", "土"][d.getDay()];
-              return (
-                <div key={run.id}>
-                  {idx > 0 && <div style={{ height: "1px", background: "#F5F5F5", marginLeft: "72px" }} />}
-                  <div style={{ display: "flex", alignItems: "center", padding: "16px 16px", gap: "12px" }}>
-                    {/* 日付 */}
-                    <div style={{ width: "40px", flexShrink: 0, textAlign: "center" }}>
-                      <p className="metric-value" style={{ fontSize: "22px", color: "#111111", lineHeight: 1 }}>{d.getDate()}</p>
-                      <p style={{ fontSize: "10px", color: "#CCCCCC", marginTop: "2px", fontWeight: 500 }}>
-                        {d.getMonth() + 1}/{dayName}
-                      </p>
-                    </div>
-                    <div style={{ width: "1px", height: "32px", background: "#F0F0F0", flexShrink: 0 }} />
-                    {/* 距離 */}
-                    <div style={{ flex: 1 }}>
-                      <div style={{ display: "flex", alignItems: "baseline", gap: "2px" }}>
-                        <span className="metric-value" style={{ fontSize: "26px", color: "#FF6B00" }}>
-                          {Math.round(run.distance_km * 100) / 100}
-                        </span>
-                        <span style={{ fontSize: "12px", color: "#BBBBBB", fontWeight: 600 }}>km</span>
+          <>
+            <div style={{ ...card, overflow: "hidden" }}>
+              {displayedRuns.map((run, idx) => {
+                const d = new Date(run.started_at);
+                const dayName = ["日", "月", "火", "水", "木", "金", "土"][d.getDay()];
+                return (
+                  <div key={run.id}>
+                    {idx > 0 && <div style={{ height: "1px", background: "#F5F5F5", marginLeft: "72px" }} />}
+                    <div style={{ display: "flex", alignItems: "center", padding: "16px 16px", gap: "12px" }}>
+                      <div style={{ width: "40px", flexShrink: 0, textAlign: "center" }}>
+                        <p className="metric-value" style={{ fontSize: "22px", color: "#111111", lineHeight: 1 }}>{d.getDate()}</p>
+                        <p style={{ fontSize: "10px", color: "#CCCCCC", marginTop: "2px", fontWeight: 500 }}>
+                          {d.getMonth() + 1}/{dayName}
+                        </p>
+                      </div>
+                      <div style={{ width: "1px", height: "32px", background: "#F0F0F0", flexShrink: 0 }} />
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: "flex", alignItems: "baseline", gap: "2px" }}>
+                          <span className="metric-value" style={{ fontSize: "26px", color: "#FF6B00" }}>
+                            {Math.round(run.distance_km * 100) / 100}
+                          </span>
+                          <span style={{ fontSize: "12px", color: "#BBBBBB", fontWeight: 600 }}>km</span>
+                        </div>
+                      </div>
+                      <div style={{ textAlign: "right", flexShrink: 0 }}>
+                        <p style={{ fontSize: "14px", color: "#555555", fontWeight: 600 }}>{formatDuration(run.duration_seconds)}</p>
+                        <p style={{ fontSize: "11px", color: "#CCCCCC", marginTop: "2px" }}>
+                          {run.pace_seconds_per_km ? formatPace(run.pace_seconds_per_km) + "/km" : "--"}
+                        </p>
                       </div>
                     </div>
-                    {/* 時間・ペース */}
-                    <div style={{ textAlign: "right", flexShrink: 0 }}>
-                      <p style={{ fontSize: "14px", color: "#555555", fontWeight: 600 }}>{formatDuration(run.duration_seconds)}</p>
-                      <p style={{ fontSize: "11px", color: "#CCCCCC", marginTop: "2px" }}>
-                        {run.pace_seconds_per_km ? formatPace(run.pace_seconds_per_km) + "/km" : "--"}
-                      </p>
-                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+
+            {(hasMoreLocal || (period === "all" && hasMoreAll)) && (
+              <button
+                onClick={period === "all" ? loadMoreAll : () => setVisibleCount(v => v + 5)}
+                disabled={isLoadingMore}
+                style={{
+                  display: "block", width: "100%", marginTop: "10px",
+                  padding: "14px", borderRadius: "14px",
+                  background: "white", border: "none", cursor: isLoadingMore ? "default" : "pointer",
+                  fontSize: "13px", fontWeight: 600,
+                  color: isLoadingMore ? "#CCCCCC" : "#FF6B00",
+                  boxShadow: "0 1px 8px rgba(0,0,0,0.06)",
+                }}
+              >
+                {isLoadingMore ? "読み込み中..." : "もっと見る"}
+              </button>
+            )}
+          </>
         )}
       </div>
     </div>
