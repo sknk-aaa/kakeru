@@ -5,6 +5,7 @@ export const dynamic = "force-dynamic";
 import { Suspense, useState, useEffect, useRef, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import dynamicImport from "next/dynamic";
+import Image from "next/image";
 import { Pause, Play, Flag, Navigation } from "lucide-react";
 import GpsPermissionModal from "@/components/GpsPermissionModal";
 import { haversineDistance, speedKmh, calcCalories, formatDuration, type GpsPoint } from "@/lib/haversine";
@@ -34,6 +35,7 @@ function RunPageInner() {
   const [goalInstance, setGoalInstance] = useState<{
     distance_km: number | null;
     duration_minutes: number | null;
+    penalty_amount?: number;
   } | null>(null);
   const [effectiveInstanceId, setEffectiveInstanceId] = useState<string | null>(urlInstanceId);
   const [weightKg, setWeightKg] = useState(60);
@@ -41,6 +43,7 @@ function RunPageInner() {
   const [startedAt, setStartedAt] = useState<Date | null>(null);
   const [todayGoals, setTodayGoals] = useState<{ id: string; goals: { distance_km: number | null; duration_minutes: number | null; penalty_amount: number } | null }[]>([]);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [isLoadingGoal, setIsLoadingGoal] = useState(true);
 
   const watchIdRef = useRef<number | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -77,14 +80,14 @@ function RunPageInner() {
       if (urlInstanceId) {
         supabase
           .from("goal_instances")
-          .select("goals(distance_km, duration_minutes)")
+          .select("goals(distance_km, duration_minutes, penalty_amount)")
           .eq("id", urlInstanceId)
           .single()
           .then(({ data }) => {
-            if (data?.goals) setGoalInstance(data.goals as unknown as { distance_km: number | null; duration_minutes: number | null });
+            if (data?.goals) setGoalInstance(data.goals as unknown as { distance_km: number | null; duration_minutes: number | null; penalty_amount: number });
+            setIsLoadingGoal(false);
           });
       } else {
-        // BottomNav経由の直接遷移：今日のpendingインスタンスを全件取得
         supabase
           .from("goal_instances")
           .select("id, goals(distance_km, duration_minutes, penalty_amount)")
@@ -100,6 +103,7 @@ function RunPageInner() {
               setEffectiveInstanceId(goals[0].id);
               if (goals[0].goals) setGoalInstance(goals[0].goals);
             }
+            setIsLoadingGoal(false);
           });
       }
     });
@@ -129,10 +133,8 @@ function RunPageInner() {
         setGpsPoints((prev) => {
           const last = prev[prev.length - 1];
           if (last) {
-            // 瞬間速度が速すぎる場合（高速移動中）を除外
             const speed = speedKmh(last, newPoint);
             if (speed > 30) return prev;
-            // GPS精度低下中に長時間移動した場合を除外（バス・電車停車時の大ジャンプ対策）
             const jumpKm = haversineDistance(last, newPoint);
             if (jumpKm > 0.2) return prev;
           }
@@ -155,7 +157,6 @@ function RunPageInner() {
     if (distOk && timeOk) setGoalReached(true);
   }, [distanceKm, elapsedSec, goalInstance, goalReached, phase]);
 
-  // ページが前面に戻ったとき（通知バー展開などでWakeLockが解除された場合）に再取得
   useEffect(() => {
     function handleVisibility() {
       if (document.visibilityState === "visible" && phase === "running") {
@@ -202,7 +203,6 @@ function RunPageInner() {
       return;
     }
 
-    // 今日の累積ランを取得して目標達成を判定（複数回に分けて走る対応）
     let cumulativeGoalReached = false;
     if (effectiveInstanceId && goalInstance) {
       const d = new Date();
@@ -232,12 +232,14 @@ function RunPageInner() {
       .eq("user_id", user.id);
     const installPrompt = runCount === 1 || runCount === 3 ? runCount : 0;
 
+    const goalDistParam = goalInstance?.distance_km ? `&goalDistKm=${goalInstance.distance_km}` : "";
+    const goalDurParam = goalInstance?.duration_minutes ? `&goalDurMin=${goalInstance.duration_minutes}` : "";
+
     router.push(
-      `/run/result?runId=${run?.id ?? ""}&distanceKm=${distanceKm.toFixed(2)}&durationSec=${elapsedSec}&pace=${Math.round(avgPace)}&calories=${calories}&goalReached=${cumulativeGoalReached}${installPrompt ? `&installPrompt=${installPrompt}` : ""}`
+      `/run/result?runId=${run?.id ?? ""}&distanceKm=${distanceKm.toFixed(2)}&durationSec=${elapsedSec}&pace=${Math.round(avgPace)}&calories=${calories}&goalReached=${cumulativeGoalReached}${goalDistParam}${goalDurParam}${installPrompt ? `&installPrompt=${installPrompt}` : ""}`
     );
   }
 
-  // プログレス計算
   const distPct = goalInstance?.distance_km && goalInstance.distance_km > 0
     ? Math.min((distanceKm / goalInstance.distance_km) * 100, 100)
     : null;
@@ -245,28 +247,116 @@ function RunPageInner() {
     ? Math.min((elapsedSec / (goalInstance.duration_minutes * 60)) * 100, 100)
     : null;
 
-  // 開始前画面
+  const remainDistKm = goalInstance?.distance_km
+    ? Math.max(0, goalInstance.distance_km - distanceKm)
+    : null;
+  const remainMinutes = goalInstance?.duration_minutes
+    ? Math.max(0, Math.ceil((goalInstance.duration_minutes * 60 - elapsedSec) / 60))
+    : null;
+
+  // ── 開始前画面 ──
   if (phase === "idle" || phase === "gpsPrompt" || phase === "goalSelect") {
+    const hasGoal = goalInstance !== null;
+    const hasMultipleGoals = !hasGoal && todayGoals.length >= 2;
+    const isFreeRun = !isLoadingGoal && !hasGoal && todayGoals.length === 0;
+    const mainVal = goalInstance?.distance_km ?? goalInstance?.duration_minutes;
+    const mainUnit = goalInstance?.distance_km ? "km" : goalInstance?.duration_minutes ? "分" : null;
+    const penaltyAmount = goalInstance?.penalty_amount ?? todayGoals[0]?.goals?.penalty_amount;
+
     return (
       <AppShell>
-        <div className="flex flex-col items-center justify-center min-h-[calc(100vh-64px)] px-6 text-center">
-          <div className="w-20 h-20 rounded-full bg-[#FFF0E5] flex items-center justify-center mb-6">
-            <Navigation size={36} color="#FF6B00" />
+        <div style={{
+          display: "flex", flexDirection: "column", alignItems: "center",
+          minHeight: "calc(100vh - 64px)", padding: "0 24px 32px",
+          background: "linear-gradient(180deg, #FFFFFF 0%, #FFF9F5 100%)",
+        }}>
+
+          {/* コンテンツ中央エリア */}
+          <div style={{
+            flex: 1, display: "flex", flexDirection: "column",
+            alignItems: "center", justifyContent: "center",
+            textAlign: "center", width: "100%",
+          }}>
+            {isLoadingGoal ? (
+              <>
+                <Image
+                  src="/stickman-assets/stickman-05.png"
+                  alt="" width={120} height={140}
+                  style={{ objectFit: "contain", opacity: 0.35, marginBottom: "16px" }}
+                />
+                <p style={{ fontSize: "13px", color: "#CCCCCC" }}>準備中...</p>
+              </>
+            ) : (
+              <>
+                {/* 棒人間 */}
+                <Image
+                  src={isFreeRun ? "/stickman-assets/stickman-01.png" : "/stickman-assets/stickman-05.png"}
+                  alt="" width={130} height={150}
+                  style={{ objectFit: "contain", marginBottom: "24px" }}
+                />
+
+                {/* 目標あり（1件） */}
+                {hasGoal && mainVal && (
+                  <>
+                    <p style={{ fontSize: "10px", color: "#FF6B00", fontWeight: 800, letterSpacing: "0.2em", marginBottom: "14px" }}>
+                      TODAY&apos;S MISSION
+                    </p>
+                    <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: "8px", marginBottom: "12px" }}>
+                      <span className="metric-value" style={{ fontSize: "80px", color: "#111111", lineHeight: 1 }}>{mainVal}</span>
+                      <span style={{ fontSize: "28px", fontWeight: 700, color: "#FF6B00" }}>{mainUnit}</span>
+                    </div>
+                    {penaltyAmount != null && penaltyAmount > 0 && (
+                      <p style={{ fontSize: "14px", color: "#EF4444", fontWeight: 700 }}>
+                        サボると ¥{penaltyAmount.toLocaleString()} 課金
+                      </p>
+                    )}
+                  </>
+                )}
+
+                {/* フリーランゴール（距離・時間なし） */}
+                {hasGoal && !mainVal && (
+                  <>
+                    <p style={{ fontSize: "10px", color: "#FF6B00", fontWeight: 800, letterSpacing: "0.2em", marginBottom: "14px" }}>
+                      TODAY&apos;S MISSION
+                    </p>
+                    <p style={{ fontSize: "34px", fontWeight: 800, color: "#111111", marginBottom: "12px" }}>フリーラン</p>
+                    {penaltyAmount != null && penaltyAmount > 0 && (
+                      <p style={{ fontSize: "14px", color: "#EF4444", fontWeight: 700 }}>
+                        サボると ¥{penaltyAmount.toLocaleString()} 課金
+                      </p>
+                    )}
+                  </>
+                )}
+
+                {/* 目標複数 */}
+                {hasMultipleGoals && (
+                  <>
+                    <p style={{ fontSize: "11px", color: "#FF6B00", fontWeight: 800, letterSpacing: "0.14em", marginBottom: "14px" }}>
+                      TODAY&apos;S MISSIONS
+                    </p>
+                    <p style={{ fontSize: "22px", fontWeight: 800, color: "#111111", marginBottom: "8px" }}>
+                      今日は{todayGoals.length}つの目標があります
+                    </p>
+                    <p style={{ fontSize: "13px", color: "#888888" }}>走る前に目標を選べます</p>
+                  </>
+                )}
+
+                {/* 目標なし・フリーラン */}
+                {isFreeRun && (
+                  <>
+                    <p style={{ fontSize: "26px", fontWeight: 800, color: "#111111", marginBottom: "8px" }}>フリーラン</p>
+                    <p style={{ fontSize: "14px", color: "#888888" }}>今日の記録を残そう</p>
+                  </>
+                )}
+              </>
+            )}
           </div>
-          <h1 className="text-2xl font-bold mb-2">ランニングを開始</h1>
-          {goalInstance && (
-            <div className="card mb-6 text-left w-full max-w-xs">
-              <p className="text-xs text-[#888888] mb-1">今日の目標</p>
-              <p className="font-semibold">
-                {[
-                  goalInstance.distance_km && `${goalInstance.distance_km}km`,
-                  goalInstance.duration_minutes && `${goalInstance.duration_minutes}分`,
-                ].filter(Boolean).join("・")}
-              </p>
-            </div>
-          )}
+
+          {/* 走るボタン */}
           <button
-            className="btn-primary w-full max-w-xs"
+            className="btn-primary"
+            style={{ width: "100%", fontSize: "17px", letterSpacing: "0.04em", opacity: isLoadingGoal ? 0.5 : 1 }}
+            disabled={isLoadingGoal}
             onClick={() => {
               if (!urlInstanceId && todayGoals.length >= 2) {
                 setPhase("goalSelect");
@@ -275,12 +365,14 @@ function RunPageInner() {
               }
             }}
           >
-            走る
+            {isFreeRun ? "計測スタート →" : "走る →"}
           </button>
         </div>
+
         {phase === "gpsPrompt" && (
           <GpsPermissionModal onAllow={startGps} onClose={() => setPhase("idle")} />
         )}
+
         {phase === "goalSelect" && (
           <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 60, display: "flex", alignItems: "flex-end" }}>
             <div style={{ background: "white", borderRadius: "20px 20px 0 0", padding: "24px 20px calc(env(safe-area-inset-bottom) + 24px)", width: "100%" }}>
@@ -303,11 +395,11 @@ function RunPageInner() {
                     >
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                         <span style={{ fontSize: "17px", fontWeight: 700, color: "#FF6B00" }}>🏃 {mainLabel}</span>
-                        {g.goals?.penalty_amount && (
+                        {g.goals?.penalty_amount ? (
                           <span style={{ fontSize: "13px", fontWeight: 600, color: "#EF4444", background: "#FEE2E2", padding: "3px 9px", borderRadius: "99px" }}>
                             罰金 ¥{g.goals.penalty_amount.toLocaleString()}
                           </span>
-                        )}
+                        ) : null}
                       </div>
                     </button>
                   );
@@ -330,23 +422,42 @@ function RunPageInner() {
     );
   }
 
-  // 計測中画面
+  // ── 計測中画面 ──
   return (
     <div style={{ height: "100dvh", display: "flex", flexDirection: "column", background: "#ffffff", overflow: "hidden" }}>
 
-      {/* ヘッダー */}
-      <div style={{ flexShrink: 0, background: "#111111", padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <span style={{ color: "#888888", fontSize: "12px" }}>計測中</span>
-        {goalInstance && (
-          <span style={{ color: "#FF6B00", fontSize: "13px", fontWeight: 700 }}>
-            目標: {[
-              goalInstance.distance_km && `${goalInstance.distance_km}km`,
-              goalInstance.duration_minutes && `${goalInstance.duration_minutes}分`,
-            ].filter(Boolean).join("・")}
+      {/* ヘッダー（白） */}
+      <div style={{
+        flexShrink: 0, background: "white",
+        borderBottom: "1px solid #F0F0F0",
+        padding: "10px 16px",
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "7px" }}>
+          <div
+            className={phase === "running" ? "animate-pulse" : ""}
+            style={{
+              width: "8px", height: "8px", borderRadius: "50%",
+              background: phase === "paused" ? "#FBBF24" : "#22C55E",
+            }}
+          />
+          <span style={{ fontSize: "12px", color: "#888888", fontWeight: 600 }}>
+            {phase === "paused" ? "一時停止中" : "計測中"}
           </span>
-        )}
-        {phase === "paused" && (
-          <span style={{ color: "#FBBF24", fontSize: "12px", fontWeight: 700 }}>一時停止中</span>
+        </div>
+        {goalInstance && (
+          <span style={{ fontSize: "13px", fontWeight: 700, color: goalReached ? "#22C55E" : "#FF6B00" }}>
+            {goalReached
+              ? "目標達成！🎉"
+              : remainDistKm !== null
+              ? `あと ${remainDistKm.toFixed(2)} km`
+              : remainMinutes !== null
+              ? `あと ${remainMinutes} 分`
+              : [
+                  goalInstance.distance_km && `${goalInstance.distance_km}km`,
+                  goalInstance.duration_minutes && `${goalInstance.duration_minutes}分`,
+                ].filter(Boolean).join("・")}
+          </span>
         )}
       </div>
 
@@ -354,11 +465,24 @@ function RunPageInner() {
       <div style={{ flex: 1, minHeight: 0, overflow: "hidden", position: "relative" }}>
         <RunMap points={gpsPoints} />
         {phase === "paused" && (
-          <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <span style={{ color: "white", fontWeight: 700, fontSize: "16px", background: "rgba(0,0,0,0.6)", padding: "8px 20px", borderRadius: "999px" }}>一時停止中</span>
+          <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.28)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <span style={{ color: "white", fontWeight: 700, fontSize: "16px", background: "rgba(0,0,0,0.55)", padding: "8px 20px", borderRadius: "999px" }}>一時停止中</span>
           </div>
         )}
       </div>
+
+      {/* 目標達成バナー */}
+      {goalReached && (
+        <div style={{
+          flexShrink: 0,
+          background: "linear-gradient(135deg, #22C55E, #16A34A)",
+          padding: "10px 16px",
+          display: "flex", alignItems: "center", gap: "10px",
+        }}>
+          <Image src="/stickman-assets/stickman-02.png" alt="" width={36} height={36} style={{ objectFit: "contain" }} />
+          <p style={{ fontSize: "14px", fontWeight: 800, color: "white" }}>目標達成！このままゴールしよう 🎉</p>
+        </div>
+      )}
 
       {/* 統計 + ボタン */}
       <div style={{ flexShrink: 0, background: "#ffffff", borderTop: "1px solid #E5E5E5" }}>
@@ -373,7 +497,7 @@ function RunPageInner() {
                   <span>目標 {goalInstance?.distance_km}km（{Math.round(distPct)}%）</span>
                 </div>
                 <div style={{ height: "5px", background: "#F0F0F0", borderRadius: "3px", overflow: "hidden" }}>
-                  <div style={{ height: "100%", background: "#FF6B00", borderRadius: "3px", width: `${distPct}%`, transition: "width 0.5s ease" }} />
+                  <div style={{ height: "100%", background: distPct >= 100 ? "#22C55E" : "#FF6B00", borderRadius: "3px", width: `${distPct}%`, transition: "width 0.5s ease" }} />
                 </div>
               </div>
             )}
@@ -384,7 +508,7 @@ function RunPageInner() {
                   <span>目標 {goalInstance?.duration_minutes}分（{Math.round(timePct)}%）</span>
                 </div>
                 <div style={{ height: "5px", background: "#F0F0F0", borderRadius: "3px", overflow: "hidden" }}>
-                  <div style={{ height: "100%", background: "#FF6B00", borderRadius: "3px", width: `${timePct}%`, transition: "width 0.5s ease" }} />
+                  <div style={{ height: "100%", background: timePct >= 100 ? "#22C55E" : "#FF6B00", borderRadius: "3px", width: `${timePct}%`, transition: "width 0.5s ease" }} />
                 </div>
               </div>
             )}
@@ -423,8 +547,17 @@ function RunPageInner() {
               {phase === "paused" ? <><Play size={16} />再開</> : <><Pause size={16} />一時停止</>}
             </button>
             <button
-              className="btn-primary"
-              style={{ flex: 1, minHeight: "52px", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
+              style={{
+                flex: 1, minHeight: "52px",
+                display: "flex", alignItems: "center", justifyContent: "center", gap: "6px",
+                background: goalReached ? "#22C55E" : "#FF6B00",
+                color: "white", border: "none", borderRadius: "12px",
+                fontSize: "16px", fontWeight: 800, cursor: "pointer",
+                boxShadow: goalReached
+                  ? "0 4px 20px rgba(34,197,94,0.45)"
+                  : "0 4px 14px rgba(255,107,0,0.35)",
+                transition: "background 0.3s, box-shadow 0.3s",
+              }}
               onClick={handleFinish}
             >
               <Flag size={16} />{goalReached ? "ゴール！" : "終了"}

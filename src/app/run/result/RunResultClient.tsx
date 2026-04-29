@@ -4,9 +4,10 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { formatPace, formatDuration } from "@/lib/haversine";
-import { CheckCircle, TrendingUp, Home } from "lucide-react";
+import { TrendingUp, Home } from "lucide-react";
 import AppShell from "@/components/AppShell";
 import InstallPromptModal from "@/components/InstallPromptModal";
+import Image from "next/image";
 
 export default function RunResultClient() {
   const params = useSearchParams();
@@ -19,6 +20,8 @@ export default function RunResultClient() {
   const pace = parseInt(params.get("pace") ?? "0");
   const calories = parseInt(params.get("calories") ?? "0");
   const goalReached = params.get("goalReached") === "true";
+  const goalDistKm = params.get("goalDistKm") ? parseFloat(params.get("goalDistKm")!) : null;
+  const goalDurMin = params.get("goalDurMin") ? parseInt(params.get("goalDurMin")!) : null;
   const runId = params.get("runId");
   const rawInstall = params.get("installPrompt");
   const installTrigger: 1 | 3 | null = rawInstall === "1" ? 1 : rawInstall === "3" ? 3 : null;
@@ -39,13 +42,17 @@ export default function RunResultClient() {
         .then(({ data }) => {
           const prevBestPace = data?.[0]?.pace_seconds_per_km ?? Infinity;
           const prevBestDist = data?.[0]?.distance_km ?? 0;
-          if (pace > 0 && pace < prevBestPace) {
-            setIsNewPB(true);
-          }
+          if (pace > 0 && pace < prevBestPace) setIsNewPB(true);
           setPersonalBest({ pace: prevBestPace, distance: prevBestDist });
         });
     });
   }, [runId, pace]);
+
+  const achievementLabel = goalDistKm
+    ? `${goalDistKm} km 達成！`
+    : goalDurMin
+    ? `${goalDurMin} 分 達成！`
+    : "目標達成！";
 
   return (
     <AppShell>
@@ -55,31 +62,54 @@ export default function RunResultClient() {
           onClose={() => setShowInstallModal(false)}
         />
       )}
-      <div className="flex flex-col min-h-[calc(100vh-64px)] px-4 pt-12 pb-4">
-        {/* ヘッダー */}
-        <div className="text-center mb-8">
+      <div style={{
+        display: "flex", flexDirection: "column",
+        minHeight: "calc(100vh - 64px)",
+        padding: "0 16px 24px",
+        background: "linear-gradient(180deg, #FFFFFF 0%, #FFF9F5 100%)",
+      }}>
+
+        {/* ─── ヒーロー ─── */}
+        <div style={{ textAlign: "center", padding: "32px 0 20px" }}>
           {goalReached ? (
             <>
-              <CheckCircle size={56} color="#22C55E" className="mx-auto mb-3" />
-              <h1 className="text-2xl font-bold text-[#111111]">目標達成！</h1>
+              <Image
+                src="/stickman-assets/stickman-02.png"
+                alt="" width={130} height={150}
+                style={{ objectFit: "contain", marginBottom: "14px" }}
+              />
+              <p style={{ fontSize: "10px", color: "#22C55E", fontWeight: 800, letterSpacing: "0.2em", marginBottom: "10px" }}>
+                TODAY&apos;S MISSION CLEAR
+              </p>
+              <p style={{ fontSize: "26px", fontWeight: 800, color: "#111111" }}>{achievementLabel}</p>
             </>
           ) : (
             <>
-              <div className="w-14 h-14 rounded-full bg-[#F0F0F0] flex items-center justify-center mx-auto mb-3">
-                <span className="text-2xl">🏃</span>
-              </div>
-              <h1 className="text-2xl font-bold text-[#111111]">お疲れ様でした</h1>
+              <Image
+                src="/stickman-assets/stickman-05.png"
+                alt="" width={110} height={128}
+                style={{ objectFit: "contain", marginBottom: "14px" }}
+              />
+              <p style={{ fontSize: "24px", fontWeight: 800, color: "#111111", marginBottom: "6px" }}>お疲れ様でした！</p>
+              <p style={{ fontSize: "14px", color: "#888888" }}>
+                {distanceKm.toFixed(2)} km 走りました
+              </p>
             </>
           )}
         </div>
 
-        {/* 自己ベスト更新 */}
+        {/* ─── 自己ベスト更新 ─── */}
         {isNewPB && (
-          <div className="bg-[#FFF0E5] border border-[#FFDCC4] rounded-xl p-4 flex items-center gap-3 mb-4">
-            <TrendingUp size={22} color="#FF6B00" />
+          <div style={{
+            background: "#FFF0E5", border: "1px solid #FFDCC4",
+            borderRadius: "14px", padding: "12px 14px",
+            display: "flex", alignItems: "center", gap: "10px",
+            marginBottom: "14px",
+          }}>
+            <TrendingUp size={20} color="#FF6B00" />
             <div>
-              <p className="text-sm font-bold text-[#FF6B00]">🎉 自己ベスト更新！</p>
-              <p className="text-xs text-[#888888] mt-0.5">
+              <p style={{ fontSize: "13px", fontWeight: 700, color: "#FF6B00" }}>自己ベスト更新！</p>
+              <p style={{ fontSize: "11px", color: "#888888", marginTop: "2px" }}>
                 最速ペース {formatPace(pace)}/km
                 {personalBest && personalBest.pace !== Infinity && (
                   <span>（前回 {formatPace(personalBest.pace)}/km）</span>
@@ -89,36 +119,53 @@ export default function RunResultClient() {
           </div>
         )}
 
-        {/* 結果カード */}
-        <div className="card mb-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="text-center py-2">
-              <p className="metric-value text-[#FF6B00] text-4xl">{distanceKm.toFixed(2)}</p>
-              <p className="text-xs text-[#888888] mt-1">km</p>
+        {/* ─── 結果カード ─── */}
+        <div style={{
+          background: "white", borderRadius: "20px",
+          boxShadow: "0 2px 14px rgba(0,0,0,0.07)",
+          overflow: "hidden", marginBottom: "16px",
+        }}>
+          {/* 主要指標：距離・タイム */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", borderBottom: "1px solid #F5F5F5" }}>
+            <div style={{ textAlign: "center", padding: "22px 8px 16px", borderRight: "1px solid #F5F5F5" }}>
+              <p className="metric-value" style={{ fontSize: "46px", color: "#FF6B00", lineHeight: 1 }}>
+                {distanceKm.toFixed(2)}
+              </p>
+              <p style={{ fontSize: "11px", color: "#BBBBBB", marginTop: "5px", fontWeight: 600 }}>km</p>
             </div>
-            <div className="text-center py-2">
-              <p className="metric-value text-[#111111] text-4xl">{formatDuration(durationSec)}</p>
-              <p className="text-xs text-[#888888] mt-1">タイム</p>
+            <div style={{ textAlign: "center", padding: "22px 8px 16px" }}>
+              <p className="metric-value" style={{ fontSize: "46px", color: "#111111", lineHeight: 1 }}>
+                {formatDuration(durationSec)}
+              </p>
+              <p style={{ fontSize: "11px", color: "#BBBBBB", marginTop: "5px", fontWeight: 600 }}>タイム</p>
             </div>
-            <div className="text-center py-2">
-              <p className="metric-value text-[#111111] text-2xl">{formatPace(pace)}</p>
-              <p className="text-xs text-[#888888] mt-1">平均ペース</p>
+          </div>
+          {/* サブ指標：ペース・カロリー */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr" }}>
+            <div style={{ textAlign: "center", padding: "14px 8px", borderRight: "1px solid #F5F5F5" }}>
+              <p className="metric-value" style={{ fontSize: "26px", color: "#111111", lineHeight: 1 }}>
+                {formatPace(pace)}
+              </p>
+              <p style={{ fontSize: "11px", color: "#BBBBBB", marginTop: "4px", fontWeight: 600 }}>平均ペース</p>
             </div>
-            <div className="text-center py-2">
-              <p className="metric-value text-[#111111] text-2xl">{calories}</p>
-              <p className="text-xs text-[#888888] mt-1">kcal</p>
+            <div style={{ textAlign: "center", padding: "14px 8px" }}>
+              <p className="metric-value" style={{ fontSize: "26px", color: "#111111", lineHeight: 1 }}>
+                {calories}
+              </p>
+              <p style={{ fontSize: "11px", color: "#BBBBBB", marginTop: "4px", fontWeight: 600 }}>kcal</p>
             </div>
           </div>
         </div>
 
-        <div className="flex-1" />
+        <div style={{ flex: 1 }} />
 
         <button
-          className="btn-primary w-full gap-2"
+          className="btn-primary"
+          style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}
           onClick={() => router.push("/")}
         >
           <Home size={18} />
-          ダッシュボードへ
+          ホームへ
         </button>
       </div>
     </AppShell>
