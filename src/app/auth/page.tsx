@@ -6,6 +6,7 @@ import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
+import Image from "next/image";
 
 const GoogleIcon = () => (
   <svg width="20" height="20" viewBox="0 0 18 18" style={{ flexShrink: 0 }}>
@@ -13,33 +14,6 @@ const GoogleIcon = () => (
     <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.909-2.258c-.806.54-1.837.86-3.047.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/>
     <path d="M3.964 10.712A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.712V4.956H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.044l3.007-2.332z" fill="#FBBC05"/>
     <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.956L3.964 7.288C4.672 5.161 6.656 3.58 9 3.58z" fill="#EA4335"/>
-  </svg>
-);
-
-const RunnerIllustration = () => (
-  <svg viewBox="0 0 160 200" width="150" height="190" style={{ overflow: "visible", display: "block" }}>
-    {/* ¥ speech bubble */}
-    <circle cx="133" cy="25" r="22" fill="#FF6B00" />
-    <text x="133" y="33" textAnchor="middle" fill="white" fontSize="22" fontWeight="900">¥</text>
-    <polygon points="118,38 100,60 122,44" fill="#FF6B00" />
-    {/* head */}
-    <circle cx="74" cy="40" r="17" fill="#FF6B00" />
-    {/* torso */}
-    <line x1="74" y1="57" x2="66" y2="100" stroke="#FF6B00" strokeWidth="11" strokeLinecap="round" />
-    {/* arm back */}
-    <line x1="70" y1="68" x2="40" y2="60" stroke="#FF6B00" strokeWidth="10" strokeLinecap="round" />
-    {/* arm front */}
-    <line x1="70" y1="68" x2="96" y2="84" stroke="#FF6B00" strokeWidth="10" strokeLinecap="round" />
-    {/* leg back */}
-    <line x1="66" y1="100" x2="40" y2="135" stroke="#FF6B00" strokeWidth="10" strokeLinecap="round" />
-    <line x1="40" y1="135" x2="28" y2="165" stroke="#FF6B00" strokeWidth="10" strokeLinecap="round" />
-    {/* leg front */}
-    <line x1="66" y1="100" x2="90" y2="128" stroke="#FF6B00" strokeWidth="10" strokeLinecap="round" />
-    <line x1="90" y1="128" x2="76" y2="158" stroke="#FF6B00" strokeWidth="10" strokeLinecap="round" />
-    {/* speed lines */}
-    <line x1="5" y1="90" x2="40" y2="90" stroke="#FF6B00" strokeWidth="6" strokeLinecap="round" />
-    <line x1="10" y1="106" x2="43" y2="106" stroke="#FF6B00" strokeWidth="5" strokeLinecap="round" />
-    <line x1="18" y1="120" x2="46" y2="120" stroke="#FF6B00" strokeWidth="4" strokeLinecap="round" />
   </svg>
 );
 
@@ -103,62 +77,79 @@ export default function AuthPage() {
   return (
     <div style={{ minHeight: "100vh", background: "#FFF8F4", overflowX: "hidden" }}>
 
-      {/* ── ヘッダー ── */}
-      <div style={{ position: "relative", padding: "20px 24px 0" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          {/* ランニングアイコン */}
-          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-            <circle cx="18" cy="5" r="3.5" fill="#FF6B00" />
-            <path d="M16 9 L13 18 M13 18 L8 24 M13 18 L18 23" stroke="#FF6B00" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M16 12 L21 10 M21 10 L24 13" stroke="#FF6B00" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M4 16 L11 16" stroke="#FF6B00" strokeWidth="2" strokeLinecap="round" />
-            <path d="M5 19 L12 19" stroke="#FF6B00" strokeWidth="1.5" strokeLinecap="round" />
-          </svg>
-          <span style={{ fontSize: "18px", fontWeight: 900, color: "#FF6B00", letterSpacing: "0.12em" }}>KAKERU</span>
-        </div>
-        {/* 装飾: ドット（右上） */}
-        <div style={{ position: "absolute", top: "16px", right: "20px", display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: "4px" }}>
-          {Array.from({ length: 15 }).map((_, i) => (
-            <div key={i} style={{ width: "4px", height: "4px", borderRadius: "50%", background: "#FFCFB0" }} />
-          ))}
-        </div>
-      </div>
+      {/* ── ヒーロー（ヘッダー含む） ── */}
+      <div style={{ position: "relative", overflow: "hidden", paddingBottom: "40px" }}>
 
-      {/* ── ヒーロー ── */}
-      <div style={{ position: "relative", padding: "24px 24px 0", overflow: "hidden" }}>
-        {/* 装飾: 波線（右上） */}
-        <svg style={{ position: "absolute", top: "28px", right: "170px" }} width="36" height="18" viewBox="0 0 36 18" fill="none">
-          <path d="M2 9 Q9 2 18 9 Q27 16 34 9" stroke="#5ECFB0" strokeWidth="2.5" strokeLinecap="round" fill="none" />
-        </svg>
-        {/* 装飾: 青丸 */}
-        <div style={{ position: "absolute", top: "90px", right: "20px", width: "18px", height: "18px", borderRadius: "50%", background: "#7AB8F5" }} />
+        {/* 抽象画像 背景レイヤー */}
+        <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
+          {/* メイン背景：全体を覆う抽象画像 */}
+          <Image
+            src="/抽象画像/抽象画像2.png"
+            alt=""
+            fill
+            style={{ objectFit: "cover", opacity: 0.1 }}
+          />
+          {/* アクセント：右上 */}
+          <div style={{ position: "absolute", top: "-20px", right: "-30px", width: "200px", height: "200px" }}>
+            <Image
+              src="/抽象画像/抽象画像4.png"
+              alt=""
+              fill
+              style={{ objectFit: "contain", opacity: 0.18 }}
+            />
+          </div>
+          {/* アクセント：左下 */}
+          <div style={{ position: "absolute", bottom: "0px", left: "-20px", width: "160px", height: "160px" }}>
+            <Image
+              src="/抽象画像/抽象画像6.png"
+              alt=""
+              fill
+              style={{ objectFit: "contain", opacity: 0.14 }}
+            />
+          </div>
+        </div>
 
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+        {/* ヘッダー */}
+        <div style={{ position: "relative", padding: "20px 24px 0", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <Image src="/favicon.png" alt="KAKERU" width={28} height={28} style={{ objectFit: "contain" }} />
+            <span style={{ fontSize: "18px", fontWeight: 900, color: "#FF6B00", letterSpacing: "0.12em" }}>KAKERU</span>
+          </div>
+          {/* 装飾: ドット */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: "4px" }}>
+            {Array.from({ length: 15 }).map((_, i) => (
+              <div key={i} style={{ width: "4px", height: "4px", borderRadius: "50%", background: "#FFCFB0" }} />
+            ))}
+          </div>
+        </div>
+
+        {/* ヒーローコンテンツ */}
+        <div style={{ position: "relative", padding: "24px 24px 0", display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
           {/* テキスト */}
           <div style={{ flex: 1, paddingRight: "8px" }}>
-            <h1 style={{ fontSize: "38px", fontWeight: 900, lineHeight: 1.2, margin: 0, color: "#1A1A1A" }}>
-              <span style={{ color: "#FF6B00" }}>走</span>らないと、<br />
-              <span style={{ color: "#FF6B00" }}>罰金</span>が発生する。
+            <h1 style={{ fontSize: "36px", fontWeight: 900, lineHeight: 1.25, margin: 0, color: "#1A1A1A" }}>
+              走らなければ、<br />
+              課金される
             </h1>
-            <p style={{ fontSize: "13px", color: "#888888", lineHeight: 1.7, marginTop: "12px", marginBottom: 0 }}>
+            <p style={{ fontSize: "13px", color: "#666666", lineHeight: 1.7, marginTop: "14px", marginBottom: 0 }}>
               Kakeruは、あなたの「やる気」を守る<br />ランニング習慣化アプリです。
             </p>
           </div>
-          {/* ランナーイラスト */}
-          <div style={{ flexShrink: 0, marginTop: "-8px" }}>
-            <RunnerIllustration />
+          {/* 棒人間 */}
+          <div style={{ flexShrink: 0, marginTop: "-4px" }}>
+            <Image
+              src="/stickman-assets/stickman-05.png"
+              alt=""
+              width={140}
+              height={175}
+              style={{ objectFit: "contain" }}
+            />
           </div>
         </div>
-
-        {/* 装飾: オレンジ波形（下部） */}
-        <svg style={{ display: "block", marginTop: "16px", marginLeft: "-24px", width: "calc(100% + 48px)" }} viewBox="0 0 390 48" preserveAspectRatio="none" height="48">
-          <path d="M0 28 Q60 8 120 28 Q180 48 240 28 Q300 8 360 28 L390 24 L390 48 L0 48 Z" fill="#FFDDCC" />
-          <path d="M0 34 Q80 16 160 34 Q240 52 320 34 L390 30 L390 48 L0 48 Z" fill="#FF6B00" opacity="0.15" />
-        </svg>
       </div>
 
       {/* ── 認証カード ── */}
-      <div style={{ padding: "0 16px", marginTop: "-4px", position: "relative", zIndex: 1 }}>
+      <div style={{ padding: "0 16px 8px", position: "relative", zIndex: 1, marginTop: "-16px" }}>
         {/* 装飾: ドット（左） */}
         <div style={{ position: "absolute", left: "4px", top: "40px", display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "5px" }}>
           {Array.from({ length: 9 }).map((_, i) => (
@@ -184,7 +175,6 @@ export default function AuthPage() {
             </div>
           ) : (
             <>
-              {/* カードタイトル */}
               <p style={{ textAlign: "center", fontSize: "11px", color: "#AAAAAA", letterSpacing: "0.08em", marginBottom: "6px" }}>
                 <span style={{ marginRight: "6px" }}>╲</span>
                 {mode === "reset" ? "パスワードをリセット" : "さあ、今日から変わろう。"}
@@ -193,12 +183,9 @@ export default function AuthPage() {
               <p style={{ textAlign: "center", fontSize: "13px", color: "#888888", marginBottom: "20px" }}>
                 {mode === "reset"
                   ? "メールアドレスを入力してください"
-                  : mode === "signup"
-                  ? "アカウントを作成して、あなたの挑戦を始めよう！"
                   : "アカウントを作成して、あなたの挑戦を始めよう！"}
               </p>
 
-              {/* Google ログイン（reset 以外） */}
               {mode !== "reset" && (
                 <>
                   <button
@@ -215,7 +202,6 @@ export default function AuthPage() {
                     <GoogleIcon />
                     Googleでログイン
                   </button>
-
                   <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
                     <div style={{ flex: 1, height: "1px", background: "#EBEBEB" }} />
                     <span style={{ fontSize: "12px", color: "#AAAAAA" }}>または</span>
@@ -224,9 +210,7 @@ export default function AuthPage() {
                 </>
               )}
 
-              {/* メールフォーム */}
               <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                {/* メールアドレス */}
                 <div style={{ position: "relative" }}>
                   <Mail size={16} color="#AAAAAA" style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)" }} />
                   <input
@@ -244,7 +228,6 @@ export default function AuthPage() {
                   />
                 </div>
 
-                {/* パスワード（reset 以外） */}
                 {mode !== "reset" && (
                   <div style={{ position: "relative" }}>
                     <Lock size={16} color="#AAAAAA" style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)" }} />
@@ -271,7 +254,6 @@ export default function AuthPage() {
                   </div>
                 )}
 
-                {/* ログインしたままにする + パスワード忘れ（loginのみ） */}
                 {mode === "login" && (
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "2px" }}>
                     <label style={{ display: "flex", alignItems: "center", gap: "6px", cursor: "pointer", fontSize: "13px", color: "#555555" }}>
@@ -306,7 +288,6 @@ export default function AuthPage() {
                 </button>
               </form>
 
-              {/* モード切り替え */}
               <div style={{ textAlign: "center", marginTop: "16px" }}>
                 {mode === "reset" ? (
                   <button onClick={() => switchMode("login")} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "13px", color: "#888888" }}>
@@ -334,17 +315,11 @@ export default function AuthPage() {
       </div>
 
       {/* ── フィーチャー ── */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px", padding: "24px 20px 40px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px", padding: "20px 20px 48px" }}>
         {/* GPS */}
         <div style={{ textAlign: "center" }}>
-          <div style={{ width: "52px", height: "52px", borderRadius: "50%", background: "#FFF0E5", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 8px" }}>
-            <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
-              <circle cx="13" cy="10" r="4" fill="#FF6B00" />
-              <path d="M13 14 C13 14 6 19 6 22 Q6 25 13 25 Q20 25 20 22 C20 19 13 14 13 14Z" fill="#FF6B00" opacity="0.2" />
-              <path d="M9 20 L6 24" stroke="#FF6B00" strokeWidth="2" strokeLinecap="round" />
-              <circle cx="6" cy="24" r="1.5" fill="#FF6B00" />
-              <path d="M9 20 Q12 22 15 20 Q17 19 19 21" stroke="#FF6B00" strokeWidth="1.5" strokeLinecap="round" fill="none" strokeDasharray="2 2" />
-            </svg>
+          <div style={{ width: "64px", height: "64px", borderRadius: "50%", background: "#FFF0E5", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 8px" }}>
+            <Image src="/その他素材/地図っぽい-transparent.png" alt="" width={44} height={44} style={{ objectFit: "contain" }} />
           </div>
           <p style={{ fontSize: "12px", fontWeight: 700, color: "#111111", marginBottom: "4px" }}>GPSで正確に記録</p>
           <p style={{ fontSize: "11px", color: "#888888", lineHeight: 1.5 }}>距離・時間・ペースを自動で計測</p>
@@ -352,13 +327,8 @@ export default function AuthPage() {
 
         {/* 自動課金 */}
         <div style={{ textAlign: "center" }}>
-          <div style={{ width: "52px", height: "52px", borderRadius: "50%", background: "#FFF9E5", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 8px" }}>
-            <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
-              <path d="M13 4 Q7 4 7 11 L7 16 L5 18 L21 18 L19 16 L19 11 Q19 4 13 4Z" fill="#F59E0B" />
-              <rect x="10.5" y="18" width="5" height="3" rx="1.5" fill="#F59E0B" />
-              <circle cx="19" cy="7" r="4" fill="#EF4444" />
-              <text x="19" y="10" textAnchor="middle" fill="white" fontSize="7" fontWeight="900">!</text>
-            </svg>
+          <div style={{ width: "64px", height: "64px", borderRadius: "50%", background: "#FFF9E5", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 8px" }}>
+            <Image src="/その他素材/課金焦り-transparent.png" alt="" width={44} height={44} style={{ objectFit: "contain" }} />
           </div>
           <p style={{ fontSize: "12px", fontWeight: 700, color: "#111111", marginBottom: "4px" }}>未達成なら自動課金</p>
           <p style={{ fontSize: "11px", color: "#888888", lineHeight: 1.5 }}>目標を達成できないと登録カードに罰金が発生</p>
@@ -366,15 +336,8 @@ export default function AuthPage() {
 
         {/* 習慣化 */}
         <div style={{ textAlign: "center" }}>
-          <div style={{ width: "52px", height: "52px", borderRadius: "50%", background: "#E5F9F3", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 8px" }}>
-            <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
-              <rect x="4" y="20" width="5" height="4" rx="1" fill="#10B981" />
-              <rect x="10.5" y="15" width="5" height="9" rx="1" fill="#10B981" />
-              <rect x="17" y="10" width="5" height="14" rx="1" fill="#10B981" />
-              <path d="M6 15 L11 10 L17 12 L21 7" stroke="#FF6B00" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              <circle cx="21" cy="7" r="2" fill="#FF6B00" />
-              <path d="M19 5 L21 7 L23 5" stroke="#FF6B00" strokeWidth="1.5" strokeLinecap="round" />
-            </svg>
+          <div style={{ width: "64px", height: "64px", borderRadius: "50%", background: "#E5F9F3", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 8px" }}>
+            <Image src="/その他素材/山-transparent.png" alt="" width={44} height={44} style={{ objectFit: "contain" }} />
           </div>
           <p style={{ fontSize: "12px", fontWeight: 700, color: "#111111", marginBottom: "4px" }}>習慣化をサポート</p>
           <p style={{ fontSize: "11px", color: "#888888", lineHeight: 1.5 }}>リマインダーや記録で継続を後押し</p>
