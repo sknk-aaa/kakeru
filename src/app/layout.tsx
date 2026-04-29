@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Barlow_Condensed, DM_Sans, Noto_Sans_JP } from "next/font/google";
 import "./globals.css";
+import SplashScreen from "@/components/SplashScreen";
 
 const barlowCondensed = Barlow_Condensed({
   variable: "--font-display",
@@ -71,6 +72,7 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: `window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();window.__pwaPrompt=e;});` }} />
       </head>
       <body className="min-h-full bg-white text-[#111111] font-body">
+        <SplashScreen />
         {children}
       </body>
     </html>
