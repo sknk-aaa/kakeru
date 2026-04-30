@@ -5,6 +5,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { CheckCircle, XCircle, SkipForward, Plus, ChevronRight, ChevronDown, ChevronUp, MapPin, Clock } from "lucide-react";
 import { useState } from "react";
+import dynamicImport from "next/dynamic";
+
+const PenaltySheet = dynamicImport(() => import("@/components/PenaltySheet"), { ssr: false });
 
 interface GoalInstance {
   id: string;
@@ -68,6 +71,7 @@ export default function HomeClient({
   const [skipTargetId, setSkipTargetId] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [showPenaltySheet, setShowPenaltySheet] = useState(false);
 
   const skipRemaining = Math.max(0, 1 - (userProfile?.skip_count_this_month ?? 0));
 
@@ -320,9 +324,12 @@ export default function HomeClient({
             </div>
 
             {/* 今月の罰金 */}
-            <div style={{ background: "white", borderRadius: "18px", padding: "13px 8px 12px", boxShadow: "0 8px 24px rgba(0,0,0,0.06)", border: "1px solid rgba(0,0,0,0.03)", overflow: "hidden", minHeight: "108px" }}>
+            <div
+              style={{ background: "white", borderRadius: "18px", padding: "13px 8px 12px", boxShadow: "0 8px 24px rgba(0,0,0,0.06)", border: "1px solid rgba(0,0,0,0.03)", overflow: "hidden", minHeight: "108px", cursor: "pointer" }}
+              onClick={() => setShowPenaltySheet(true)}
+            >
               <div style={{ height: "34px", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "9px" }}>
-                <Image src="/その他素材/今月の課金額-transparent.png" alt="" width={44} height={44} style={{ objectFit: "contain" }} />
+                <Image src="/その他素材/ブタの貯金箱-透過.png" alt="" width={44} height={44} style={{ objectFit: "contain" }} />
               </div>
               <p style={{ fontSize: "10px", color: "#777777", fontWeight: 700, marginBottom: "2px", letterSpacing: "0.02em", textAlign: "center" }}>今月の罰金</p>
               <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: "1px" }}>
@@ -565,6 +572,8 @@ export default function HomeClient({
         )}
 
       </div>
+
+      <PenaltySheet open={showPenaltySheet} onClose={() => setShowPenaltySheet(false)} />
     </div>
   );
 }
