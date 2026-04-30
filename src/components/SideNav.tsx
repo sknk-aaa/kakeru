@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Home, Target, Timer, BarChart2, Settings } from "lucide-react";
 
@@ -29,22 +28,15 @@ export default function SideNav() {
         left: "max(0px, calc(50vw - 264px))",
         width: "60px",
         height: "100dvh",
-        background: "white",
+        background: "#F2F2F7",
         borderRight: "1px solid #E5E5E5",
         flexDirection: "column",
         alignItems: "center",
-        paddingTop: "calc(env(safe-area-inset-top) + 14px)",
+        paddingTop: "calc(env(safe-area-inset-top) + 20px)",
         paddingBottom: "calc(env(safe-area-inset-bottom) + 16px)",
         zIndex: 30,
-        boxShadow: "2px 0 10px rgba(0,0,0,0.04)",
       }}
     >
-      {/* ロゴ */}
-      <div style={{ marginBottom: "20px" }}>
-        <Image src="/stickman-assets/stickman-01.png" alt="" width={26} height={26} style={{ objectFit: "contain" }} />
-      </div>
-
-      {/* ナビアイテム */}
       <div style={{ display: "flex", flexDirection: "column", gap: "2px", flex: 1, alignItems: "center" }}>
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
           const active = isActive(href);
@@ -68,7 +60,7 @@ export default function SideNav() {
                     ? "linear-gradient(135deg, #E55A00, #FF7A1A)"
                     : "linear-gradient(135deg, #FF6B00, #FF8A00)"
                   : active
-                  ? "#FFF0E6"
+                  ? "white"
                   : "transparent",
                 textDecoration: "none",
                 transition: "background 0.15s",
