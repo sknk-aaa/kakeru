@@ -30,13 +30,6 @@ function SkeletonCard({ compact = false }: { compact?: boolean }) {
 export default function RouteLoadingShell({ action = false, compact = false }: RouteLoadingShellProps) {
   return (
     <div style={{ background: "linear-gradient(180deg, #FFFFFF 0%, #FFF9F5 46%, #F7F7FA 100%)", minHeight: "100vh" }}>
-      <style>{`
-        @keyframes shimmer {
-          0%   { background-position: 200% 0; }
-          100% { background-position: -200% 0; }
-        }
-      `}</style>
-
       <div style={{
         position: "sticky", top: 0, zIndex: 10,
         background: "rgba(255,255,255,0.88)", backdropFilter: "blur(16px)",

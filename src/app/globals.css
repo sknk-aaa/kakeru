@@ -10,7 +10,6 @@
   --color-border: #E5E5E5;
   --font-display: var(--font-display);
   --font-body: var(--font-body);
-  --font-jp: var(--font-jp);
 }
 
 /* ピンチズーム禁止 */
@@ -22,7 +21,7 @@ html {
 body {
   background: #ffffff;
   color: #111111;
-  font-family: var(--font-body), var(--font-jp), sans-serif;
+  font-family: var(--font-body), sans-serif;
   padding-bottom: env(safe-area-inset-bottom);
   overscroll-behavior: none;
 }
@@ -110,9 +109,15 @@ body {
   outline: none;
   background: white;
   transition: border-color 0.15s;
-  font-family: var(--font-body), var(--font-jp), sans-serif;
+  font-family: var(--font-body), sans-serif;
 }
 .input:focus { border-color: #FF6B00; }
+
+/* スケルトンシマー */
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
 
 /* 現在地マーカー */
 @keyframes gmap-pulse {
