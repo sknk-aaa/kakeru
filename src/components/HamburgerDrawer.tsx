@@ -18,7 +18,7 @@ const LEGAL_ITEMS = [
   { href: "/tokusho", label: "特定商取引法に基づく表記", icon: Receipt },
 ];
 
-export default function HamburgerDrawer({ onClose }: { onClose: () => void }) {
+export default function HamburgerDrawer({ onClose, width = 300 }: { onClose: () => void; width?: number }) {
   const router = useRouter();
   const [isSubscribed, setIsSubscribed] = useState<boolean | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
@@ -56,8 +56,8 @@ export default function HamburgerDrawer({ onClose }: { onClose: () => void }) {
       onClick={onClose}
     >
       <div
-        className="hamburger-drawer-panel"
         style={{
+          width: `${width}px`,
           height: "100%",
           background: "white",
           boxShadow: "4px 0 24px rgba(0,0,0,0.12)",

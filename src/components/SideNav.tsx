@@ -61,7 +61,7 @@ export default function SideNav() {
         >
           <Menu size={19} color="#999999" strokeWidth={2} />
         </button>
-        {open && <HamburgerDrawer onClose={() => setOpen(false)} />}
+        {open && <HamburgerDrawer onClose={() => setOpen(false)} width={500} />}
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
           const active = isActive(href);
           const isRun = href === "/run";
