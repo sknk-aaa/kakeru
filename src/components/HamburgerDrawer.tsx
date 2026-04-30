@@ -20,7 +20,7 @@ const LEGAL_ITEMS = [
 
 export default function HamburgerDrawer({ onClose }: { onClose: () => void }) {
   const router = useRouter();
-  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState<boolean | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
 
   useEffect(() => {
@@ -92,27 +92,29 @@ export default function HamburgerDrawer({ onClose }: { onClose: () => void }) {
             <p style={{ fontSize: "13px", fontWeight: 600, color: "#111111", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               {userEmail ?? ""}
             </p>
-            <div style={{ marginTop: "4px" }}>
-              {isSubscribed ? (
-                <span style={{
-                  display: "inline-block",
-                  background: "linear-gradient(135deg, #FF6B00, #FF9500)",
-                  color: "white", fontSize: "10px", fontWeight: 900,
-                  letterSpacing: "0.1em", padding: "2px 9px", borderRadius: "99px",
-                }}>★ PRO</span>
-              ) : (
-                <span style={{
-                  display: "inline-block",
-                  background: "#EBEBF0", color: "#999999",
-                  fontSize: "10px", fontWeight: 700,
-                  letterSpacing: "0.08em", padding: "2px 9px", borderRadius: "99px",
-                }}>FREE</span>
-              )}
-            </div>
+            {isSubscribed !== null && (
+              <div style={{ marginTop: "4px" }}>
+                {isSubscribed ? (
+                  <span style={{
+                    display: "inline-block",
+                    background: "linear-gradient(135deg, #FF6B00, #FF9500)",
+                    color: "white", fontSize: "10px", fontWeight: 900,
+                    letterSpacing: "0.1em", padding: "2px 9px", borderRadius: "99px",
+                  }}>★ PRO</span>
+                ) : (
+                  <span style={{
+                    display: "inline-block",
+                    background: "#EBEBF0", color: "#999999",
+                    fontSize: "10px", fontWeight: 700,
+                    letterSpacing: "0.08em", padding: "2px 9px", borderRadius: "99px",
+                  }}>FREE</span>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
-        {!isSubscribed && (
+        {isSubscribed === false && (
           <div style={{ margin: "0 14px 14px" }}>
             <Link href="/pro" onClick={onClose} style={{ textDecoration: "none" }}>
               <div style={{
@@ -135,13 +137,13 @@ export default function HamburgerDrawer({ onClose }: { onClose: () => void }) {
             Plan
           </p>
           <Link
-            href={isSubscribed ? "/pro/manage" : "/pro"}
+            href={isSubscribed === true ? "/pro/manage" : "/pro"}
             onClick={onClose}
             style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px 20px", color: "#333333", textDecoration: "none" }}
           >
             <CreditCard size={17} color="#FF6B00" strokeWidth={1.8} />
             <span style={{ fontSize: "14px", fontWeight: 500 }}>
-              {isSubscribed ? "プラン管理" : "プレミアムプラン"}
+              {isSubscribed === true ? "プラン管理" : "プレミアムプラン"}
             </span>
           </Link>
 

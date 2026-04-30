@@ -122,6 +122,20 @@ export default function ProManagePage() {
           ))}
         </div>
 
+        {/* プラン詳細リンク */}
+        <a
+          href="/pro"
+          style={{
+            width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
+            padding: "16px 20px", marginBottom: "10px",
+            background: "#FFF5EE", border: "1.5px solid rgba(255,107,0,0.18)", borderRadius: "14px",
+            textDecoration: "none",
+          }}
+        >
+          <span style={{ fontSize: "15px", color: "#FF6B00", fontWeight: 700 }}>プラン詳細を見る</span>
+          <ChevronRight size={16} color="#FF6B00" aria-hidden="true" />
+        </a>
+
         {/* 管理ボタン */}
         <button
           onClick={handlePortal}
