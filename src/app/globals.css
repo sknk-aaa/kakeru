@@ -12,6 +12,10 @@
   --font-body: var(--font-body);
 }
 
+@media (min-width: 640px) {
+  .app-content { zoom: 0.85; }
+}
+
 /* ピンチズーム禁止 */
 html {
   touch-action: manipulation;

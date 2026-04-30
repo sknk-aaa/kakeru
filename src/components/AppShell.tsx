@@ -6,7 +6,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div style={{ background: "#F2F2F7", minHeight: "100vh" }}>
       <SideNav />
-      <div style={{ maxWidth: "480px", margin: "0 auto", minHeight: "100vh", background: "#F2F2F7", position: "relative" }}>
+      <div className="app-content" style={{ maxWidth: "480px", margin: "0 auto", minHeight: "100vh", background: "#F2F2F7", position: "relative" }}>
         <HamburgerMenu />
         <main className="pb-[calc(64px+env(safe-area-inset-bottom))] sm:pb-6">
           {children}
