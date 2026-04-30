@@ -86,8 +86,8 @@ export default function BottomNav() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-[#E5E5E5]"
-      style={{ paddingBottom: "env(safe-area-inset-bottom)", overflow: "visible", boxShadow: "0 -8px 28px rgba(0,0,0,0.05)" }}
+      className="fixed bottom-0 z-50 bg-white border-t border-border"
+      style={{ left: "max(0px, calc(50vw - 240px))", width: "min(100vw, 480px)", paddingBottom: "env(safe-area-inset-bottom)", overflow: "visible", boxShadow: "0 -8px 28px rgba(0,0,0,0.05)" }}
     >
       <div className="flex items-end" style={{ minHeight: "58px" }}>
         {leftTabs.map((tab) => <TabItem key={tab.href} {...tab} active={isActive(tab.href)} onPrefetch={prefetchRoute} />)}
