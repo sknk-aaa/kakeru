@@ -4,10 +4,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { CheckCircle, XCircle, SkipForward, Plus, ChevronRight, ChevronDown, ChevronUp, MapPin, Clock } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import dynamicImport from "next/dynamic";
 
 const PenaltySheet = dynamicImport(() => import("@/components/PenaltySheet"), { ssr: false });
+const PenaltyModal = dynamicImport(() => import("@/components/PenaltyModal"), { ssr: false });
 
 interface GoalInstance {
   id: string;
@@ -26,16 +27,25 @@ interface UserProfile {
   skip_count_this_month: number;
 }
 
+interface LatestPenalty {
+  id: string;
+  amount: number;
+  goalTitle: string | null;
+}
+
 interface Props {
   userProfile: UserProfile | null;
   weekInstances: GoalInstance[];
   todayStr: string;
   totalDistanceMonth: number;
   totalPenaltyMonth: number;
+  savedPenaltyMonth: number;
   achieveRate: number;
+  streak: number;
   todayGoalInstances: GoalInstance[];
   todayRunDistanceKm: number;
   todayRunDurationSec: number;
+  latestPenalty: LatestPenalty | null;
 }
 
 const DAY_NAMES = ["日", "月", "火", "水", "木", "金", "土"];
@@ -61,10 +71,13 @@ export default function HomeClient({
   todayStr,
   totalDistanceMonth,
   totalPenaltyMonth,
+  savedPenaltyMonth,
   achieveRate,
+  streak,
   todayGoalInstances,
   todayRunDistanceKm,
   todayRunDurationSec,
+  latestPenalty,
 }: Props) {
   const router = useRouter();
   const [instances, setInstances] = useState(weekInstances);
@@ -72,6 +85,14 @@ export default function HomeClient({
   const [processing, setProcessing] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [showPenaltySheet, setShowPenaltySheet] = useState(false);
+  const [showPenaltyModal, setShowPenaltyModal] = useState(false);
+
+  useEffect(() => {
+    if (!latestPenalty) return;
+    if (!localStorage.getItem(`kakeru_seen_penalty_${latestPenalty.id}`)) {
+      setShowPenaltyModal(true);
+    }
+  }, [latestPenalty]);
 
   const skipRemaining = Math.max(0, 1 - (userProfile?.skip_count_this_month ?? 0));
 
@@ -331,15 +352,35 @@ export default function HomeClient({
               <div style={{ height: "34px", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "9px" }}>
                 <Image src="/その他素材/ブタの貯金箱-透過.png" alt="" width={44} height={44} style={{ objectFit: "contain" }} />
               </div>
-              <p style={{ fontSize: "10px", color: "#777777", fontWeight: 700, marginBottom: "2px", letterSpacing: "0.02em", textAlign: "center" }}>今月の罰金</p>
-              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: "1px" }}>
-                <span style={{ fontSize: "14px", color: totalPenaltyMonth > 0 ? "#EF4444" : "#111111", fontWeight: 900 }}>¥</span>
-                <span className="metric-value" style={{ fontSize: "30px", color: totalPenaltyMonth > 0 ? "#EF4444" : "#111111" }}>
-                  {totalPenaltyMonth >= 1000 ? `${(totalPenaltyMonth / 1000).toFixed(1)}k` : totalPenaltyMonth}
-                </span>
-              </div>
-              {totalPenaltyMonth === 0 && (
-                <p style={{ fontSize: "10px", color: "#FF6B00", textAlign: "center", fontWeight: 800, marginTop: "2px" }}>すばらしい！</p>
+              {totalPenaltyMonth > 0 ? (
+                <>
+                  <p style={{ fontSize: "10px", color: "#777777", fontWeight: 700, marginBottom: "2px", letterSpacing: "0.02em", textAlign: "center" }}>今月の罰金</p>
+                  <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: "1px" }}>
+                    <span style={{ fontSize: "14px", color: "#EF4444", fontWeight: 900 }}>¥</span>
+                    <span className="metric-value" style={{ fontSize: "30px", color: "#EF4444" }}>
+                      {totalPenaltyMonth >= 1000 ? `${(totalPenaltyMonth / 1000).toFixed(1)}k` : totalPenaltyMonth}
+                    </span>
+                  </div>
+                </>
+              ) : savedPenaltyMonth > 0 ? (
+                <>
+                  <p style={{ fontSize: "10px", color: "#777777", fontWeight: 700, marginBottom: "2px", letterSpacing: "0.02em", textAlign: "center" }}>節約した罰金</p>
+                  <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: "1px" }}>
+                    <span style={{ fontSize: "14px", color: "#22C55E", fontWeight: 900 }}>¥</span>
+                    <span className="metric-value" style={{ fontSize: "30px", color: "#22C55E" }}>
+                      {savedPenaltyMonth >= 1000 ? `${(savedPenaltyMonth / 1000).toFixed(1)}k` : savedPenaltyMonth}
+                    </span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p style={{ fontSize: "10px", color: "#777777", fontWeight: 700, marginBottom: "2px", letterSpacing: "0.02em", textAlign: "center" }}>今月の罰金</p>
+                  <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: "1px" }}>
+                    <span style={{ fontSize: "14px", color: "#111111", fontWeight: 900 }}>¥</span>
+                    <span className="metric-value" style={{ fontSize: "30px", color: "#111111" }}>0</span>
+                  </div>
+                  <p style={{ fontSize: "10px", color: "#FF6B00", textAlign: "center", fontWeight: 800, marginTop: "2px" }}>すばらしい！</p>
+                </>
               )}
             </div>
 
@@ -349,7 +390,7 @@ export default function HomeClient({
         {/* ── 今週の目標 ── */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "10px", paddingLeft: "2px" }}>
           <p style={{ fontSize: "11px", color: "#999999", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase" }}>
-            今週の目標
+            今週の目標{streak >= 2 ? ` ／ 🔥 ${streak}回連続` : ""}
           </p>
           <p style={{ fontSize: "11px", color: "#BBBBBB" }}>
             スキップ残り <strong style={{ color: "#999999" }}>{skipRemaining}回</strong>
@@ -574,6 +615,9 @@ export default function HomeClient({
       </div>
 
       <PenaltySheet open={showPenaltySheet} onClose={() => setShowPenaltySheet(false)} />
+      {showPenaltyModal && latestPenalty && (
+        <PenaltyModal penalty={latestPenalty} onClose={() => setShowPenaltyModal(false)} />
+      )}
     </div>
   );
 }
