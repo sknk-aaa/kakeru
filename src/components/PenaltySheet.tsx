@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { X, ChevronDown, ChevronUp } from "lucide-react";
 
 interface PenaltyRow {
@@ -58,12 +59,21 @@ export default function PenaltySheet({ open, onClose }: Props) {
 
   useEffect(() => {
     if (!open) return;
-    setLoading(true);
-    setShowPast(false);
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      setLoading(true);
+      setShowPast(false);
+    });
     fetch("/api/penalties")
       .then((r) => r.json())
-      .then((d) => setPenalties(d.penalties ?? []))
-      .finally(() => setLoading(false));
+      .then((d) => {
+        if (!cancelled) setPenalties(d.penalties ?? []);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => { cancelled = true; };
   }, [open]);
 
   if (!open) return null;
@@ -126,7 +136,13 @@ export default function PenaltySheet({ open, onClose }: Props) {
             </div>
           ) : penalties.length === 0 ? (
             <div style={{ textAlign: "center", padding: "40px 0" }}>
-              <p style={{ fontSize: "28px", marginBottom: "10px" }}>🎉</p>
+              <Image
+                src="/stickman-assets/stickman-15.png"
+                alt=""
+                width={86}
+                height={118}
+                style={{ display: "block", objectFit: "contain", margin: "0 auto 12px" }}
+              />
               <p style={{ fontSize: "15px", fontWeight: 700, color: "#111111", marginBottom: "6px" }}>罰金なし！</p>
               <p style={{ fontSize: "13px", color: "#AAAAAA" }}>すばらしい継続力です</p>
             </div>
@@ -188,7 +204,14 @@ function MonthSection({ group, fallbackLabel }: { group?: MonthGroup; fallbackLa
           background: "#F9F9F9", borderRadius: "14px",
           padding: "16px", textAlign: "center",
         }}>
-          <p style={{ fontSize: "13px", color: "#AAAAAA" }}>今月の罰金はありません 🎉</p>
+          <Image
+            src="/stickman-assets/stickman-15.png"
+            alt=""
+            width={52}
+            height={71}
+            style={{ display: "block", objectFit: "contain", margin: "0 auto 8px" }}
+          />
+          <p style={{ fontSize: "13px", color: "#AAAAAA" }}>今月の罰金はありません</p>
         </div>
       ) : (
         <div style={{ background: "#F9F9F9", borderRadius: "14px", overflow: "hidden" }}>
