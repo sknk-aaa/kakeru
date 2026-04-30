@@ -86,7 +86,7 @@ export default function BottomNav() {
 
   return (
     <nav
-      className="fixed bottom-0 z-50 bg-white border-t border-border"
+      className="fixed bottom-0 z-50 bg-white border-t border-border sm:hidden"
       style={{ left: "max(0px, calc(50vw - 240px))", width: "min(100vw, 480px)", paddingBottom: "env(safe-area-inset-bottom)", overflow: "visible", boxShadow: "0 -8px 28px rgba(0,0,0,0.05)" }}
     >
       <div className="flex items-end" style={{ minHeight: "58px" }}>
