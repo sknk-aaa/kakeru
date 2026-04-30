@@ -36,6 +36,21 @@ interface Props {
 }
 
 const DAY_NAMES = ["日", "月", "火", "水", "木", "金", "土"];
+const DAILY_STICKMAN_IMAGES = [
+  "/stickman-assets/stickman-01.png",
+  "/stickman-assets/stickman-03.png",
+  "/stickman-assets/stickman-04.png",
+  "/stickman-assets/stickman-05.png",
+  "/stickman-assets/stickman-06.png",
+  "/stickman-assets/stickman-07.png",
+  "/stickman-assets/stickman-08.png",
+  "/stickman-assets/stickman-09.png",
+];
+
+function getDailyStickmanSrc(seed: string) {
+  const hash = Array.from(seed).reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  return DAILY_STICKMAN_IMAGES[hash % DAILY_STICKMAN_IMAGES.length];
+}
 
 export default function HomeClient({
   userProfile,
@@ -78,6 +93,7 @@ export default function HomeClient({
   const visibleInstances = instances.filter((i) => i.status !== "cancelled");
   const pendingInstances = visibleInstances.filter((i) => i.status === "pending");
   const historyInstances = visibleInstances.filter((i) => i.status !== "pending");
+  const todayMissionStickmanSrc = getDailyStickmanSrc(todayStr);
 
   return (
     <div style={{ background: "linear-gradient(180deg, #FFFFFF 0%, #FFF9F5 46%, #F7F7FA 100%)", minHeight: "100vh" }}>
@@ -164,7 +180,7 @@ export default function HomeClient({
                 <div style={{ height: "4px", background: "#22C55E" }} />
                 <div style={{ padding: "20px 20px 24px", textAlign: "center" }}>
                   <p style={{ fontSize: "10px", color: "#22C55E", fontWeight: 800, letterSpacing: "0.18em", marginBottom: "14px" }}>TODAY&apos;S MISSION</p>
-                  <Image src="/stickman-assets/stickman-02.png" alt="" width={80} height={80} style={{ objectFit: "contain", marginBottom: "10px" }} />
+                  <Image src={todayMissionStickmanSrc} alt="" width={80} height={80} style={{ objectFit: "contain", marginBottom: "10px" }} />
                   <p style={{ fontSize: "18px", fontWeight: 800, color: "#111111", marginBottom: "4px" }}>目標達成！</p>
                   <p style={{ fontSize: "13px", color: "#888888" }}>お疲れ様でした</p>
                 </div>
@@ -199,7 +215,7 @@ export default function HomeClient({
                 background: "linear-gradient(135deg, #FFF5EE 0%, #FFFFFF 58%)",
               }}>
                 <div style={{ position: "absolute", right: "-12px", top: "4px", pointerEvents: "none" }}>
-                  <Image src="/stickman-assets/stickman-06.png" alt="" width={138} height={138} style={{ objectFit: "contain", opacity: 0.95 }} />
+                  <Image src={todayMissionStickmanSrc} alt="" width={138} height={138} style={{ objectFit: "contain", opacity: 0.95 }} />
                 </div>
                 <div style={{ position: "absolute", right: "24px", bottom: "16px", width: "62px", height: "62px", borderRadius: "50%", background: "#FFE8D9", opacity: 0.72, pointerEvents: "none" }} />
 
