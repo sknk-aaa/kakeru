@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Barlow_Condensed, DM_Sans } from "next/font/google";
 import "./globals.css";
 import SplashScreen from "@/components/SplashScreen";
+import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 
 const barlowCondensed = Barlow_Condensed({
   variable: "--font-display",
@@ -69,6 +70,7 @@ export default function RootLayout({
       </head>
       <body className="min-h-full bg-white text-[#111111] font-body">
         <SplashScreen />
+        <ServiceWorkerRegister />
         {children}
       </body>
     </html>

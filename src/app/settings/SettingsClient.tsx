@@ -6,6 +6,13 @@ import { createBrowserSupabaseClient } from "@/lib/supabase/client-lazy";
 import { useRouter } from "next/navigation";
 import { User, Weight, Target, CreditCard, LogOut, ChevronRight, Check, CheckCircle, KeyRound, Bell, MapPin } from "lucide-react";
 
+function urlBase64ToUint8Array(base64String: string) {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const raw = atob(base64);
+  return Uint8Array.from([...raw].map((c) => c.charCodeAt(0)));
+}
+
 const sectionLabel: React.CSSProperties = {
   fontSize: "11px", color: "#999999", fontWeight: 700,
   letterSpacing: "0.14em", textTransform: "uppercase",
@@ -28,6 +35,8 @@ export interface SettingsInitialData {
   hasCard: boolean;
   notifyMorning: boolean;
   notifyEvening: boolean;
+  pushNotifyMorning: boolean;
+  pushNotifyEvening: boolean;
   cityName: string;
   locationLat: number | null;
   locationLng: number | null;
@@ -43,6 +52,9 @@ export default function SettingsClient({ initialData }: { initialData: SettingsI
   const [cardInfo, setCardInfo] = useState<{ brand: string; last4: string } | null>(null);
   const [notifyMorning, setNotifyMorning] = useState(initialData.notifyMorning);
   const [notifyEvening, setNotifyEvening] = useState(initialData.notifyEvening);
+  const [pushNotifyMorning, setPushNotifyMorning] = useState(initialData.pushNotifyMorning);
+  const [pushNotifyEvening, setPushNotifyEvening] = useState(initialData.pushNotifyEvening);
+  const [showIOSGuide, setShowIOSGuide] = useState(false);
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -125,6 +137,49 @@ export default function SettingsClient({ initialData }: { initialData: SettingsI
   async function handleToggleNotify(field: "notify_morning" | "notify_evening", value: boolean) {
     if (field === "notify_morning") setNotifyMorning(value);
     else setNotifyEvening(value);
+    const supabase = await createBrowserSupabaseClient();
+    await supabase.from("users").update({ [field]: value }).eq("id", initialData.userId);
+  }
+
+  async function handleTogglePush(field: "push_notify_morning" | "push_notify_evening", value: boolean) {
+    if (value) {
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      const isStandalone = window.matchMedia("(display-mode: standalone)").matches;
+      if (isIOS && !isStandalone) {
+        setShowIOSGuide(true);
+        return;
+      }
+      if (!("Notification" in window) || !("serviceWorker" in navigator)) return;
+      const permission = await Notification.requestPermission();
+      if (permission !== "granted") return;
+      try {
+        const reg = await navigator.serviceWorker.ready;
+        const sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!),
+        });
+        await fetch("/api/push/subscribe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(sub.toJSON()),
+        });
+      } catch { return; }
+    } else {
+      try {
+        const reg = await navigator.serviceWorker.ready;
+        const sub = await reg.pushManager.getSubscription();
+        if (sub) {
+          await fetch("/api/push/subscribe", {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ endpoint: sub.endpoint }),
+          });
+          await sub.unsubscribe();
+        }
+      } catch { /* 登録なし */ }
+    }
+    if (field === "push_notify_morning") setPushNotifyMorning(value);
+    else setPushNotifyEvening(value);
     const supabase = await createBrowserSupabaseClient();
     await supabase.from("users").update({ [field]: value }).eq("id", initialData.userId);
   }
@@ -359,6 +414,80 @@ export default function SettingsClient({ initialData }: { initialData: SettingsI
             </div>
           ))}
         </div>
+
+        {/* ─── プッシュ通知 ─── */}
+        <p style={sectionLabel}><Bell size={12} />プッシュ通知</p>
+        <div style={{ ...cardStyle, marginBottom: "14px" }}>
+          {(
+            [
+              { field: "push_notify_morning", label: "朝のリマインダー（8時）", value: pushNotifyMorning },
+              { field: "push_notify_evening", label: "夜のリマインダー（22時）", value: pushNotifyEvening },
+            ] as const
+          ).map(({ field, label, value }, i) => (
+            <div
+              key={field}
+              style={{
+                display: "flex", alignItems: "center", justifyContent: "space-between",
+                padding: "18px 18px",
+                borderTop: i > 0 ? "1px solid #F5F5F5" : "none",
+              }}
+            >
+              <span style={{ fontSize: "15px", color: "#111111" }}>{label}</span>
+              <button
+                role="switch"
+                aria-checked={value}
+                onClick={() => handleTogglePush(field, !value)}
+                style={{
+                  position: "relative", flexShrink: 0,
+                  width: "48px", height: "28px", borderRadius: "99px",
+                  background: value ? "#FF6B00" : "#E5E5E5",
+                  border: "none", cursor: "pointer",
+                  transition: "background 0.2s",
+                }}
+              >
+                <span style={{
+                  position: "absolute", top: "2px", left: "2px",
+                  width: "24px", height: "24px",
+                  background: "white", borderRadius: "50%",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+                  transition: "transform 0.2s",
+                  transform: value ? "translateX(20px)" : "translateX(0)",
+                }} />
+              </button>
+            </div>
+          ))}
+          <div style={{ padding: "0 18px 14px" }}>
+            <p style={{ fontSize: "11px", color: "#AAAAAA", lineHeight: 1.6 }}>
+              目標がある日のみ通知します。iOS の場合はホーム画面に追加済みの場合のみ受信できます。
+            </p>
+          </div>
+        </div>
+
+        {/* iOS ガイドモーダル */}
+        {showIOSGuide && (
+          <div
+            style={{ position: "fixed", inset: 0, zIndex: 100, background: "rgba(0,0,0,0.45)", display: "flex", alignItems: "flex-end" }}
+            onClick={() => setShowIOSGuide(false)}
+          >
+            <div
+              style={{ background: "white", borderRadius: "24px 24px 0 0", width: "100%", padding: "20px 20px calc(env(safe-area-inset-bottom) + 28px)" }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: "16px" }}>
+                <div style={{ width: "36px", height: "4px", background: "#E5E5E5", borderRadius: "2px" }} />
+              </div>
+              <h2 style={{ fontSize: "17px", fontWeight: 800, color: "#111111", marginBottom: "10px" }}>
+                ホーム画面に追加してください
+              </h2>
+              <p style={{ fontSize: "14px", color: "#555555", lineHeight: 1.7, marginBottom: "20px" }}>
+                iOS でプッシュ通知を受け取るには、Safari の共有ボタン（<strong>□↑</strong>）から「ホーム画面に追加」でインストール後、アプリから設定してください。
+              </p>
+              <button className="btn-primary" style={{ width: "100%", minHeight: "52px" }} onClick={() => setShowIOSGuide(false)}>
+                閉じる
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* ─── 支払い方法 ─── */}
         <p style={sectionLabel}><CreditCard size={12} />支払い方法</p>

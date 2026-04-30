@@ -11,7 +11,7 @@ export default async function SettingsPage() {
 
   const { data } = await supabase
     .from("users")
-    .select("weight_kg, monthly_distance_goal_km, stripe_payment_method_id, notify_morning, notify_evening, city_name, location_lat, location_lng")
+    .select("weight_kg, monthly_distance_goal_km, stripe_payment_method_id, notify_morning, notify_evening, push_notify_morning, push_notify_evening, city_name, location_lat, location_lng")
     .eq("id", user.id)
     .single();
 
@@ -27,6 +27,8 @@ export default async function SettingsPage() {
           hasCard: Boolean(data?.stripe_payment_method_id),
           notifyMorning: data?.notify_morning ?? true,
           notifyEvening: data?.notify_evening ?? true,
+          pushNotifyMorning: data?.push_notify_morning ?? false,
+          pushNotifyEvening: data?.push_notify_evening ?? false,
           cityName: data?.city_name ?? "",
           locationLat: data?.location_lat ?? null,
           locationLng: data?.location_lng ?? null,
