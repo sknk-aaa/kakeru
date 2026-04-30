@@ -22,6 +22,7 @@ export default async function RecordsPage() {
   const runs = allRuns ?? [];
 
   const JST_OFFSET = 9 * 60 * 60 * 1000;
+  // eslint-disable-next-line react-hooks/purity -- This dynamic server page needs the request-time month boundary.
   const nowJst = new Date(Date.now() + JST_OFFSET);
   const thisYear = nowJst.getUTCFullYear();
   const thisMonth = nowJst.getUTCMonth();

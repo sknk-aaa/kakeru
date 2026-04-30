@@ -10,11 +10,13 @@ import AppShell from "@/components/AppShell";
 
 function ProSuccessContent() {
   const searchParams = useSearchParams();
-  const [activated, setActivated] = useState<boolean | null>(null);
+  const sessionId = searchParams.get("session_id");
+  const [activationResult, setActivationResult] = useState<{ sessionId: string; activated: boolean } | null>(null);
 
   useEffect(() => {
-    const sessionId = searchParams.get("session_id");
-    if (!sessionId) { setActivated(true); return; }
+    if (!sessionId) return;
+
+    let cancelled = false;
 
     fetch("/api/stripe/activate", {
       method: "POST",
@@ -22,9 +24,23 @@ function ProSuccessContent() {
       body: JSON.stringify({ sessionId }),
     })
       .then((r) => r.json())
-      .then((d: { activated?: boolean }) => setActivated(d.activated ?? false))
-      .catch(() => setActivated(false));
-  }, [searchParams]);
+      .then((d: { activated?: boolean }) => {
+        if (!cancelled) setActivationResult({ sessionId, activated: d.activated ?? false });
+      })
+      .catch(() => {
+        if (!cancelled) setActivationResult({ sessionId, activated: false });
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [sessionId]);
+
+  const activated = sessionId
+    ? activationResult?.sessionId === sessionId
+      ? activationResult.activated
+      : null
+    : true;
 
   return (
     <div style={{ minHeight: "70vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "48px 24px", textAlign: "center" }}>

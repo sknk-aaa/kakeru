@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { CheckCircle, XCircle, SkipForward, Plus, ChevronRight, ChevronDown, ChevronUp, MapPin, Clock } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, type CSSProperties } from "react";
 import dynamicImport from "next/dynamic";
 
 const PenaltySheet = dynamicImport(() => import("@/components/PenaltySheet"), { ssr: false });
@@ -445,103 +445,114 @@ export default function HomeClient({
                 }
               }
 
+              const cardRowStyle: CSSProperties = {
+                display: "flex", alignItems: "center",
+                padding: "0 14px",
+                width: "100%",
+                background: isToday ? "rgba(255,107,0,0.035)" : "none",
+                border: "none", textAlign: "left", cursor: isPendingNotToday ? "pointer" : "default",
+                opacity: isFuture && !isToday ? 0.42 : 1,
+                borderLeft: isToday ? "3px solid #FF6B00" : "3px solid transparent",
+                minHeight: "64px",
+              };
+
+              const cardContent = (
+                <>
+                  {/* 日付 */}
+                  <div style={{ width: "44px", textAlign: "center", flexShrink: 0, padding: "14px 0" }}>
+                    <p className="metric-value" style={{
+                      fontSize: "28px", lineHeight: 1,
+                      color: isToday ? "#FF6B00" : "#1A1A1A",
+                    }}>
+                      {d.getDate()}
+                    </p>
+                    <p style={{
+                      fontSize: "10px", marginTop: "2px",
+                      color: isToday ? "#FF6B00" : "#BBBBBB",
+                      fontWeight: isToday ? 700 : 400,
+                    }}>
+                      {DAY_NAMES[d.getDay()]}
+                    </p>
+                  </div>
+
+                  <div style={{ width: "1px", height: "36px", background: isToday ? "#FFD5B0" : "#EBEBEB", margin: "0 12px", flexShrink: 0 }} />
+
+                  {/* 目標内容 */}
+                  <div style={{ flex: 1, minWidth: 0, padding: "14px 0" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "7px", flexWrap: "wrap" }}>
+                      {instance.goals?.distance_km && (
+                        <span style={{ display: "flex", alignItems: "center", gap: "3px", fontSize: "15px", fontWeight: 700, color: "#111111" }}>
+                          <MapPin size={12} color="#FF6B00" strokeWidth={2.5} aria-hidden="true" />
+                          {instance.goals.distance_km}km
+                        </span>
+                      )}
+                      {instance.goals?.duration_minutes && (
+                        <span style={{ display: "flex", alignItems: "center", gap: "3px", fontSize: "15px", fontWeight: 700, color: "#111111" }}>
+                          <Clock size={12} color="#AAAAAA" strokeWidth={2.5} aria-hidden="true" />
+                          {instance.goals.duration_minutes}分
+                        </span>
+                      )}
+                      {!instance.goals?.distance_km && !instance.goals?.duration_minutes && (
+                        <span style={{ fontSize: "15px", fontWeight: 700, color: "#111111" }}>フリーラン</span>
+                      )}
+                      {isToday && (
+                        <span style={{
+                          fontSize: "9px", background: "#FF6B00", color: "white",
+                          padding: "2px 8px", borderRadius: "99px",
+                          fontWeight: 800, letterSpacing: "0.06em", flexShrink: 0,
+                        }}>TODAY</span>
+                      )}
+                    </div>
+                    {instance.goals && (
+                      <p style={{ fontSize: "11px", color: "#EF4444", marginTop: "3px", fontWeight: 600 }}>
+                        ¥{instance.goals.penalty_amount.toLocaleString()}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* アクション */}
+                  <div style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: "6px", padding: "14px 0 14px 6px" }}>
+                    {instance.status === "achieved" && <CheckCircle size={22} color="#22C55E" aria-hidden="true" />}
+                    {instance.status === "failed" && <XCircle size={22} color="#EF4444" aria-hidden="true" />}
+                    {instance.status === "skipped" && (
+                      <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                        <SkipForward size={14} color="#CCCCCC" aria-hidden="true" />
+                        <span style={{ fontSize: "11px", color: "#CCCCCC", fontWeight: 500 }}>スキップ済み</span>
+                      </div>
+                    )}
+                    {instance.status === "pending" && isToday && (
+                      <>
+                        <Link href="/run">
+                          <button className="btn-primary" style={{ minHeight: "36px", fontSize: "13px", padding: "0 14px" }}>走る</button>
+                        </Link>
+                        {skipRemaining > 0 && (
+                          <button
+                            className="btn-secondary"
+                            style={{ minHeight: "36px", fontSize: "13px", padding: "0 10px" }}
+                            onClick={(e) => { e.stopPropagation(); setSkipTargetId(instance.id); }}
+                          >
+                            スキップ
+                          </button>
+                        )}
+                      </>
+                    )}
+                    {isPendingNotToday && <ChevronRight size={15} color="#DDDDDD" aria-hidden="true" />}
+                  </div>
+                </>
+              );
+
               return (
                 <div key={instance.id}>
                   {idx > 0 && <div style={{ height: "1px", background: "#F5F5F5", marginLeft: "72px" }} />}
-                  <button
-                    style={{
-                      display: "flex", alignItems: "center",
-                      padding: "0 14px",
-                      width: "100%",
-                      background: isToday ? "rgba(255,107,0,0.035)" : "none",
-                      border: "none", textAlign: "left", cursor: isPendingNotToday ? "pointer" : "default",
-                      opacity: isFuture && !isToday ? 0.42 : 1,
-                      borderLeft: isToday ? "3px solid #FF6B00" : "3px solid transparent",
-                      minHeight: "64px",
-                    }}
-                    onClick={handleCardTap}
-                  >
-                    {/* 日付 */}
-                    <div style={{ width: "44px", textAlign: "center", flexShrink: 0, padding: "14px 0" }}>
-                      <p className="metric-value" style={{
-                        fontSize: "28px", lineHeight: 1,
-                        color: isToday ? "#FF6B00" : "#1A1A1A",
-                      }}>
-                        {d.getDate()}
-                      </p>
-                      <p style={{
-                        fontSize: "10px", marginTop: "2px",
-                        color: isToday ? "#FF6B00" : "#BBBBBB",
-                        fontWeight: isToday ? 700 : 400,
-                      }}>
-                        {DAY_NAMES[d.getDay()]}
-                      </p>
+                  {isPendingNotToday ? (
+                    <button type="button" style={cardRowStyle} onClick={handleCardTap}>
+                      {cardContent}
+                    </button>
+                  ) : (
+                    <div style={cardRowStyle}>
+                      {cardContent}
                     </div>
-
-                    <div style={{ width: "1px", height: "36px", background: isToday ? "#FFD5B0" : "#EBEBEB", margin: "0 12px", flexShrink: 0 }} />
-
-                    {/* 目標内容 */}
-                    <div style={{ flex: 1, minWidth: 0, padding: "14px 0" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "7px", flexWrap: "wrap" }}>
-                        {instance.goals?.distance_km && (
-                          <span style={{ display: "flex", alignItems: "center", gap: "3px", fontSize: "15px", fontWeight: 700, color: "#111111" }}>
-                            <MapPin size={12} color="#FF6B00" strokeWidth={2.5} aria-hidden="true" />
-                            {instance.goals.distance_km}km
-                          </span>
-                        )}
-                        {instance.goals?.duration_minutes && (
-                          <span style={{ display: "flex", alignItems: "center", gap: "3px", fontSize: "15px", fontWeight: 700, color: "#111111" }}>
-                            <Clock size={12} color="#AAAAAA" strokeWidth={2.5} aria-hidden="true" />
-                            {instance.goals.duration_minutes}分
-                          </span>
-                        )}
-                        {!instance.goals?.distance_km && !instance.goals?.duration_minutes && (
-                          <span style={{ fontSize: "15px", fontWeight: 700, color: "#111111" }}>フリーラン</span>
-                        )}
-                        {isToday && (
-                          <span style={{
-                            fontSize: "9px", background: "#FF6B00", color: "white",
-                            padding: "2px 8px", borderRadius: "99px",
-                            fontWeight: 800, letterSpacing: "0.06em", flexShrink: 0,
-                          }}>TODAY</span>
-                        )}
-                      </div>
-                      {instance.goals && (
-                        <p style={{ fontSize: "11px", color: "#EF4444", marginTop: "3px", fontWeight: 600 }}>
-                          ¥{instance.goals.penalty_amount.toLocaleString()}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* アクション */}
-                    <div style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: "6px", padding: "14px 0 14px 6px" }}>
-                      {instance.status === "achieved" && <CheckCircle size={22} color="#22C55E" aria-hidden="true" />}
-                      {instance.status === "failed" && <XCircle size={22} color="#EF4444" aria-hidden="true" />}
-                      {instance.status === "skipped" && (
-                        <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                          <SkipForward size={14} color="#CCCCCC" aria-hidden="true" />
-                          <span style={{ fontSize: "11px", color: "#CCCCCC", fontWeight: 500 }}>スキップ済み</span>
-                        </div>
-                      )}
-                      {instance.status === "pending" && isToday && (
-                        <>
-                          <Link href="/run">
-                            <button className="btn-primary" style={{ minHeight: "36px", fontSize: "13px", padding: "0 14px" }}>走る</button>
-                          </Link>
-                          {skipRemaining > 0 && (
-                            <button
-                              className="btn-secondary"
-                              style={{ minHeight: "36px", fontSize: "13px", padding: "0 10px" }}
-                              onClick={(e) => { e.stopPropagation(); setSkipTargetId(instance.id); }}
-                            >
-                              スキップ
-                            </button>
-                          )}
-                        </>
-                      )}
-                      {isPendingNotToday && <ChevronRight size={15} color="#DDDDDD" aria-hidden="true" />}
-                    </div>
-                  </button>
+                  )}
                 </div>
               );
             })}

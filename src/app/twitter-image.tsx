@@ -25,7 +25,6 @@ export default function Image() {
         }}
       >
         {/* 背景: 波線（うっすら） */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={waveUrl}
           alt=""
@@ -76,7 +75,6 @@ export default function Image() {
               padding: "28px 40px",
             }}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={logoUrl}
               alt="走らなければ、課金される。"
@@ -108,7 +106,6 @@ export default function Image() {
             paddingRight: "48px",
           }}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={coinUrl}
             alt=""
