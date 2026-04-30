@@ -108,13 +108,13 @@ export default function GoalEditClient({ goal }: { goal: Goal }) {
     if (!res.ok) { setError("保存に失敗しました"); setLoading(false); return; }
     setSaved(true);
     setLoading(false);
-    setTimeout(() => setSaved(false), 2000);
+    setTimeout(() => router.push("/"), 800);
   }
 
   async function handleDelete() {
     setDeleting(true);
     await fetch(`/api/goals/${goal.id}`, { method: "DELETE" });
-    router.push("/goals");
+    router.push("/");
   }
 
   const isPermanentlyLocked = goal.is_locked;
