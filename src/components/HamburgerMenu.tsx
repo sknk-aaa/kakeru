@@ -20,29 +20,30 @@ export default function HamburgerMenu() {
 
   return (
     <>
-      {/* ハンバーガーボタン */}
-      <button
-        className="sm:hidden"
-        onClick={() => setOpen(true)}
-        style={{
-          position: "fixed",
-          top: "12px",
-          left: "max(12px, calc(50vw - 192px))",
-          zIndex: 30,
-          width: "36px",
-          height: "36px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "none",
-          border: "none",
-          cursor: "pointer",
-          borderRadius: "8px",
-        }}
-        aria-label="メニューを開く"
-      >
-        <Menu size={22} color="#888888" strokeWidth={2} />
-      </button>
+      {/* ハンバーガーボタン（スマホのみ表示） */}
+      <div className="sm:hidden">
+        <button
+          onClick={() => setOpen(true)}
+          style={{
+            position: "fixed",
+            top: "12px",
+            left: "max(12px, calc(50vw - 192px))",
+            zIndex: 30,
+            width: "36px",
+            height: "36px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            borderRadius: "8px",
+          }}
+          aria-label="メニューを開く"
+        >
+          <Menu size={22} color="#888888" strokeWidth={2} />
+        </button>
+      </div>
 
       {open && <HamburgerDrawer onClose={() => setOpen(false)} />}
     </>
