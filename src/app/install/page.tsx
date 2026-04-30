@@ -8,10 +8,10 @@ import { ChevronLeft, CheckCircle } from "lucide-react";
 
 type Browser = "safari" | "chrome" | "edge";
 
-const BENEFITS = [
-  { img: "/stickman-assets/stickman-04.png", label: "1タップで\n即起動" },
-  { img: "/stickman-assets/stickman-07.png", label: "プッシュ通知\nで忘れない" },
-  { img: "/stickman-assets/stickman-02.png", label: "アプリと同じ\n使い心地" },
+const BENEFITS: { img: string; w: number; h: number; label: string; sub: string }[] = [
+  { img: "/stickman-assets/stickman-15.png", w: 60, h: 60, label: "アプリのように", sub: "使える" },
+  { img: "/その他素材/通知ベル-transparent.png", w: 54, h: 54, label: "プッシュ通知で", sub: "忘れない" },
+  { img: "/stickman-assets/stickman-20.png", w: 44, h: 60, label: "1タップで", sub: "起動" },
 ];
 
 const STEPS: Record<Browser, { icon: string; detail: string }[]> = {
@@ -41,58 +41,115 @@ export default function InstallPage() {
   }, []);
 
   return (
-    <div style={{ minHeight: "100dvh", background: "white", paddingBottom: "calc(env(safe-area-inset-bottom) + 32px)" }}>
+    <div style={{ minHeight: "100dvh", background: "white", overflowX: "hidden", paddingBottom: "calc(env(safe-area-inset-bottom) + 40px)" }}>
+
       {/* ヘッダー */}
       <div style={{
         display: "flex", alignItems: "center", gap: "10px",
         padding: "calc(env(safe-area-inset-top) + 12px) 16px 12px",
         borderBottom: "1px solid #F2F2F7",
       }}>
-        <Link
-          href="/"
-          style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "36px", height: "36px", background: "#F2F2F7", borderRadius: "10px", textDecoration: "none", flexShrink: 0 }}
-        >
+        <Link href="/" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "36px", height: "36px", background: "#F2F2F7", borderRadius: "10px", textDecoration: "none", flexShrink: 0 }}>
           <ChevronLeft size={20} color="#111111" />
         </Link>
         <h1 style={{ fontSize: "15px", fontWeight: 700, color: "#111111" }}>ホーム画面に追加</h1>
       </div>
 
-      {/* ヒーロー: pc,スマホ */}
-      <div style={{ padding: "28px 24px 4px", display: "flex", justifyContent: "center" }}>
+      {/* ヒーロー */}
+      <div style={{ position: "relative", padding: "36px 24px 32px", overflow: "hidden" }}>
+        {/* 抽象画像1: 右上の背景装飾 */}
         <Image
-          src="/その他素材/pc,スマホ-transparent.png"
-          alt="カケル アプリ画面"
-          width={320}
-          height={220}
-          style={{ objectFit: "contain", maxWidth: "100%" }}
-          priority
+          src="/抽象画像/抽象画像1.png"
+          alt=""
+          width={240}
+          height={240}
+          style={{ position: "absolute", top: -28, right: -48, opacity: 0.28, pointerEvents: "none", userSelect: "none" }}
+          aria-hidden
         />
+        {/* 抽象画像3: 左下のアクセント */}
+        <Image
+          src="/抽象画像/抽象画像3.png"
+          alt=""
+          width={100}
+          height={100}
+          style={{ position: "absolute", bottom: -20, left: -24, opacity: 0.18, pointerEvents: "none", userSelect: "none" }}
+          aria-hidden
+        />
+
+        <div style={{ position: "relative", zIndex: 1, maxWidth: "290px" }}>
+          <p style={{
+            fontFamily: "var(--font-display)",
+            fontSize: "11px", fontWeight: 900, letterSpacing: "0.16em",
+            color: "#FF6B00", marginBottom: "14px",
+          }}>
+            INSTALL
+          </p>
+          <p style={{ fontSize: "24px", fontWeight: 800, color: "#111111", lineHeight: 1.5 }}>
+            <span style={{ color: "#FF6B00" }}>「ホーム画面に追加」</span>
+            することで、アプリのように使えるようになります。
+          </p>
+        </div>
+
+        {/* だから続く！ 小さく右下 */}
+        <div style={{ position: "absolute", bottom: 16, right: 20, zIndex: 1 }}>
+          <Image
+            src="/その他素材/だから続く！-transparent.png"
+            alt="だから続く！"
+            width={110}
+            height={28}
+            style={{ objectFit: "contain" }}
+          />
+        </div>
       </div>
 
-      {/* サブコピー: だから続く！ */}
-      <div style={{ display: "flex", justifyContent: "center", padding: "0 24px 24px" }}>
+      {/* ベネフィット 3列 */}
+      <div style={{ position: "relative", padding: "0 16px 28px" }}>
+        {/* 抽象画像4: グリッド背景の薄い装飾 */}
         <Image
-          src="/その他素材/だから続く！-transparent.png"
-          alt="だから続く！"
-          width={220}
-          height={56}
-          style={{ objectFit: "contain", maxWidth: "100%" }}
+          src="/抽象画像/抽象画像4.png"
+          alt=""
+          width={200}
+          height={200}
+          style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", opacity: 0.08, pointerEvents: "none", userSelect: "none" }}
+          aria-hidden
         />
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "10px", position: "relative", zIndex: 1 }}>
+          {BENEFITS.map(({ img, w, h, label, sub }) => (
+            <div key={label} style={{
+              background: "#FFF8F4",
+              borderRadius: "18px",
+              padding: "18px 8px 14px",
+              display: "flex", flexDirection: "column", alignItems: "center",
+              gap: "10px",
+              border: "1px solid rgba(255,107,0,0.08)",
+            }}>
+              <div style={{ height: "64px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Image src={img} alt="" width={w} height={h} style={{ objectFit: "contain", maxHeight: "64px" }} />
+              </div>
+              <p style={{ fontSize: "11px", fontWeight: 700, color: "#333333", textAlign: "center", lineHeight: 1.55 }}>
+                {label}<br />{sub}
+              </p>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* メリット3列 */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px", padding: "0 20px 28px" }}>
-        {BENEFITS.map(({ img, label }) => (
-          <div key={label} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", padding: "14px 8px", background: "#FAFAFA", borderRadius: "14px" }}>
-            <Image src={img} alt="" width={52} height={52} style={{ objectFit: "contain" }} />
-            <p style={{ fontSize: "11px", fontWeight: 600, color: "#333333", textAlign: "center", lineHeight: 1.5, whiteSpace: "pre-line" }}>{label}</p>
-          </div>
-        ))}
+      {/* 抽象画像2: 波ライン区切り */}
+      <div style={{ position: "relative", height: "40px", overflow: "hidden", marginBottom: "8px" }}>
+        <Image
+          src="/抽象画像/抽象画像2.png"
+          alt=""
+          width={420}
+          height={80}
+          style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", opacity: 0.22, width: "100%", height: "auto" }}
+          aria-hidden
+        />
       </div>
 
       {/* インストール済みバナー */}
       {isInstalled && (
-        <div style={{ margin: "0 20px 24px", background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: "14px", padding: "16px 18px", display: "flex", alignItems: "center", gap: "10px" }}>
+        <div style={{ margin: "0 20px 20px", background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: "14px", padding: "16px 18px", display: "flex", alignItems: "center", gap: "10px" }}>
           <CheckCircle size={20} color="#22C55E" />
           <p style={{ fontSize: "14px", fontWeight: 600, color: "#16A34A" }}>すでにインストール済みです</p>
         </div>
@@ -120,8 +177,7 @@ export default function InstallPage() {
                   background: browser === b ? "#FF6B00" : "#F2F2F7",
                   color: browser === b ? "white" : "#666666",
                   border: "none", borderRadius: "10px",
-                  fontSize: "13px", fontWeight: 700,
-                  cursor: "pointer",
+                  fontSize: "13px", fontWeight: 700, cursor: "pointer",
                 }}
               >
                 {b.charAt(0).toUpperCase() + b.slice(1)}
