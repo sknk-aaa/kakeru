@@ -14,7 +14,10 @@
 
 @media (min-width: 640px) {
   .app-content { zoom: 0.85; }
+  .hamburger-drawer-panel { width: 450px; }
 }
+
+.hamburger-drawer-panel { width: 300px; }
 
 /* ピンチズーム禁止 */
 html {

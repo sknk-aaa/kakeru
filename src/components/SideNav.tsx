@@ -8,8 +8,6 @@ import dynamicImport from "next/dynamic";
 
 const HamburgerDrawer = dynamicImport(() => import("./HamburgerDrawer"), { ssr: false, loading: () => null });
 
-const MAIN_PAGES = ["/", "/goals", "/records", "/settings"];
-
 const NAV_ITEMS = [
   { href: "/",         label: "ホーム", icon: Home },
   { href: "/goals",    label: "目標",   icon: Target },
@@ -45,29 +43,25 @@ export default function SideNav() {
       }}
     >
       <div style={{ display: "flex", flexDirection: "column", gap: "2px", flex: 1, alignItems: "center" }}>
-        {MAIN_PAGES.includes(pathname) && (
-          <>
-            <button
-              onClick={() => setOpen(true)}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                width: "48px",
-                height: "52px",
-                borderRadius: "14px",
-                background: "transparent",
-                border: "none",
-                cursor: "pointer",
-                marginBottom: "4px",
-              }}
-              aria-label="メニューを開く"
-            >
-              <Menu size={19} color="#999999" strokeWidth={2} />
-            </button>
-            {open && <HamburgerDrawer onClose={() => setOpen(false)} />}
-          </>
-        )}
+        <button
+          onClick={() => setOpen(true)}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "48px",
+            height: "52px",
+            borderRadius: "14px",
+            background: "transparent",
+            border: "none",
+            cursor: "pointer",
+            marginBottom: "4px",
+          }}
+          aria-label="メニューを開く"
+        >
+          <Menu size={19} color="#999999" strokeWidth={2} />
+        </button>
+        {open && <HamburgerDrawer onClose={() => setOpen(false)} />}
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
           const active = isActive(href);
           const isRun = href === "/run";

@@ -41,7 +41,8 @@ export default function InstallPage() {
   }, []);
 
   return (
-    <div style={{ minHeight: "100dvh", background: "white", overflowX: "hidden", paddingBottom: "calc(env(safe-area-inset-bottom) + 40px)" }}>
+    <div style={{ background: "#F2F2F7", minHeight: "100dvh" }}>
+    <div className="app-content" style={{ maxWidth: "480px", margin: "0 auto", minHeight: "100dvh", background: "white", overflowX: "hidden", paddingBottom: "calc(env(safe-area-inset-bottom) + 40px)" }}>
 
       {/* ヘッダー */}
       <div style={{
@@ -206,6 +207,7 @@ export default function InstallPage() {
           </div>
         </div>
       )}
+    </div>
     </div>
   );
 }

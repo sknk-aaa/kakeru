@@ -56,8 +56,8 @@ export default function HamburgerDrawer({ onClose }: { onClose: () => void }) {
       onClick={onClose}
     >
       <div
+        className="hamburger-drawer-panel"
         style={{
-          width: "300px",
           height: "100%",
           background: "white",
           boxShadow: "4px 0 24px rgba(0,0,0,0.12)",
