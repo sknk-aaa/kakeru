@@ -356,7 +356,7 @@ export default function HomeClient({
             display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
             minHeight: "45vh", padding: "24px 20px",
           }}>
-            <Image src="/stickman-assets/stickman-13.png" alt="" width={150} height={108} style={{ objectFit: "contain", marginBottom: "18px" }} />
+            <Image src="/stickman-assets/stickman-13.png" alt="" width={150} height={108} style={{ objectFit: "contain", marginBottom: "18px" }} priority />
             <p style={{ color: "#111111", fontSize: "16px", fontWeight: 800, marginBottom: "7px" }}>今週の目標がまだありません</p>
             <p style={{ color: "#888888", fontSize: "13px", lineHeight: 1.6, marginBottom: "20px", textAlign: "center" }}>まずは目標を一つ立ててみましょう！</p>
             <Link href="/goals/new">
@@ -373,7 +373,7 @@ export default function HomeClient({
                 minHeight: "45vh", padding: "20px",
                 display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
               }}>
-                <Image src="/stickman-assets/stickman-13.png" alt="" width={150} height={108} style={{ objectFit: "contain", marginBottom: "18px" }} />
+                <Image src="/stickman-assets/stickman-13.png" alt="" width={150} height={108} style={{ objectFit: "contain", marginBottom: "18px" }} priority />
                 <p style={{ color: "#111111", fontSize: "16px", fontWeight: 800, marginBottom: "7px" }}>今週の目標をすべてクリア！</p>
                 <p style={{ color: "#888888", fontSize: "13px", lineHeight: 1.6, marginBottom: "24px", textAlign: "center" }}>この流れのまま、次の目標を今のうちに入れておきましょう！</p>
                 <Link href="/goals/new">

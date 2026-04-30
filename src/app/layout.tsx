@@ -1,24 +1,20 @@
 import type { Metadata, Viewport } from "next";
-import { Barlow_Condensed, DM_Sans, Noto_Sans_JP } from "next/font/google";
+import { Barlow_Condensed, DM_Sans } from "next/font/google";
 import "./globals.css";
 import SplashScreen from "@/components/SplashScreen";
 
 const barlowCondensed = Barlow_Condensed({
   variable: "--font-display",
   subsets: ["latin"],
-  weight: ["700", "800", "900"],
+  weight: ["900"],
+  display: "swap",
 });
 
 const dmSans = DM_Sans({
   variable: "--font-body",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
-});
-
-const notoSansJP = Noto_Sans_JP({
-  variable: "--font-jp",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -65,7 +61,7 @@ export default function RootLayout({
   return (
     <html
       lang="ja"
-      className={`${barlowCondensed.variable} ${dmSans.variable} ${notoSansJP.variable} h-full`}
+      className={`${barlowCondensed.variable} ${dmSans.variable} h-full`}
     >
       <head>
         <link rel="apple-touch-icon" href="/icon-192.png" />
