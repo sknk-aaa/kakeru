@@ -21,7 +21,7 @@ export default async function HomePage() {
 
   const startOfMonth = `${nowJst.getUTCFullYear()}-${String(nowJst.getUTCMonth() + 1).padStart(2, "0")}-01`;
 
-  const [{ data: userProfile }, { data: weekInstances }, { data: monthRuns }, { data: monthPenalties }, { data: allTimeInstances }] =
+  const [{ data: userProfile }, { data: weekInstances }, { data: monthRuns }, { data: monthPenalties }, { count: achievedCount }, { count: failedCount }] =
     await Promise.all([
       supabase
         .from("users")
@@ -48,9 +48,14 @@ export default async function HomePage() {
         .eq("status", "charged"),
       supabase
         .from("goal_instances")
-        .select("status")
+        .select("*", { count: "exact", head: true })
         .eq("user_id", user.id)
-        .in("status", ["achieved", "failed"]),
+        .eq("status", "achieved"),
+      supabase
+        .from("goal_instances")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .eq("status", "failed"),
     ]);
 
   const todayRuns = (monthRuns ?? []).filter(r => r.started_at >= `${todayStr}T00:00:00`);
@@ -67,10 +72,8 @@ export default async function HomePage() {
     ...instance,
     goals: Array.isArray(instance.goals) ? instance.goals[0] ?? null : instance.goals,
   })) as unknown as HomeClientProps["weekInstances"];
-  const achievedCount = (allTimeInstances ?? []).filter((i) => i.status === "achieved").length;
-  const failedCount = (allTimeInstances ?? []).filter((i) => i.status === "failed").length;
-  const achieveRate = achievedCount + failedCount > 0
-    ? Math.round((achievedCount / (achievedCount + failedCount)) * 100)
+  const achieveRate = (achievedCount ?? 0) + (failedCount ?? 0) > 0
+    ? Math.round(((achievedCount ?? 0) / ((achievedCount ?? 0) + (failedCount ?? 0))) * 100)
     : 0;
 
   const todayGoalInstances = allInstances.filter(
