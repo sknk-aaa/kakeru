@@ -1,8 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Target, Timer, BarChart2, Settings } from "lucide-react";
+import { Home, Target, Timer, BarChart2, Settings, Menu } from "lucide-react";
+import dynamicImport from "next/dynamic";
+
+const HamburgerDrawer = dynamicImport(() => import("./HamburgerDrawer"), { ssr: false, loading: () => null });
+
+const MAIN_PAGES = ["/", "/goals", "/records", "/settings"];
 
 const NAV_ITEMS = [
   { href: "/",         label: "ホーム", icon: Home },
@@ -14,6 +20,7 @@ const NAV_ITEMS = [
 
 export default function SideNav() {
   const pathname = usePathname();
+  const [open, setOpen] = useState(false);
 
   function isActive(href: string) {
     return pathname === href || (href !== "/" && pathname.startsWith(href));
@@ -38,6 +45,29 @@ export default function SideNav() {
       }}
     >
       <div style={{ display: "flex", flexDirection: "column", gap: "2px", flex: 1, alignItems: "center" }}>
+        {MAIN_PAGES.includes(pathname) && (
+          <>
+            <button
+              onClick={() => setOpen(true)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: "48px",
+                height: "52px",
+                borderRadius: "14px",
+                background: "transparent",
+                border: "none",
+                cursor: "pointer",
+                marginBottom: "4px",
+              }}
+              aria-label="メニューを開く"
+            >
+              <Menu size={19} color="#999999" strokeWidth={2} />
+            </button>
+            {open && <HamburgerDrawer onClose={() => setOpen(false)} />}
+          </>
+        )}
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
           const active = isActive(href);
           const isRun = href === "/run";

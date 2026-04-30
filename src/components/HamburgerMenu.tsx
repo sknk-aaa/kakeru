@@ -22,6 +22,7 @@ export default function HamburgerMenu() {
     <>
       {/* ハンバーガーボタン */}
       <button
+        className="sm:hidden"
         onClick={() => setOpen(true)}
         style={{
           position: "fixed",
