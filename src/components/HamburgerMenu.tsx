@@ -26,7 +26,7 @@ export default function HamburgerMenu() {
         style={{
           position: "fixed",
           top: "12px",
-          left: "max(12px, calc(50vw - 228px))",
+          left: "max(12px, calc(50vw - 192px))",
           zIndex: 30,
           width: "36px",
           height: "36px",

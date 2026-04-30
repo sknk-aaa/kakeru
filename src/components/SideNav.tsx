@@ -26,7 +26,7 @@ export default function SideNav() {
       style={{
         position: "fixed",
         top: 0,
-        left: "max(0px, calc(50vw - 300px))",
+        left: "max(0px, calc(50vw - 264px))",
         width: "60px",
         height: "100dvh",
         background: "white",
