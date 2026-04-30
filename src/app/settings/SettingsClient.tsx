@@ -54,7 +54,6 @@ export default function SettingsClient({ initialData }: { initialData: SettingsI
   const [notifyEvening, setNotifyEvening] = useState(initialData.notifyEvening);
   const [pushNotifyMorning, setPushNotifyMorning] = useState(initialData.pushNotifyMorning);
   const [pushNotifyEvening, setPushNotifyEvening] = useState(initialData.pushNotifyEvening);
-  const [showIOSGuide, setShowIOSGuide] = useState(false);
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -143,12 +142,6 @@ export default function SettingsClient({ initialData }: { initialData: SettingsI
 
   async function handleTogglePush(field: "push_notify_morning" | "push_notify_evening", value: boolean) {
     if (value) {
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-      const isStandalone = window.matchMedia("(display-mode: standalone)").matches;
-      if (isIOS && !isStandalone) {
-        setShowIOSGuide(true);
-        return;
-      }
       if (!("Notification" in window) || !("serviceWorker" in navigator)) return;
       const permission = await Notification.requestPermission();
       if (permission !== "granted") return;
@@ -462,32 +455,6 @@ export default function SettingsClient({ initialData }: { initialData: SettingsI
             </p>
           </div>
         </div>
-
-        {/* iOS ガイドモーダル */}
-        {showIOSGuide && (
-          <div
-            style={{ position: "fixed", inset: 0, zIndex: 100, background: "rgba(0,0,0,0.45)", display: "flex", alignItems: "flex-end" }}
-            onClick={() => setShowIOSGuide(false)}
-          >
-            <div
-              style={{ background: "white", borderRadius: "24px 24px 0 0", width: "100%", padding: "20px 20px calc(env(safe-area-inset-bottom) + 28px)" }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div style={{ display: "flex", justifyContent: "center", marginBottom: "16px" }}>
-                <div style={{ width: "36px", height: "4px", background: "#E5E5E5", borderRadius: "2px" }} />
-              </div>
-              <h2 style={{ fontSize: "17px", fontWeight: 800, color: "#111111", marginBottom: "10px" }}>
-                ホーム画面に追加してください
-              </h2>
-              <p style={{ fontSize: "14px", color: "#555555", lineHeight: 1.7, marginBottom: "20px" }}>
-                iOS でプッシュ通知を受け取るには、Safari の共有ボタン（<strong>□↑</strong>）から「ホーム画面に追加」でインストール後、アプリから設定してください。
-              </p>
-              <button className="btn-primary" style={{ width: "100%", minHeight: "52px" }} onClick={() => setShowIOSGuide(false)}>
-                閉じる
-              </button>
-            </div>
-          </div>
-        )}
 
         {/* ─── 支払い方法 ─── */}
         <p style={sectionLabel}><CreditCard size={12} />支払い方法</p>
