@@ -25,9 +25,9 @@ export default function HamburgerMenu() {
         <button
           onClick={() => setOpen(true)}
           style={{
-            position: "fixed",
-            top: "12px",
-            left: "max(12px, calc(50vw - 192px))",
+            position: "absolute",
+            top: "calc(env(safe-area-inset-top) + 12px)",
+            left: "12px",
             zIndex: 30,
             width: "36px",
             height: "36px",
