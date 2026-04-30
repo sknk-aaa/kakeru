@@ -74,6 +74,7 @@ export default function ProPage() {
   const [plan, setPlan] = useState<"monthly" | "yearly">("monthly");
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(true);
+  const [isSubscribed, setIsSubscribed] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [cardInfo, setCardInfo] = useState<{ brand: string; last4: string } | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -84,7 +85,7 @@ export default function ProPage() {
       if (!user) { setChecking(false); return; }
       supabase.from("users").select("is_subscribed").eq("id", user.id).single()
         .then(({ data }) => {
-          if (data?.is_subscribed) { router.replace("/pro/manage"); return; }
+          if (data?.is_subscribed) { setIsSubscribed(true); setChecking(false); return; }
           setChecking(false);
           fetch("/api/stripe/payment-method")
             .then((r) => r.json())
@@ -210,7 +211,7 @@ export default function ProPage() {
             </div>
 
             {/* 価格表示 */}
-            {!checking && (
+            {!checking && !isSubscribed && (
               <div style={{
                 background: "#F8F8F8", borderRadius: "14px", padding: "16px 20px",
                 borderLeft: "4px solid #FF6B00",
@@ -303,7 +304,24 @@ export default function ProPage() {
           </div>
         </div>
 
-        {/* ═══ 料金プラン ═══ */}
+        {/* ═══ 料金プラン / 管理リンク ═══ */}
+        {isSubscribed ? (
+          <div style={{ padding: "32px 16px 0" }}>
+            <a
+              href="/pro/manage"
+              style={{
+                display: "flex", alignItems: "center", justifyContent: "center",
+                minHeight: "52px", borderRadius: "14px",
+                background: "linear-gradient(135deg, #FF6B00, #FF9500)",
+                color: "white", fontSize: "15px", fontWeight: 800,
+                textDecoration: "none",
+                boxShadow: "0 6px 20px rgba(255,107,0,0.35)",
+              }}
+            >
+              プランを管理する
+            </a>
+          </div>
+        ) : (
         <div style={{ padding: "32px 16px 0" }}>
             <p style={{ fontSize: "10px", color: "#AAAAAA", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: "16px" }}>
               PRICING
@@ -439,6 +457,8 @@ export default function ProPage() {
             )}
           </div>
 
+        )}
+
         {/* ═══ FAQ ═══ */}
         <div style={{ padding: "32px 16px 0" }}>
           <p style={{ fontSize: "10px", color: "#AAAAAA", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: "14px" }}>
@@ -474,7 +494,7 @@ export default function ProPage() {
         </div>
 
         {/* ═══ 底部 CTA ═══ */}
-        <div style={{ padding: "40px 16px calc(env(safe-area-inset-bottom) + 40px)", textAlign: "center" }}>
+        {!isSubscribed && <div style={{ padding: "40px 16px calc(env(safe-area-inset-bottom) + 40px)", textAlign: "center" }}>
           <div style={{ display: "flex", justifyContent: "center", marginBottom: "20px" }}>
             <Image src="/stickman-assets/stickman-01.png" alt="" width={80} height={80} style={{ objectFit: "contain" }} />
           </div>
@@ -498,10 +518,10 @@ export default function ProPage() {
           >
             {loading ? "処理中..." : "PRO を始める"}
           </button>
-        </div>
+        </div>}
 
       </div>
-      {showConfirm && (
+      {!isSubscribed && showConfirm && (
         <>
           <div
             onClick={() => setShowConfirm(false)}
