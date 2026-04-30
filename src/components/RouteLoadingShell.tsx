@@ -10,18 +10,19 @@ const cardStyle: React.CSSProperties = {
   overflow: "hidden",
 };
 
-const barStyle: React.CSSProperties = {
-  height: "12px",
+const shimmerStyle: React.CSSProperties = {
+  background: "linear-gradient(90deg, #EFEFF4 25%, #E4E4EB 50%, #EFEFF4 75%)",
+  backgroundSize: "200% 100%",
+  animation: "shimmer 1.4s infinite linear",
   borderRadius: "999px",
-  background: "#EFEFF4",
 };
 
 function SkeletonCard({ compact = false }: { compact?: boolean }) {
   return (
     <div style={{ ...cardStyle, padding: compact ? "16px" : "20px", marginBottom: "14px" }}>
-      <div style={{ ...barStyle, width: "34%", marginBottom: "16px" }} />
-      <div style={{ ...barStyle, width: "82%", height: compact ? "14px" : "18px", marginBottom: "10px" }} />
-      <div style={{ ...barStyle, width: "56%" }} />
+      <div style={{ ...shimmerStyle, height: "12px", width: "34%", marginBottom: "16px" }} />
+      <div style={{ ...shimmerStyle, height: compact ? "14px" : "18px", width: "82%", marginBottom: "10px" }} />
+      <div style={{ ...shimmerStyle, height: "12px", width: "56%" }} />
     </div>
   );
 }
@@ -29,6 +30,13 @@ function SkeletonCard({ compact = false }: { compact?: boolean }) {
 export default function RouteLoadingShell({ action = false, compact = false }: RouteLoadingShellProps) {
   return (
     <div style={{ background: "linear-gradient(180deg, #FFFFFF 0%, #FFF9F5 46%, #F7F7FA 100%)", minHeight: "100vh" }}>
+      <style>{`
+        @keyframes shimmer {
+          0%   { background-position: 200% 0; }
+          100% { background-position: -200% 0; }
+        }
+      `}</style>
+
       <div style={{
         position: "sticky", top: 0, zIndex: 10,
         background: "rgba(255,255,255,0.88)", backdropFilter: "blur(16px)",
@@ -55,7 +63,16 @@ export default function RouteLoadingShell({ action = false, compact = false }: R
         <div style={{ ...cardStyle, padding: "18px", marginBottom: "14px" }}>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "8px", alignItems: "end", height: "112px" }}>
             {[48, 72, 38, 92].map((height, index) => (
-              <div key={index} style={{ height, borderRadius: "10px 10px 4px 4px", background: index === 3 ? "#FFE1C7" : "#ECECF1" }} />
+              <div key={index} style={{
+                height,
+                borderRadius: "10px 10px 4px 4px",
+                background: index === 3
+                  ? "linear-gradient(90deg, #FFE1C7 25%, #FFD4B0 50%, #FFE1C7 75%)"
+                  : "linear-gradient(90deg, #ECECF1 25%, #E4E4E9 50%, #ECECF1 75%)",
+                backgroundSize: "200% 100%",
+                animation: "shimmer 1.4s infinite linear",
+                animationDelay: `${index * 0.1}s`,
+              }} />
             ))}
           </div>
         </div>
