@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CreditCard, FileText, HelpCircle, LogOut, MessageCircle, Receipt, Shield, X, Zap } from "lucide-react";
+import { CreditCard, Download, FileText, HelpCircle, LogOut, MessageCircle, Receipt, Shield, X, Zap } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 const SUPPORT_ITEMS = [
@@ -22,6 +22,9 @@ export default function HamburgerDrawer({ onClose }: { onClose: () => void }) {
   const router = useRouter();
   const [isSubscribed, setIsSubscribed] = useState<boolean | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [isInstalled] = useState(() =>
+    typeof window !== "undefined" && window.matchMedia("(display-mode: standalone)").matches
+  );
 
   useEffect(() => {
     const supabase = createClient();
@@ -152,6 +155,16 @@ export default function HamburgerDrawer({ onClose }: { onClose: () => void }) {
           <p style={{ fontSize: "10px", color: "#BBBBBB", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", padding: "8px 20px 4px" }}>
             Support
           </p>
+          {!isInstalled && (
+            <Link
+              href="/install"
+              onClick={onClose}
+              style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px 20px", color: "#333333", textDecoration: "none" }}
+            >
+              <Download size={17} color="#FF6B00" strokeWidth={1.8} />
+              <span style={{ fontSize: "14px", fontWeight: 500 }}>ホーム画面に追加</span>
+            </Link>
+          )}
           {SUPPORT_ITEMS.map(({ href, label, icon: Icon }) => (
             <Link
               key={href}
