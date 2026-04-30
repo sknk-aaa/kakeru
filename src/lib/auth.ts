@@ -3,10 +3,8 @@ import { redirect } from "next/navigation";
 
 export async function getUser() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  return user;
+  const { data: { session } } = await supabase.auth.getSession();
+  return session?.user ?? null;
 }
 
 export async function requireUser() {
@@ -17,15 +15,13 @@ export async function requireUser() {
 
 export async function getUserProfile() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return null;
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.user) return null;
 
   const { data } = await supabase
     .from("users")
     .select("*")
-    .eq("id", user.id)
+    .eq("id", session.user.id)
     .single();
 
   return data;

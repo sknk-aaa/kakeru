@@ -21,7 +21,7 @@ export default async function HomePage() {
 
   const startOfMonth = `${nowJst.getUTCFullYear()}-${String(nowJst.getUTCMonth() + 1).padStart(2, "0")}-01`;
 
-  const [{ data: userProfile }, { data: weekInstances }, { data: monthRuns }, { data: monthPenalties }, { data: todayRuns }, { data: allTimeInstances }] =
+  const [{ data: userProfile }, { data: weekInstances }, { data: monthRuns }, { data: monthPenalties }, { data: allTimeInstances }] =
     await Promise.all([
       supabase
         .from("users")
@@ -37,7 +37,7 @@ export default async function HomePage() {
         .order("scheduled_date"),
       supabase
         .from("runs")
-        .select("distance_km")
+        .select("distance_km, duration_seconds, started_at")
         .eq("user_id", user.id)
         .gte("started_at", `${startOfMonth}T00:00:00`),
       supabase
@@ -47,16 +47,13 @@ export default async function HomePage() {
         .gte("charged_at", `${startOfMonth}T00:00:00`)
         .eq("status", "charged"),
       supabase
-        .from("runs")
-        .select("distance_km, duration_seconds")
-        .eq("user_id", user.id)
-        .gte("started_at", `${todayStr}T00:00:00`),
-      supabase
         .from("goal_instances")
         .select("status")
         .eq("user_id", user.id)
         .in("status", ["achieved", "failed"]),
     ]);
+
+  const todayRuns = (monthRuns ?? []).filter(r => r.started_at >= `${todayStr}T00:00:00`);
 
   const totalDistanceMonth = (monthRuns ?? []).reduce(
     (acc, r) => acc + (r.distance_km ?? 0),
