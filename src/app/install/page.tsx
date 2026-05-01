@@ -8,9 +8,9 @@ import { ChevronLeft, CheckCircle } from "lucide-react";
 
 type Browser = "safari" | "chrome" | "edge";
 
-const BENEFITS: { img: string; w: number; h: number; containerH: number; label: string; sub: string }[] = [
-  { img: "/その他素材/通知ベル-transparent.png", w: 54, h: 54, containerH: 80, label: "プッシュ通知で", sub: "忘れない" },
-  { img: "/その他素材/ホーム画面に追加モック.png", w: 220, h: 180, containerH: 180, label: "1タップで", sub: "起動" },
+const BENEFITS: { img: string; w: number; h: number; containerH: number; fullWidth: boolean; label: string; sub: string }[] = [
+  { img: "/その他素材/通知ベル-transparent.png", w: 54, h: 54, containerH: 80, fullWidth: false, label: "プッシュ通知で", sub: "忘れない" },
+  { img: "/その他素材/ホーム画面に追加モック.png", w: 0, h: 0, containerH: 180, fullWidth: true, label: "1タップで", sub: "起動" },
 ];
 
 const STEPS: Record<Browser, { icon: string; detail: string }[]> = {
@@ -115,17 +115,27 @@ export default function InstallPage() {
         />
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", position: "relative", zIndex: 1 }}>
-          {BENEFITS.map(({ img, w, h, containerH, label, sub }) => (
+          {BENEFITS.map(({ img, w, h, containerH, fullWidth, label, sub }) => (
             <div key={label} style={{
               background: "#FFF8F4",
               borderRadius: "18px",
-              padding: "18px 8px 14px",
+              padding: fullWidth ? "18px 0 14px" : "18px 8px 14px",
               display: "flex", flexDirection: "column", alignItems: "center",
               gap: "10px",
               border: "1px solid rgba(255,107,0,0.08)",
+              overflow: "hidden",
             }}>
-              <div style={{ height: `${containerH}px`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Image src={img} alt="" width={w} height={h} style={{ objectFit: "contain", maxHeight: "64px" }} />
+              <div style={{ height: `${containerH}px`, width: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Image
+                  src={img} alt=""
+                  width={fullWidth ? 0 : w}
+                  height={fullWidth ? 0 : h}
+                  sizes={fullWidth ? "50vw" : undefined}
+                  style={fullWidth
+                    ? { width: "100%", height: "100%", objectFit: "contain" }
+                    : { objectFit: "contain", maxHeight: `${containerH}px` }
+                  }
+                />
               </div>
               <p style={{ fontSize: "11px", fontWeight: 700, color: "#333333", textAlign: "center", lineHeight: 1.55 }}>
                 {label}<br />{sub}
