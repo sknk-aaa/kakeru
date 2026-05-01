@@ -8,9 +8,10 @@ import { ChevronLeft, CheckCircle } from "lucide-react";
 
 type Browser = "safari" | "chrome" | "edge";
 
-const BENEFITS: { img: string; w: number; h: number; containerH: number; fullWidth: boolean; label: string; sub: string }[] = [
-  { img: "/その他素材/通知ベル-transparent.png", w: 54, h: 54, containerH: 80, fullWidth: false, label: "プッシュ通知で", sub: "忘れない" },
-  { img: "/その他素材/ホーム画面に追加モック.png", w: 0, h: 0, containerH: 180, fullWidth: true, label: "1タップで", sub: "起動" },
+const BENEFITS: { img: string; w: number; h: number; label: string; sub: string }[] = [
+  { img: "/stickman-assets/stickman-20.png",       w: 187, h: 336, label: "アプリのように", sub: "使える" },
+  { img: "/その他素材/通知ベル-transparent.png",   w: 54,  h: 54,  label: "プッシュ通知で", sub: "忘れない" },
+  { img: "/その他素材/ホーム画面に追加モック.png", w: 604, h: 1187, label: "1タップで",     sub: "起動" },
 ];
 
 const STEPS: Record<Browser, { icon: string; detail: string }[]> = {
@@ -114,30 +115,26 @@ export default function InstallPage() {
           aria-hidden
         />
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", position: "relative", zIndex: 1 }}>
-          {BENEFITS.map(({ img, w, h, containerH, fullWidth, label, sub }) => (
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px", position: "relative", zIndex: 1 }}>
+          {BENEFITS.map(({ img, label, sub }) => (
             <div key={label} style={{
               background: "#FFF8F4",
               borderRadius: "18px",
-              padding: fullWidth ? "18px 0 14px" : "18px 8px 14px",
+              padding: "14px 0 12px",
               display: "flex", flexDirection: "column", alignItems: "center",
-              gap: "10px",
+              gap: "8px",
               border: "1px solid rgba(255,107,0,0.08)",
               overflow: "hidden",
             }}>
-              <div style={{ height: `${containerH}px`, width: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ height: "130px", width: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <Image
                   src={img} alt=""
-                  width={fullWidth ? 0 : w}
-                  height={fullWidth ? 0 : h}
-                  sizes={fullWidth ? "50vw" : undefined}
-                  style={fullWidth
-                    ? { width: "100%", height: "100%", objectFit: "contain" }
-                    : { objectFit: "contain", maxHeight: `${containerH}px` }
-                  }
+                  width={0} height={0}
+                  sizes="33vw"
+                  style={{ width: "100%", height: "100%", objectFit: "contain" }}
                 />
               </div>
-              <p style={{ fontSize: "11px", fontWeight: 700, color: "#333333", textAlign: "center", lineHeight: 1.55 }}>
+              <p style={{ fontSize: "10px", fontWeight: 700, color: "#333333", textAlign: "center", lineHeight: 1.55, padding: "0 4px" }}>
                 {label}<br />{sub}
               </p>
             </div>
