@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ChevronRight, CreditCard, Plus, Repeat, Calendar, Trophy } from "lucide-react";
+import Onboarding from "@/components/Onboarding";
 
 interface Goal {
   id: string;
@@ -330,6 +331,13 @@ export default function GoalsClient({
 }) {
   const [skippedIds, setSkippedIds] = useState<Set<string>>(new Set());
   const [isRainy, setIsRainy] = useState(initialIsRainy);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  useEffect(() => {
+    if (!localStorage.getItem("kakeru_onboarding_done")) {
+      setShowOnboarding(true);
+    }
+  }, []);
   const hasPendingToday = instances.some((i) => i.scheduled_date === todayStr && i.status === "pending");
 
   useEffect(() => {
@@ -366,6 +374,7 @@ export default function GoalsClient({
       minHeight: "100vh",
       background: "linear-gradient(180deg, #FFFFFF 0%, #FFF9F5 36%, #F7F7FA 100%)",
     }}>
+      {showOnboarding && <Onboarding onDone={() => setShowOnboarding(false)} />}
       <div style={{
         position: "sticky", top: 0, zIndex: 10,
         background: "rgba(255,255,255,0.88)", backdropFilter: "blur(16px)",
