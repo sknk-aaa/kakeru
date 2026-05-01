@@ -8,9 +8,9 @@ import { ChevronLeft, CheckCircle } from "lucide-react";
 
 type Browser = "safari" | "chrome" | "edge";
 
-const BENEFITS: { img: string; w: number; h: number; label: string; sub: string }[] = [
-  { img: "/その他素材/通知ベル-transparent.png", w: 54, h: 54, label: "プッシュ通知で", sub: "忘れない" },
-  { img: "/その他素材/ホーム画面に追加モック.png", w: 160, h: 120, label: "1タップで", sub: "起動" },
+const BENEFITS: { img: string; w: number; h: number; containerH: number; label: string; sub: string }[] = [
+  { img: "/その他素材/通知ベル-transparent.png", w: 54, h: 54, containerH: 80, label: "プッシュ通知で", sub: "忘れない" },
+  { img: "/その他素材/ホーム画面に追加モック.png", w: 220, h: 180, containerH: 180, label: "1タップで", sub: "起動" },
 ];
 
 const STEPS: Record<Browser, { icon: string; detail: string }[]> = {
@@ -115,7 +115,7 @@ export default function InstallPage() {
         />
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", position: "relative", zIndex: 1 }}>
-          {BENEFITS.map(({ img, w, h, label, sub }) => (
+          {BENEFITS.map(({ img, w, h, containerH, label, sub }) => (
             <div key={label} style={{
               background: "#FFF8F4",
               borderRadius: "18px",
@@ -124,7 +124,7 @@ export default function InstallPage() {
               gap: "10px",
               border: "1px solid rgba(255,107,0,0.08)",
             }}>
-              <div style={{ height: "120px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ height: `${containerH}px`, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <Image src={img} alt="" width={w} height={h} style={{ objectFit: "contain", maxHeight: "64px" }} />
               </div>
               <p style={{ fontSize: "11px", fontWeight: 700, color: "#333333", textAlign: "center", lineHeight: 1.55 }}>
