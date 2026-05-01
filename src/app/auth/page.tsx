@@ -136,7 +136,7 @@ export default function AuthPage() {
             ))}
           </div>
 
-          <div style={{ background: "white", borderRadius: "24px", padding: "28px 24px", boxShadow: "0 4px 32px rgba(0,0,0,0.10)" }}>
+          <div style={{ background: "white", borderRadius: "24px", padding: "28px 24px", boxShadow: "0 8px 12px -6px rgba(0,0,0,0.10)" }}>
             {message ? (
               <div style={{ background: "#F0FDF4", border: "1px solid #86EFAC", borderRadius: "12px", padding: "16px", color: "#15803D", fontSize: "14px", lineHeight: 1.6 }}>
                 {message}
