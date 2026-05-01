@@ -4,10 +4,11 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CreditCard, Download, FileText, HelpCircle, LogOut, MessageCircle, Receipt, Shield, X, Zap } from "lucide-react";
+import { BookOpen, CreditCard, Download, FileText, HelpCircle, LogOut, MessageCircle, Receipt, Shield, X, Zap } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 const SUPPORT_ITEMS = [
+  { href: "/howto", label: "使い方", icon: BookOpen },
   { href: "/faq", label: "よくある質問", icon: HelpCircle },
   { href: "/contact", label: "お問い合わせ", icon: MessageCircle },
 ];

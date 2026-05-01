@@ -4,6 +4,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import PublicHamburger from "@/components/PublicHamburger";
 
 const FAQ_ITEMS: { q: string; a: string }[] = [
   { q: "本当にカードに引き落とされますか？", a: "はい。当日23:59までに目標を達成しなかった場合、設定した罰金額が自動で引き落とされます。" },
@@ -41,7 +42,15 @@ export default function LpPage() {
           <img src="/stickman-assets/stickman-01.png" style={{ width: 28, height: 28, objectFit: "contain" }} alt="" />
           <span style={{ fontFamily: "var(--font-display)", fontStyle: "italic", letterSpacing: "0.06em" }}>KAKERU</span>
         </div>
-        <Link href="/auth" className="btn-nav">今すぐ始める</Link>
+        <div className="lp-mobile-nav">
+          <PublicHamburger />
+        </div>
+        <div className="lp-pc-nav">
+          <Link href="/howto">使い方</Link>
+          <a href="#faq">よくある質問</a>
+          <Link href="/terms">利用規約</Link>
+          <Link href="/auth" className="btn-nav">今すぐ始める</Link>
+        </div>
       </nav>
 
       {/* HERO */}
@@ -367,7 +376,10 @@ html { scroll-behavior: smooth; }
   background: var(--orange); color: white; border: none;
   padding: 9px 18px; border-radius: 100px;
   font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit;
+  text-decoration: none;
 }
+.lp-root .lp-mobile-nav { display: flex; }
+.lp-root .lp-pc-nav { display: none; }
 
 /* SHARED */
 .lp-root section { padding: 80px 24px; position: relative; overflow: hidden; }
@@ -401,6 +413,10 @@ html { scroll-behavior: smooth; }
     padding-left: max(24px, calc((100% - 900px) / 2));
     padding-right: max(24px, calc((100% - 900px) / 2));
   }
+  .lp-root .lp-mobile-nav { display: none; }
+  .lp-root .lp-pc-nav { display: flex; align-items: center; gap: 24px; }
+  .lp-root .lp-pc-nav a { font-size: 14px; font-weight: 600; color: var(--text-sub); text-decoration: none; }
+  .lp-root .lp-pc-nav a:hover { color: var(--dark); }
 }
 .lp-root .hero-tag {
   display: inline-flex; align-items: center; gap: 6px;
