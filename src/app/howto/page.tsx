@@ -1,5 +1,5 @@
 import Image from "next/image";
-import PublicHamburger from "@/components/PublicHamburger";
+import BackButton from "@/components/BackButton";
 
 export default function HowToPage() {
   return (
@@ -11,11 +11,12 @@ export default function HowToPage() {
         height: "56px", display: "flex", alignItems: "center",
         justifyContent: "space-between", padding: "0 20px",
       }}>
+        <BackButton loggedInHref="/goals" />
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <Image src="/stickman-assets/stickman-01.png" width={24} height={24} alt="" style={{ objectFit: "contain" }} />
-          <span style={{ fontFamily: "var(--font-display)", fontSize: "20px", fontWeight: 900, fontStyle: "italic", color: "#FF6B00", letterSpacing: "0.06em" }}>KAKERU</span>
+          <Image src="/stickman-assets/stickman-01.png" width={22} height={22} alt="" style={{ objectFit: "contain" }} />
+          <span style={{ fontFamily: "var(--font-display)", fontSize: "19px", fontWeight: 900, fontStyle: "italic", color: "#FF6B00", letterSpacing: "0.06em" }}>KAKERU</span>
         </div>
-        <PublicHamburger />
+        <div style={{ width: 60 }} />
       </header>
 
       <main style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "80px 24px" }}>

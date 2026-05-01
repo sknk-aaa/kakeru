@@ -1,5 +1,4 @@
-import Link from "next/link";
-import { ChevronLeft } from "lucide-react";
+import BackButton from "@/components/BackButton";
 
 const CONTACT_EMAIL = "kakeruapp.official@gmail.com";
 const UPDATED_AT = "2026年4月23日";
@@ -14,9 +13,7 @@ export default function PrivacyPage() {
         padding: "0 16px", height: "54px",
         display: "flex", alignItems: "center", gap: "8px",
       }}>
-        <Link href="/" style={{ display: "flex", alignItems: "center", color: "#FF6B00", textDecoration: "none", fontSize: "15px", fontWeight: 500 }}>
-          <ChevronLeft size={20} color="#FF6B00" /> 戻る
-        </Link>
+        <BackButton />
       </div>
 
       <div style={{ maxWidth: "680px", margin: "0 auto", padding: "24px 20px 48px" }}>
