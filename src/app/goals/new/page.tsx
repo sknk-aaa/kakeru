@@ -221,7 +221,7 @@ export default function NewGoalPage() {
       instancesToCreate.push({ goal_id: goal.id, user_id: user.id, scheduled_date: challengeEndDate, status: "pending" });
     }
     if (instancesToCreate.length > 0) await supabase.from("goal_instances").insert(instancesToCreate);
-    router.push("/");
+    router.push("/goals");
   }
 
   const inputStyle = {

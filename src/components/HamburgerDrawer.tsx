@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { BookOpen, CreditCard, Download, FileText, HelpCircle, LogOut, MessageCircle, Receipt, Shield, X, Zap } from "lucide-react";
+import { BookOpen, CreditCard, Download, FileText, HelpCircle, LogOut, MessageCircle, Receipt, Shield, Wallet, X, Zap } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 const SUPPORT_ITEMS = [
@@ -22,6 +22,7 @@ const LEGAL_ITEMS = [
 export default function HamburgerDrawer({ onClose, width = 300 }: { onClose: () => void; width?: number }) {
   const router = useRouter();
   const [isSubscribed, setIsSubscribed] = useState<boolean | null>(null);
+  const [hasCard, setHasCard] = useState<boolean | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [isInstalled] = useState(() =>
     typeof window !== "undefined" && window.matchMedia("(display-mode: standalone)").matches
@@ -34,11 +35,12 @@ export default function HamburgerDrawer({ onClose, width = 300 }: { onClose: () 
       setUserEmail(user.email ?? null);
       supabase
         .from("users")
-        .select("is_subscribed")
+        .select("is_subscribed, stripe_payment_method_id")
         .eq("id", user.id)
         .single()
         .then(({ data }) => {
           if (data?.is_subscribed) setIsSubscribed(true);
+          setHasCard(!!data?.stripe_payment_method_id);
         });
     });
   }, []);
@@ -150,6 +152,19 @@ export default function HamburgerDrawer({ onClose, width = 300 }: { onClose: () 
               {isSubscribed === true ? "プラン管理" : "プレミアムプラン"}
             </span>
           </Link>
+
+          {hasCard !== null && (
+            <Link
+              href="/auth/card"
+              onClick={onClose}
+              style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px 20px", color: "#333333", textDecoration: "none" }}
+            >
+              <Wallet size={17} color="#FF6B00" strokeWidth={1.8} />
+              <span style={{ fontSize: "14px", fontWeight: 500 }}>
+                {hasCard ? "カードを変更する" : "カードを登録する"}
+              </span>
+            </Link>
+          )}
 
           <div style={{ height: "1px", background: "#F2F2F2", margin: "4px 0" }} />
 

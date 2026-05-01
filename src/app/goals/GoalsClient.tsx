@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ChevronRight, Plus, Repeat, Calendar, Trophy } from "lucide-react";
+import { ChevronRight, CreditCard, Plus, Repeat, Calendar, Trophy } from "lucide-react";
 
 interface Goal {
   id: string;
@@ -317,6 +317,7 @@ export default function GoalsClient({
   pastRecurringGoals,
   initialIsRainy,
   challengeProgress,
+  hasCard,
 }: {
   goals: Goal[];
   instances: Instance[];
@@ -325,6 +326,7 @@ export default function GoalsClient({
   pastRecurringGoals: PastRecurringGoal[];
   initialIsRainy: boolean;
   challengeProgress: Record<string, { totalDistKm: number; totalSec: number }>;
+  hasCard: boolean;
 }) {
   const [skippedIds, setSkippedIds] = useState<Set<string>>(new Set());
   const [isRainy, setIsRainy] = useState(initialIsRainy);
@@ -387,6 +389,22 @@ export default function GoalsClient({
           </button>
         </Link>
       </div>
+
+      {!hasCard && (
+        <Link href="/auth/card" style={{
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          background: "#FFF4EE", borderBottom: "1px solid #FFD9B0",
+          padding: "11px 20px", textDecoration: "none",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <CreditCard size={15} color="#FF6B00" strokeWidth={2} />
+            <span style={{ fontSize: "13px", fontWeight: 600, color: "#C85C0A" }}>
+              カードを登録して罰金を有効にしましょう
+            </span>
+          </div>
+          <ChevronRight size={15} color="#FF6B00" />
+        </Link>
+      )}
 
       <div style={{ padding: "16px 16px 24px" }}>
 

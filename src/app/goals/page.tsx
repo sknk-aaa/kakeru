@@ -11,12 +11,19 @@ export default async function GoalsPage() {
   const user = await requireUser();
   const supabase = await createClient();
 
-  const { data: goals } = await supabase
-    .from("goals")
-    .select(GOAL_SELECT)
-    .eq("user_id", user.id)
-    .eq("is_active", true)
-    .order("created_at", { ascending: false });
+  const [{ data: goals }, { data: userData }] = await Promise.all([
+    supabase
+      .from("goals")
+      .select(GOAL_SELECT)
+      .eq("user_id", user.id)
+      .eq("is_active", true)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("users")
+      .select("stripe_payment_method_id")
+      .eq("id", user.id)
+      .single(),
+  ]);
 
   // JSTで日付を計算（サーバーはUTCで動くため+9時間補正）
   const nowJst = new Date(new Date().getTime() + 9 * 60 * 60 * 1000);
@@ -103,6 +110,7 @@ export default async function GoalsPage() {
         pastRecurringGoals={pastRecurringGoals}
         initialIsRainy={false}
         challengeProgress={challengeProgress}
+        hasCard={!!userData?.stripe_payment_method_id}
       />
     </AppShell>
   );
