@@ -31,11 +31,6 @@ export default function LpPage() {
     return () => obs.disconnect();
   }, []);
 
-  function scrollToCta(e: React.MouseEvent) {
-    e.preventDefault();
-    document.getElementById("cta")?.scrollIntoView({ behavior: "smooth" });
-  }
-
   return (
     <div ref={rootRef} className="lp-root">
       <style dangerouslySetInnerHTML={{ __html: LP_CSS }} />
@@ -43,12 +38,10 @@ export default function LpPage() {
       {/* NAV */}
       <nav className="lp-nav">
         <div className="nav-logo">
-          <div className="logo-mark" style={{ overflow: "hidden", padding: 0 }}>
-            <img src="/その他素材/lpアイコン.png" style={{ width: 30, height: 30, objectFit: "cover", display: "block" }} alt="" />
-          </div>
-          KAKERU
+          <img src="/stickman-assets/stickman-01.png" style={{ width: 28, height: 28, objectFit: "contain" }} alt="" />
+          <span style={{ fontFamily: "var(--font-display)", fontStyle: "italic", letterSpacing: "0.06em" }}>KAKERU</span>
         </div>
-        <button className="btn-nav" onClick={scrollToCta}>今すぐ始める</button>
+        <Link href="/auth" className="btn-nav">今すぐ始める</Link>
       </nav>
 
       {/* HERO */}
@@ -75,7 +68,7 @@ export default function LpPage() {
                 <img src="/stickman-assets/stickman-02.png" style={{ width: 52 }} alt="" />
               </div>
             </div>
-            <a href="#cta" className="btn-primary" onClick={scrollToCta}>今すぐ始める（無料） →</a>
+            <Link href="/auth" className="btn-primary">今すぐ始める（無料） →</Link>
             <Link href="/auth" className="btn-login">ログインはこちら →</Link>
           </div>
         </div>
@@ -313,7 +306,10 @@ export default function LpPage() {
 
       {/* FOOTER */}
       <footer className="lp-footer">
-        <div className="footer-logo">🏃 KAKERU</div>
+        <div className="footer-logo">
+          <img src="/stickman-assets/stickman-01.png" alt="" style={{ width: 22, height: 22, objectFit: "contain", filter: "brightness(0) invert(1)", opacity: 0.75 }} />
+          <span style={{ fontFamily: "var(--font-display)", fontStyle: "italic", letterSpacing: "0.06em" }}>KAKERU</span>
+        </div>
         <div className="footer-links">
           <Link href="/privacy">プライバシーポリシー</Link>
           <Link href="/terms">利用規約</Link>
@@ -367,10 +363,6 @@ html { scroll-behavior: smooth; }
   border-bottom: 1px solid var(--border);
 }
 .lp-root .nav-logo { display: flex; align-items: center; gap: 8px; font-size: 19px; font-weight: 900; }
-.lp-root .logo-mark {
-  width: 30px; height: 30px; background: var(--orange);
-  border-radius: 8px; display: flex; align-items: center; justify-content: center;
-}
 .lp-root .btn-nav {
   background: var(--orange); color: white; border: none;
   padding: 9px 18px; border-radius: 100px;
@@ -405,6 +397,10 @@ html { scroll-behavior: smooth; }
 .lp-root .hero-content { flex: 1; }
 @media (min-width: 700px) {
   .lp-root .hero-inner { flex-direction: row; align-items: center; gap: 40px; }
+  .lp-root section {
+    padding-left: max(24px, calc((100% - 900px) / 2));
+    padding-right: max(24px, calc((100% - 900px) / 2));
+  }
 }
 .lp-root .hero-tag {
   display: inline-flex; align-items: center; gap: 6px;
@@ -549,7 +545,7 @@ html { scroll-behavior: smooth; }
 
 /* FOOTER */
 .lp-root .lp-footer { background: var(--dark); padding: 36px 24px; display: flex; flex-direction: column; gap: 18px; }
-.lp-root .footer-logo { font-size: 17px; font-weight: 900; color: white; }
+.lp-root .footer-logo { display: flex; align-items: center; gap: 8px; font-size: 17px; font-weight: 900; color: white; }
 .lp-root .footer-links { display: flex; flex-wrap: wrap; gap: 14px; }
 .lp-root .footer-links a { color: rgba(255,255,255,0.4); text-decoration: none; font-size: 13px; }
 .lp-root .footer-copy { font-size: 12px; color: rgba(255,255,255,0.25); }

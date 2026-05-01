@@ -95,8 +95,8 @@ export default function AuthPage() {
           {/* ヘッダー */}
           <div style={{ position: "relative", padding: "20px 24px 0", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <Image src="/favicon.png" alt="KAKERU" width={28} height={28} style={{ objectFit: "contain" }} />
-              <span style={{ fontSize: "18px", fontWeight: 900, color: "#FF6B00", letterSpacing: "0.12em" }}>KAKERU</span>
+              <Image src="/stickman-assets/stickman-01.png" alt="" width={28} height={28} style={{ objectFit: "contain" }} />
+              <span style={{ fontFamily: "var(--font-display)", fontSize: "22px", fontWeight: 900, fontStyle: "italic", color: "#FF6B00", letterSpacing: "0.06em" }}>KAKERU</span>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: "4px" }}>
               {Array.from({ length: 15 }).map((_, i) => (
