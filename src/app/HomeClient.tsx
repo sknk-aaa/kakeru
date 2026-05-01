@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { CheckCircle, XCircle, SkipForward, Plus, ChevronRight, ChevronDown, ChevronUp, MapPin, Clock } from "lucide-react";
 import { useState, useEffect, type CSSProperties } from "react";
 import dynamicImport from "next/dynamic";
+import Onboarding from "@/components/Onboarding";
 
 const PenaltySheet = dynamicImport(() => import("@/components/PenaltySheet"), { ssr: false });
 const PenaltyModal = dynamicImport(() => import("@/components/PenaltyModal"), { ssr: false });
@@ -86,6 +87,13 @@ export default function HomeClient({
   const [showHistory, setShowHistory] = useState(false);
   const [showPenaltySheet, setShowPenaltySheet] = useState(false);
   const [showPenaltyModal, setShowPenaltyModal] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  useEffect(() => {
+    if (!localStorage.getItem("kakeru_onboarding_done")) {
+      setShowOnboarding(true);
+    }
+  }, []);
 
   useEffect(() => {
     if (!latestPenalty) return;
@@ -122,6 +130,7 @@ export default function HomeClient({
 
   return (
     <div style={{ background: "linear-gradient(180deg, #FFFFFF 0%, #FFF9F5 46%, #F7F7FA 100%)", minHeight: "100vh" }}>
+      {showOnboarding && <Onboarding onDone={() => setShowOnboarding(false)} />}
 
       {/* ── スキップ確認モーダル ── */}
       {skipTargetId && (
