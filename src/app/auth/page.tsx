@@ -75,8 +75,8 @@ export default function AuthPage() {
   }
 
   return (
-    <div style={{ background: "linear-gradient(160deg, #FFF4EE 0%, #F5F0F7 60%, #F2F2F7 100%)", minHeight: "100vh" }}>
-      <div className="app-content" style={{ maxWidth: "480px", margin: "0 auto", minHeight: "100vh", background: "#FFF8F4", overflowX: "hidden" }}>
+    <div style={{ background: "white", minHeight: "100vh", display: "flex", justifyContent: "center" }}>
+      <div style={{ width: "100%", maxWidth: "720px", minHeight: "100vh", overflowX: "hidden" }}>
 
         {/* ── ヒーロー（ヘッダー含む） ── */}
         <div style={{ position: "relative", overflow: "hidden", paddingBottom: "40px" }}>
