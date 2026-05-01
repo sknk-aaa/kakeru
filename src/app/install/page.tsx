@@ -8,9 +8,9 @@ import { ChevronLeft, CheckCircle } from "lucide-react";
 
 type Browser = "safari" | "chrome" | "edge";
 
-const BENEFITS: { img: string; w: number; h: number; label: string; sub: string }[] = [
-  { img: "/stickman-assets/stickman-20.png",       w: 187, h: 336, label: "アプリのように", sub: "使える" },
-  { img: "/その他素材/通知ベル-transparent.png",   w: 54,  h: 54,  label: "プッシュ通知で", sub: "忘れない" },
+const BENEFITS: { img: string; w: number; h: number; label: string; sub: string; maxW?: string }[] = [
+  { img: "/stickman-assets/stickman-20.png",       w: 187, h: 336,  label: "アプリのように", sub: "使える",  maxW: "65%" },
+  { img: "/その他素材/通知ベル-transparent.png",   w: 54,  h: 54,   label: "プッシュ通知で", sub: "忘れない", maxW: "55%" },
   { img: "/その他素材/ホーム画面に追加モック.png", w: 604, h: 1187, label: "1タップで",     sub: "起動" },
 ];
 
@@ -116,7 +116,7 @@ export default function InstallPage() {
         />
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px", position: "relative", zIndex: 1 }}>
-          {BENEFITS.map(({ img, label, sub }) => (
+          {BENEFITS.map(({ img, label, sub, maxW }) => (
             <div key={label} style={{
               background: "#FFF8F4",
               borderRadius: "18px",
@@ -131,7 +131,7 @@ export default function InstallPage() {
                   src={img} alt=""
                   width={0} height={0}
                   sizes="33vw"
-                  style={{ width: "100%", height: "100%", objectFit: "contain" }}
+                  style={{ width: maxW ?? "100%", height: "100%", objectFit: "contain" }}
                 />
               </div>
               <p style={{ fontSize: "10px", fontWeight: 700, color: "#333333", textAlign: "center", lineHeight: 1.55, padding: "0 4px" }}>
