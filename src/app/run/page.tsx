@@ -300,17 +300,8 @@ function RunPageInner() {
 
     let cumulativeGoalReached = false;
     if (effectiveInstanceId && goalInstance) {
-      const d = new Date();
-      const todayStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-      const { data: todayRuns } = await supabase
-        .from("runs")
-        .select("distance_km, duration_seconds")
-        .eq("user_id", user.id)
-        .gte("started_at", `${todayStr}T00:00:00`);
-      const totalDist = (todayRuns ?? []).reduce((sum, r) => sum + (r.distance_km ?? 0), 0);
-      const totalSec = (todayRuns ?? []).reduce((sum, r) => sum + (r.duration_seconds ?? 0), 0);
-      const distOk = !goalInstance.distance_km || totalDist >= goalInstance.distance_km;
-      const timeOk = !goalInstance.duration_minutes || totalSec >= goalInstance.duration_minutes * 60;
+      const distOk = !goalInstance.distance_km || distanceKm >= goalInstance.distance_km;
+      const timeOk = !goalInstance.duration_minutes || elapsedSec >= goalInstance.duration_minutes * 60;
       cumulativeGoalReached = distOk && timeOk;
       if (cumulativeGoalReached) {
         await supabase.from("goal_instances").update({ status: "achieved" }).eq("id", effectiveInstanceId);

@@ -89,8 +89,6 @@ export default async function HomePage() {
       .maybeSingle(),
   ]);
 
-  const todayRuns = (monthRuns ?? []).filter(r => r.started_at >= `${todayStr}T00:00:00`);
-
   const totalDistanceMonth = (monthRuns ?? []).reduce(
     (acc, r) => acc + (r.distance_km ?? 0),
     0
@@ -135,10 +133,6 @@ export default async function HomePage() {
   const todayGoalInstances = allInstances.filter(
     (i) => i.scheduled_date === todayStr && i.status === "pending" && i.goals
   );
-  const todayRunDistanceKm = Math.round(
-    (todayRuns ?? []).reduce((sum, r) => sum + (r.distance_km ?? 0), 0) * 100
-  ) / 100;
-  const todayRunDurationSec = (todayRuns ?? []).reduce((sum, r) => sum + (r.duration_seconds ?? 0), 0);
 
   return (
     <AppShell>
@@ -152,8 +146,6 @@ export default async function HomePage() {
         achieveRate={achieveRate}
         streak={streak}
         todayGoalInstances={todayGoalInstances}
-        todayRunDistanceKm={todayRunDistanceKm}
-        todayRunDurationSec={todayRunDurationSec}
         latestPenalty={latestPenalty}
       />
     </AppShell>

@@ -44,8 +44,6 @@ interface Props {
   achieveRate: number;
   streak: number;
   todayGoalInstances: GoalInstance[];
-  todayRunDistanceKm: number;
-  todayRunDurationSec: number;
   latestPenalty: LatestPenalty | null;
 }
 
@@ -76,8 +74,6 @@ export default function HomeClient({
   achieveRate,
   streak,
   todayGoalInstances,
-  todayRunDistanceKm,
-  todayRunDurationSec,
   latestPenalty,
 }: Props) {
   const router = useRouter();
@@ -225,12 +221,6 @@ export default function HomeClient({
           const { distance_km, duration_minutes, penalty_amount } = instance.goals;
           const mainVal = distance_km ?? duration_minutes;
           const mainUnit = distance_km ? "km" : duration_minutes ? "分" : null;
-          const progressRatio = distance_km
-            ? Math.min(todayRunDistanceKm / distance_km, 1)
-            : duration_minutes
-            ? Math.min(todayRunDurationSec / (duration_minutes * 60), 1)
-            : 0;
-          const progressPct = Math.round(progressRatio * 100);
 
           return (
             <div key={instance.id} style={{
@@ -272,29 +262,6 @@ export default function HomeClient({
                   </p>
                 </div>
 
-                {/* 進捗バー */}
-                {mainVal && (
-                  <div style={{ marginTop: "18px", position: "relative", zIndex: 1 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", fontWeight: 700, marginBottom: "8px" }}>
-                      <span style={{ color: "#555555" }}>
-                        {distance_km
-                          ? `${todayRunDistanceKm.toFixed(2)} km 完了`
-                          : `${Math.floor(todayRunDurationSec / 60)} 分完了`}
-                      </span>
-                      <span style={{ color: progressPct > 0 ? "#FF6B00" : "#BBBBBB" }}>{progressPct}%</span>
-                    </div>
-                    <div style={{ height: "8px", background: "#EFEFEF", borderRadius: "99px", overflow: "hidden" }}>
-                      <div style={{
-                        height: "100%",
-                        background: "linear-gradient(90deg, #FF6B00, #FF9500)",
-                        borderRadius: "99px",
-                        width: `${progressPct}%`,
-                        transition: "width 0.5s ease",
-                        minWidth: progressPct > 0 ? "8px" : "0",
-                      }} />
-                    </div>
-                  </div>
-                )}
               </div>
 
               {/* CTAエリア */}
