@@ -14,25 +14,16 @@ const RULES = [
     num: "01",
     title: "1回のランで達成する",
     desc: "目標は分割不可。1回のランで距離・時間をクリアしよう。",
-    img: "/stickman-assets/stickman-12.png",
   },
   {
     num: "02",
     title: "時速30km超は自動除外",
     desc: "車や自転車での移動はGPSが自動検出してカット。",
-    img: null,
   },
   {
     num: "03",
     title: "一時停止は⏸ボタンで",
     desc: "信号待ちや休憩は一時停止OK。再開すれば続きから計測。",
-    img: null,
-  },
-  {
-    num: "04",
-    title: "スマホは手に持って走る",
-    desc: "ポケットだとGPS精度が落ちることがある。手に持とう。",
-    img: "/stickman-assets/stickman-06.png",
   },
 ] as const;
 
@@ -78,6 +69,21 @@ export default function RunTutorial({ onClose }: Props) {
           overflow: "hidden",
         }}
       >
+        {/* 右下装飾 stickman-06 */}
+        <Image
+          src="/stickman-assets/stickman-06.png"
+          alt=""
+          width={72}
+          height={84}
+          style={{
+            position: "absolute",
+            right: 10,
+            bottom: "max(env(safe-area-inset-bottom), 24px)",
+            objectFit: "contain",
+            opacity: 0.18,
+            pointerEvents: "none",
+          }}
+        />
         {/* Handle */}
         <div style={{ display: "flex", justifyContent: "center", padding: "12px 0 0" }}>
           <div style={{ width: 36, height: 4, borderRadius: 99, background: "#EBEBEB" }} />
@@ -184,19 +190,6 @@ export default function RunTutorial({ onClose }: Props) {
                 </p>
               </div>
 
-              {/* Optional illustration */}
-              {rule.img && (
-                <Image
-                  src={rule.img}
-                  alt=""
-                  width={44}
-                  height={52}
-                  style={{ objectFit: "contain", flexShrink: 0, opacity: 0.82 }}
-                />
-              )}
-              {!rule.img && (
-                <div style={{ width: 44, flexShrink: 0 }} />
-              )}
             </div>
           ))}
         </div>
