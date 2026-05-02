@@ -65,6 +65,8 @@ function RunPageInner() {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const isPausedRef = useRef(false);
   const wakeLockRef = useRef<{ release: () => Promise<void> } | null>(null);
+  // 採用・不採用問わず最後の有効 GPS 点を保持する（速度・ジャンプ判定の基準点）
+  const lastGpsUpdateRef = useRef<GpsPoint | null>(null);
 
   async function acquireWakeLock() {
     const nav = navigator as unknown as { wakeLock?: { request: (type: string) => Promise<{ release: () => Promise<void> }> } };
@@ -164,6 +166,7 @@ function RunPageInner() {
     setLastAccuracy(null);
     setSaveError(null);
     setStartedAt(new Date());
+    lastGpsUpdateRef.current = null;
     acquireWakeLock();
 
     timerRef.current = setInterval(() => {
@@ -173,13 +176,21 @@ function RunPageInner() {
     }, 1000);
 
     const handlePosition = (pos: GeolocationPosition, source: "initial" | "watch") => {
-      if (isPausedRef.current) return;
       const newPoint = toGpsPoint(pos);
       const accuracy = Number.isFinite(pos.coords.accuracy) ? pos.coords.accuracy : null;
+      const isAccurate = accuracy !== null && accuracy <= RECORDING_ACCURACY_THRESHOLD_M;
+
+      // 精度が十分な点はポーズ中・initial でも基準点として更新しておく
+      // → 再開時や速度フィルター後に古い基準点で誤判定されるのを防ぐ
+      const prevRef = lastGpsUpdateRef.current;
+      if (isAccurate) lastGpsUpdateRef.current = newPoint;
+
+      if (isPausedRef.current) return;
+
       setCurrentPosition(newPoint);
       setLastAccuracy(accuracy === null ? null : Math.round(accuracy));
 
-      if (accuracy === null || accuracy > RECORDING_ACCURACY_THRESHOLD_M) {
+      if (!isAccurate) {
         setGpsStatus((status) => source === "initial" && status === "ready" ? status : "improving");
         return;
       }
@@ -188,11 +199,12 @@ function RunPageInner() {
       if (source === "initial") return;
 
       setGpsPoints((prev) => {
-        const last = prev[prev.length - 1];
-        if (last) {
-          const speed = speedKmh(last, newPoint);
+        // 採用・不採用問わず直前の GPS 更新点と比較することで、
+        // 速度スパイク後やポーズ後に正常な速度で走り出しても弾かれなくなる
+        if (prevRef) {
+          const speed = speedKmh(prevRef, newPoint);
           if (speed > 30) return prev;
-          const jumpKm = haversineDistance(last, newPoint);
+          const jumpKm = haversineDistance(prevRef, newPoint);
           if (jumpKm > 0.2) return prev;
         }
         const newPoints = [...prev, newPoint];
