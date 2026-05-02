@@ -360,7 +360,7 @@ function Step4({ onFinish }: { onFinish: () => void }) {
         </div>
 
         <h1 style={{ fontSize: 28, fontWeight: 800, color: DARK, lineHeight: 1.2, marginBottom: 12, letterSpacing: "-0.02em" }}>
-          まずは軽めの<br />目標から
+          まずは軽めの目標から
         </h1>
 
         <p style={{ fontSize: 15, color: SUB, lineHeight: 1.7, fontWeight: 400, maxWidth: 280 }}>
@@ -381,7 +381,7 @@ function Step4({ onFinish }: { onFinish: () => void }) {
             borderRadius: 24, overflow: "hidden",
             boxShadow: "0 24px 60px rgba(28,16,8,0.22), 0 4px 16px rgba(255,107,0,0.14)",
             border: "1px solid rgba(255,255,255,0.8)",
-            maxWidth: 220, width: "100%", position: "relative", zIndex: 2,
+            maxWidth: 300, width: "100%", position: "relative", zIndex: 2,
           }}>
             <Image
               src="/その他素材/オンボーディング-目標作成.png"
