@@ -63,18 +63,18 @@ export default function LpPage() {
         <div style={{ position: "relative", zIndex: 1 }} className="hero-inner">
           <div className="hero-content">
             <div className="hero-tag">ランニング習慣化アプリ</div>
-            <img src="/その他素材/走らなければ-transparent.png" style={{ width: "100%", maxWidth: 340, display: "block", marginBottom: 20 }} alt="走らなければ、課金される。" />
+            <img src="/その他素材/走らなければ-transparent.png" style={{ width: "100%", maxWidth: 400, display: "block", marginBottom: 20 }} alt="走らなければ、課金される。" />
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 32 }}>
               <p className="hero-sub" style={{ marginBottom: 0, flex: 1 }}>
                 自分に甘いあなたのための、<br />本気の習慣化アプリ。
               </p>
               <div className="hero-stickman-inline" style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
-                <img src="/stickman-assets/stickman-14.png" style={{ width: 52 }} alt="" />
-                <svg width="18" height="18" viewBox="0 0 36 36" fill="none">
+                <img src="/stickman-assets/stickman-14.png" style={{ width: 66 }} alt="" />
+                <svg width="22" height="22" viewBox="0 0 36 36" fill="none">
                   <circle cx="18" cy="18" r="17" stroke="#FFD9B0" strokeWidth="2" />
                   <path d="M13 18h12M20 13l5 5-5 5" stroke="#F97316" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-                <img src="/stickman-assets/stickman-02.png" style={{ width: 52 }} alt="" />
+                <img src="/stickman-assets/stickman-02.png" style={{ width: 66 }} alt="" />
               </div>
             </div>
           </div>
@@ -441,7 +441,7 @@ html { scroll-behavior: smooth; }
   .lp-root .hero-sub br { display: none; }
   .lp-root .hero-stickman-inline { display: none; }
   .lp-root .hero-visual { display: flex; grid-column: 2; grid-row: 1 / 3; align-items: center; justify-content: center; }
-  .lp-root .hero-visual-img { width: 100%; max-width: 200px; object-fit: contain; }
+  .lp-root .hero-visual-img { width: 100%; max-width: 175px; object-fit: contain; }
   .lp-root .hero-cta { grid-column: 1 / -1; grid-row: 2; padding-top: 32px; }
   .lp-root .btn-primary { width: 100%; display: flex; }
   .lp-root .btn-login { text-align: center; }
