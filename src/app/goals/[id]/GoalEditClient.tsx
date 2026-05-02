@@ -176,7 +176,10 @@ export default function GoalEditClient({ goal }: { goal: Goal }) {
 
         {isChallenge && (
           <div style={{ background: "#FFFBEB", borderRadius: "12px", padding: "14px 16px", marginBottom: "20px", borderLeft: "3px solid #F59E0B" }}>
-            <p style={{ fontSize: "14px", fontWeight: 700, color: "#F59E0B", marginBottom: "8px" }}>🏆 チャレンジ進捗</p>
+            <p style={{ fontSize: "14px", fontWeight: 700, color: "#F59E0B", marginBottom: "8px", display: "flex", alignItems: "center", gap: "6px" }}>
+              <img src="/その他素材/ターゲット.png" alt="" style={{ width: 18, height: 18, objectFit: "contain" }} />
+              チャレンジ進捗
+            </p>
             {challengeProgress !== null ? (
               <>
                 {goal.distance_km && (
