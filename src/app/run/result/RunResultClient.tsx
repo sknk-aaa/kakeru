@@ -70,7 +70,7 @@ export default function RunResultClient() {
       }}>
 
         {/* ─── ヒーロー ─── */}
-        <div style={{ textAlign: "center", padding: "32px 0 20px" }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", padding: "32px 0 20px" }}>
           {goalReached ? (
             <>
               <Image
