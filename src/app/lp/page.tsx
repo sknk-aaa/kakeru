@@ -425,27 +425,18 @@ html { scroll-behavior: smooth; }
     padding-right: max(48px, calc((100% - 1080px) / 2));
   }
 
-  /* HERO — 2カラム */
+  /* HERO — 2カラム（中央揃え） */
   .lp-root #hero { padding-top: 120px; padding-bottom: 80px; }
-  .lp-root .hero-inner { flex-direction: row; align-items: center; gap: 64px; }
+  .lp-root .hero-inner {
+    flex-direction: row; align-items: center; gap: 64px;
+    max-width: 960px; margin: 0 auto; width: 100%;
+  }
   .lp-root .hero-content { flex: 1; max-width: 520px; }
   .lp-root .hero-stickman-inline { display: none; }
-  .lp-root .hero-visual { display: flex; flex: 0 0 360px; justify-content: center; align-items: center; }
-  .lp-root .hero-visual-img { width: 100%; max-width: 300px; object-fit: contain; }
+  .lp-root .hero-visual { display: flex; flex: 0 0 320px; justify-content: center; align-items: center; }
+  .lp-root .hero-visual-img { width: 100%; max-width: 280px; object-fit: contain; }
   .lp-root .btn-primary { width: auto; min-width: 260px; display: inline-flex; }
   .lp-root .btn-login { text-align: left; }
-
-  /* HOW IT WORKS — 横3列 */
-  .lp-root .how-steps { flex-direction: row; margin-top: 56px; }
-  .lp-root .how-step {
-    display: flex; flex-direction: column; align-items: center; text-align: center;
-    flex: 1; padding: 40px 28px;
-    border-bottom: none; border-right: 1.5px solid var(--border);
-  }
-  .lp-root .how-step:last-child { border-right: none; }
-  .lp-root .how-step.reverse { direction: ltr; }
-  .lp-root .how-step-img { margin: 0 auto 20px; max-width: 130px; }
-  .lp-root .how-step-text { padding: 0; }
 
   /* FEATURES — 横3列 */
   .lp-root .feat-grid { flex-direction: row; gap: 24px; }
