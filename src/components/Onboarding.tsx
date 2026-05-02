@@ -187,7 +187,7 @@ function Step2({ onNext, onSkip }: { onNext: () => void; onSkip: () => void }) {
         </div>
 
         <h1 style={{ fontSize: 28, fontWeight: 800, color: DARK, lineHeight: 1.2, marginBottom: 16, letterSpacing: "-0.02em" }}>
-          課金されるのは、<br />目標を達成しなかった<br />日だけ
+          課金されるのは、<br />目標を達成しなかった日だけ
         </h1>
 
         <p style={{ fontSize: 15, color: SUB, lineHeight: 1.7, fontWeight: 400 }}>
