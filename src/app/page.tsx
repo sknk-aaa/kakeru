@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic";
 
-import { requireUser } from "@/lib/auth";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import AppShell from "@/components/AppShell";
 import HomeClient from "./HomeClient";
@@ -8,8 +8,9 @@ import HomeClient from "./HomeClient";
 type HomeClientProps = Parameters<typeof HomeClient>[0];
 
 export default async function HomePage() {
-  const user = await requireUser();
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/lp");
 
   // JSTで日付を計算（サーバーはUTCで動くため+9時間補正）
   const nowJst = new Date(new Date().getTime() + 9 * 60 * 60 * 1000);
