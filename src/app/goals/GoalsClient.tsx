@@ -399,7 +399,7 @@ export default function GoalsClient({
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <CreditCard size={15} color="#FF6B00" strokeWidth={2} />
             <span style={{ fontSize: "13px", fontWeight: 600, color: "#C85C0A" }}>
-              カードを登録して罰金を有効にしましょう
+              カードを登録してペナルティを有効にしましょう
             </span>
           </div>
           <ChevronRight size={15} color="#FF6B00" />
