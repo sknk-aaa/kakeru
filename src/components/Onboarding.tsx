@@ -210,7 +210,7 @@ function Step2({ onNext, onSkip }: { onNext: () => void; onSkip: () => void }) {
                 alt="走らない"
                 width={120}
                 height={120}
-                style={{ width: 120, height: "auto", objectFit: "contain", filter: "drop-shadow(0 4px 12px rgba(255,107,0,0.15))" }}
+                style={{ width: 150, height: "auto", objectFit: "contain", filter: "drop-shadow(0 4px 12px rgba(255,107,0,0.15))" }}
               />
             </div>
             <div style={{
@@ -241,7 +241,7 @@ function Step2({ onNext, onSkip }: { onNext: () => void; onSkip: () => void }) {
                 alt="走る"
                 width={120}
                 height={120}
-                style={{ width: 120, height: "auto", objectFit: "contain", filter: "drop-shadow(0 4px 12px rgba(52,199,89,0.15))" }}
+                style={{ width: 150, height: "auto", objectFit: "contain", filter: "drop-shadow(0 4px 12px rgba(52,199,89,0.15))" }}
               />
             </div>
             <div style={{
@@ -314,7 +314,7 @@ function Step3({ onNext }: { onNext: () => void }) {
             borderRadius: 20, overflow: "hidden",
             boxShadow: "0 20px 50px rgba(28,16,8,0.2), 0 4px 16px rgba(255,107,0,0.12)",
             border: "1px solid rgba(255,255,255,0.8)",
-            maxWidth: 200, width: "100%", position: "relative", zIndex: 2,
+            maxWidth: 280, width: "100%", position: "relative", zIndex: 2,
           }}>
             <Image
               src="/その他素材/ホーム画面スクショ.png"
