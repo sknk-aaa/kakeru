@@ -62,7 +62,7 @@ export default function LpPage() {
 
         <div style={{ position: "relative", zIndex: 1 }} className="hero-inner">
           <div className="hero-content">
-            <div className="hero-tag">ランニング習慣化アプリ</div>
+            <h1 className="hero-tag">ランニング習慣化アプリ</h1>
             <img src="/その他素材/走らなければ-transparent.png" className="hero-run-img" style={{ width: "100%", maxWidth: 280, display: "block", marginBottom: 20 }} alt="走らなければ、課金される。" />
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 32 }}>
               <p className="hero-sub" style={{ marginBottom: 0, flex: 1 }}>
