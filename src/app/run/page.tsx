@@ -11,6 +11,7 @@ import GpsPermissionModal from "@/components/GpsPermissionModal";
 import { haversineDistance, speedKmh, calcCalories, formatDuration, type GpsPoint } from "@/lib/haversine";
 import AppShell from "@/components/AppShell";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client-lazy";
+import RunTutorial, { TUTORIAL_KEY } from "./RunTutorial";
 
 const RunMap = dynamicImport(() => import("@/components/RunMap"), { ssr: false });
 
@@ -59,6 +60,11 @@ function RunPageInner() {
   const [currentPosition, setCurrentPosition] = useState<GpsPoint | null>(null);
   const [gpsStatus, setGpsStatus] = useState<GpsStatus>("idle");
   const [lastAccuracy, setLastAccuracy] = useState<number | null>(null);
+  const [showTutorial, setShowTutorial] = useState(false);
+
+  useEffect(() => {
+    if (!localStorage.getItem(TUTORIAL_KEY)) setShowTutorial(true);
+  }, []);
 
   const watchIdRef = useRef<number | null>(null);
   const warmupWatchIdRef = useRef<number | null>(null);
@@ -375,6 +381,7 @@ function RunPageInner() {
 
     return (
       <AppShell>
+        {showTutorial && <RunTutorial onClose={() => setShowTutorial(false)} />}
         <div style={{
           display: "flex", flexDirection: "column", alignItems: "center",
           minHeight: "calc(100vh - 64px)", padding: "0 24px 32px",
