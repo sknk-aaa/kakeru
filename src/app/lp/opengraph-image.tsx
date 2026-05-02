@@ -15,6 +15,7 @@ function toDataUri(relativePath: string): string {
 export default function Image() {
   const fontJp = readFileSync(join(process.cwd(), "public/fonts/noto-sans-jp-jp-900.woff"));
   const fontLatin = readFileSync(join(process.cwd(), "public/fonts/noto-sans-jp-latin-900.woff"));
+  const fontBarlow = readFileSync(join(process.cwd(), "public/fonts/barlow-condensed-italic-900.woff"));
 
   const blob1 = toDataUri("抽象画像/抽象画像1.png");
   const blob4 = toDataUri("抽象画像/抽象画像4.png");
@@ -70,7 +71,7 @@ export default function Image() {
               src={icon}
               style={{ width: 44, height: 44, borderRadius: 11 }}
             />
-            <span style={{ fontSize: 26, fontWeight: 900, color: "#1C1008", letterSpacing: 3 }}>
+            <span style={{ fontSize: 30, fontWeight: 900, fontStyle: "italic", color: "#1C1008", letterSpacing: 4, fontFamily: "'BarlowCondensed'" }}>
               KAKERU
             </span>
           </div>
@@ -187,6 +188,7 @@ export default function Image() {
       fonts: [
         { name: "NotoSansJP", data: fontLatin, weight: 900, style: "normal" },
         { name: "NotoSansJP", data: fontJp, weight: 900, style: "normal" },
+        { name: "BarlowCondensed", data: fontBarlow, weight: 900, style: "italic" },
       ],
     }
   );
