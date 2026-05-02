@@ -441,7 +441,7 @@ html { scroll-behavior: smooth; }
   .lp-root .hero-sub br { display: none; }
   .lp-root .hero-stickman-inline { display: none; }
   .lp-root .hero-visual { display: flex; grid-column: 2; grid-row: 1 / 3; align-items: center; justify-content: center; }
-  .lp-root .hero-visual-img { width: 100%; max-width: 280px; object-fit: contain; }
+  .lp-root .hero-visual-img { width: 100%; max-width: 200px; object-fit: contain; }
   .lp-root .hero-cta { grid-column: 1 / -1; grid-row: 2; padding-top: 32px; }
   .lp-root .btn-primary { width: 100%; display: flex; }
   .lp-root .btn-login { text-align: center; }
