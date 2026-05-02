@@ -39,6 +39,11 @@ export const metadata: Metadata = {
     canonical: "https://www.kakeruapp.com",
   },
   metadataBase: new URL("https://www.kakeruapp.com"),
+  icons: {
+    icon: "/favicon.png",
+    shortcut: "/favicon.png",
+    apple: "/icon-192.png",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",

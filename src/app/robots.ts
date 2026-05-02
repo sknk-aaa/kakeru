@@ -4,7 +4,7 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: "*",
-      allow: ["/", "/auth", "/privacy", "/terms", "/tokusho"],
+      allow: "/",
       disallow: ["/api/", "/run", "/goals", "/records", "/settings", "/auth/card", "/auth/callback"],
     },
     sitemap: "https://www.kakeruapp.com/sitemap.xml",
