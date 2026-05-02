@@ -77,11 +77,13 @@ export default function LpPage() {
                 <img src="/stickman-assets/stickman-02.png" style={{ width: 52 }} alt="" />
               </div>
             </div>
-            <Link href="/auth" className="btn-primary">今すぐ始める（無料） →</Link>
-            <Link href="/auth" className="btn-login">ログインはこちら →</Link>
           </div>
           <div className="hero-visual">
             <img src="/stickman-assets/stickman-08.png" className="hero-visual-img" alt="" />
+          </div>
+          <div className="hero-cta">
+            <Link href="/auth" className="btn-primary">今すぐ始める（無料） →</Link>
+            <Link href="/auth" className="btn-login">ログインはこちら →</Link>
           </div>
         </div>
       </section>
@@ -411,6 +413,7 @@ html { scroll-behavior: smooth; }
 .lp-root .hero-inner { display: flex; flex-direction: column; gap: 0; }
 .lp-root .hero-content { flex: 1; }
 .lp-root .hero-visual { display: none; }
+.lp-root .hero-cta { display: block; }
 @media (min-width: 700px) {
   .lp-root .lp-mobile-nav { display: none; }
   .lp-root .lp-pc-nav { display: flex; align-items: center; gap: 24px; }
@@ -428,13 +431,17 @@ html { scroll-behavior: smooth; }
   /* HERO — 2カラム（中央揃え） */
   .lp-root #hero { padding-top: 120px; padding-bottom: 80px; }
   .lp-root .hero-inner {
-    flex-direction: row; align-items: center; gap: 64px;
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    grid-template-rows: auto auto;
+    gap: 0 64px;
     max-width: 960px; margin: 0 auto; width: 100%;
   }
-  .lp-root .hero-content { flex: 1; max-width: 520px; }
+  .lp-root .hero-content { grid-column: 1; grid-row: 1; }
   .lp-root .hero-stickman-inline { display: none; }
-  .lp-root .hero-visual { display: flex; flex: 0 0 320px; justify-content: center; align-items: center; }
+  .lp-root .hero-visual { display: flex; grid-column: 2; grid-row: 1 / 3; align-items: center; justify-content: center; }
   .lp-root .hero-visual-img { width: 100%; max-width: 280px; object-fit: contain; }
+  .lp-root .hero-cta { grid-column: 1 / -1; grid-row: 2; padding-top: 32px; }
   .lp-root .btn-primary { width: 100%; display: flex; }
   .lp-root .btn-login { text-align: center; }
 
