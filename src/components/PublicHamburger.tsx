@@ -21,12 +21,13 @@ const NAV_ITEMS = [
 export default function PublicHamburger() {
   const [open, setOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
-  const [mounted, setMounted] = useState(false);
+  const canUseDocument = typeof document !== "undefined";
 
   useEffect(() => {
-    setMounted(true);
-    createClient().auth.getSession().then(({ data }) => {
-      setIsLoggedIn(!!data.session);
+    createClient().auth.getUser().then(({ data }) => {
+      setIsLoggedIn(!!data.user);
+    }).catch(() => {
+      setIsLoggedIn(false);
     });
   }, []);
 
@@ -116,12 +117,12 @@ export default function PublicHamburger() {
         <Menu size={22} color="#555" strokeWidth={2} />
       </button>
 
-      {mounted && open && isLoggedIn === true && createPortal(
+      {canUseDocument && open && isLoggedIn === true && createPortal(
         <HamburgerDrawer onClose={() => setOpen(false)} />,
         document.body
       )}
 
-      {mounted && open && isLoggedIn === false && createPortal(
+      {canUseDocument && open && isLoggedIn === false && createPortal(
         publicDrawer,
         document.body
       )}

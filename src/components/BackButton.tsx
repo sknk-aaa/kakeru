@@ -9,8 +9,10 @@ export default function BackButton({ loggedInHref = "/goals" }: { loggedInHref?:
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    createClient().auth.getSession().then(({ data }) => {
-      setIsLoggedIn(!!data.session);
+    createClient().auth.getUser().then(({ data }) => {
+      setIsLoggedIn(!!data.user);
+    }).catch(() => {
+      setIsLoggedIn(false);
     });
   }, []);
 
