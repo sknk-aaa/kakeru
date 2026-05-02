@@ -58,6 +58,8 @@ export default function BottomNav() {
   }, [router]);
 
   useEffect(() => {
+    if (process.env.NODE_ENV !== "production") return;
+
     const win = window as Window & typeof globalThis & {
       requestIdleCallback?: (callback: () => void, options?: { timeout?: number }) => number;
       cancelIdleCallback?: (handle: number) => void;
