@@ -56,8 +56,8 @@ export default function LpPage() {
       {/* HERO */}
       <section id="hero">
         <div style={{ position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none", zIndex: 0 }}>
-          <img src="/抽象画像/抽象画像4.png" style={{ position: "absolute", width: 260, top: -30, right: -70, opacity: 0.45 }} alt="" />
-          <img src="/抽象画像/抽象画像1.png" style={{ position: "absolute", width: 180, bottom: 40, left: -50, opacity: 0.35 }} alt="" />
+          <img src="/抽象画像/抽象画像4.png" style={{ position: "absolute", width: 260, top: -30, right: -20, opacity: 0.45 }} alt="" />
+          <img src="/抽象画像/抽象画像1.png" style={{ position: "absolute", width: 180, bottom: 40, left: -20, opacity: 0.35 }} alt="" />
         </div>
 
         <div style={{ position: "relative", zIndex: 1 }} className="hero-inner">
@@ -68,7 +68,7 @@ export default function LpPage() {
               <p className="hero-sub" style={{ marginBottom: 0, flex: 1 }}>
                 自分に甘いあなたのための、<br />本気の習慣化アプリ。
               </p>
-              <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+              <div className="hero-stickman-inline" style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
                 <img src="/stickman-assets/stickman-14.png" style={{ width: 52 }} alt="" />
                 <svg width="18" height="18" viewBox="0 0 36 36" fill="none">
                   <circle cx="18" cy="18" r="17" stroke="#FFD9B0" strokeWidth="2" />
@@ -79,6 +79,9 @@ export default function LpPage() {
             </div>
             <Link href="/auth" className="btn-primary">今すぐ始める（無料） →</Link>
             <Link href="/auth" className="btn-login">ログインはこちら →</Link>
+          </div>
+          <div className="hero-visual">
+            <img src="/stickman-assets/stickman-08.png" className="hero-visual-img" alt="" />
           </div>
         </div>
       </section>
@@ -407,16 +410,63 @@ html { scroll-behavior: smooth; }
 }
 .lp-root .hero-inner { display: flex; flex-direction: column; gap: 0; }
 .lp-root .hero-content { flex: 1; }
+.lp-root .hero-visual { display: none; }
 @media (min-width: 700px) {
-  .lp-root .hero-inner { flex-direction: row; align-items: center; gap: 40px; }
-  .lp-root section {
-    padding-left: max(24px, calc((100% - 900px) / 2));
-    padding-right: max(24px, calc((100% - 900px) / 2));
-  }
   .lp-root .lp-mobile-nav { display: none; }
   .lp-root .lp-pc-nav { display: flex; align-items: center; gap: 24px; }
   .lp-root .lp-pc-nav a { font-size: 14px; font-weight: 600; color: var(--text-sub); text-decoration: none; }
   .lp-root .lp-pc-nav a:hover { color: var(--dark); }
+}
+
+@media (min-width: 900px) {
+  /* コンテナ幅 */
+  .lp-root section {
+    padding-left: max(48px, calc((100% - 1080px) / 2));
+    padding-right: max(48px, calc((100% - 1080px) / 2));
+  }
+
+  /* HERO — 2カラム */
+  .lp-root #hero { padding-top: 120px; padding-bottom: 80px; }
+  .lp-root .hero-inner { flex-direction: row; align-items: center; gap: 64px; }
+  .lp-root .hero-content { flex: 1; max-width: 520px; }
+  .lp-root .hero-stickman-inline { display: none; }
+  .lp-root .hero-visual { display: flex; flex: 0 0 360px; justify-content: center; align-items: center; }
+  .lp-root .hero-visual-img { width: 100%; max-width: 300px; object-fit: contain; }
+  .lp-root .btn-primary { width: auto; min-width: 260px; display: inline-flex; }
+  .lp-root .btn-login { text-align: left; }
+
+  /* HOW IT WORKS — 横3列 */
+  .lp-root .how-steps { flex-direction: row; margin-top: 56px; }
+  .lp-root .how-step {
+    display: flex; flex-direction: column; align-items: center; text-align: center;
+    flex: 1; padding: 40px 28px;
+    border-bottom: none; border-right: 1.5px solid var(--border);
+  }
+  .lp-root .how-step:last-child { border-right: none; }
+  .lp-root .how-step.reverse { direction: ltr; }
+  .lp-root .how-step-img { margin: 0 auto 20px; max-width: 130px; }
+  .lp-root .how-step-text { padding: 0; }
+
+  /* FEATURES — 横3列 */
+  .lp-root .feat-grid { flex-direction: row; gap: 24px; }
+  .lp-root .feat-card { flex: 1; }
+
+  /* PRICING — 横2列 */
+  .lp-root .plan-cards { flex-direction: row; align-items: stretch; gap: 20px; }
+  .lp-root .plan { flex: 1; }
+  .lp-root .plan.pro { transform: scale(1.02); }
+
+  /* CTA */
+  .lp-root .btn-cta { width: auto; padding: 17px 56px; }
+
+  /* FAQ */
+  .lp-root .faq-list { max-width: 760px; margin-left: auto; margin-right: auto; }
+
+  /* FOOTER */
+  .lp-root .lp-footer {
+    flex-direction: row; justify-content: space-between; align-items: center;
+    padding: 28px max(48px, calc((100% - 1080px) / 2));
+  }
 }
 .lp-root .hero-tag {
   display: inline-flex; align-items: center; gap: 6px;
