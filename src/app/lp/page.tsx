@@ -79,7 +79,7 @@ export default function LpPage() {
             </div>
           </div>
           <div className="hero-visual">
-            <img src="/stickman-assets/stickman-08.png" className="hero-visual-img" alt="" />
+            <img src="/stickman-assets/stickman-06.png" className="hero-visual-img" alt="" />
           </div>
           <div className="hero-cta">
             <Link href="/auth" className="btn-primary">今すぐ始める（無料） →</Link>
@@ -438,6 +438,7 @@ html { scroll-behavior: smooth; }
     max-width: 960px; margin: 0 auto; width: 100%;
   }
   .lp-root .hero-content { grid-column: 1; grid-row: 1; }
+  .lp-root .hero-sub br { display: none; }
   .lp-root .hero-stickman-inline { display: none; }
   .lp-root .hero-visual { display: flex; grid-column: 2; grid-row: 1 / 3; align-items: center; justify-content: center; }
   .lp-root .hero-visual-img { width: 100%; max-width: 280px; object-fit: contain; }
