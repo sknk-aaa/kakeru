@@ -435,8 +435,8 @@ html { scroll-behavior: smooth; }
   .lp-root .hero-stickman-inline { display: none; }
   .lp-root .hero-visual { display: flex; flex: 0 0 320px; justify-content: center; align-items: center; }
   .lp-root .hero-visual-img { width: 100%; max-width: 280px; object-fit: contain; }
-  .lp-root .btn-primary { width: auto; min-width: 260px; display: inline-flex; }
-  .lp-root .btn-login { text-align: left; }
+  .lp-root .btn-primary { width: 100%; display: flex; }
+  .lp-root .btn-login { text-align: center; }
 
   /* FEATURES — 横3列 */
   .lp-root .feat-grid { flex-direction: row; gap: 24px; }
