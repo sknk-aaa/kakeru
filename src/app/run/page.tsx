@@ -12,6 +12,7 @@ import { haversineDistance, speedKmh, calcCalories, formatDuration, type GpsPoin
 import AppShell from "@/components/AppShell";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client-lazy";
 import RunTutorial, { TUTORIAL_KEY } from "./RunTutorial";
+import { resolveRunId } from "./runResultBridge";
 
 const RunMap = dynamicImport(() => import("@/components/RunMap"), { ssr: false });
 
@@ -279,57 +280,71 @@ function RunPageInner() {
     if (timerRef.current) clearInterval(timerRef.current);
     releaseWakeLock();
 
-    const supabase = await createBrowserSupabaseClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
     const finishedAt = new Date();
     const avgPace = distanceKm > 0 ? elapsedSec / distanceKm : 0;
 
-    const { data: run, error: runError } = await supabase.from("runs").insert({
-      goal_instance_id: effectiveInstanceId || null,
-      user_id: user.id,
-      distance_km: Math.round(distanceKm * 100) / 100,
-      duration_seconds: elapsedSec,
-      pace_seconds_per_km: Math.round(avgPace),
-      calories,
-      gps_path: gpsPoints,
-      started_at: startedAt?.toISOString() ?? finishedAt.toISOString(),
-      finished_at: finishedAt.toISOString(),
-    }).select().single();
-
-    if (runError) {
-      setSaveError("ランの保存に失敗しました。もう一度お試しください。");
-      setPhase("paused");
-      return;
-    }
-
+    // ローカルで全パラメータを計算してから即座に遷移
     let cumulativeGoalReached = false;
     if (effectiveInstanceId && goalInstance) {
       const distOk = !goalInstance.distance_km || distanceKm >= goalInstance.distance_km;
       const timeOk = !goalInstance.duration_minutes || elapsedSec >= goalInstance.duration_minutes * 60;
       cumulativeGoalReached = distOk && timeOk;
-      if (cumulativeGoalReached) {
-        await supabase.from("goal_instances").update({ status: "achieved" }).eq("id", effectiveInstanceId);
-        const { data: inst } = await supabase.from("goal_instances").select("goal_id").eq("id", effectiveInstanceId).single();
-        if (inst?.goal_id) {
-          await supabase.from("goals").update({ consecutive_failures: 0 }).eq("id", inst.goal_id);
-        }
-      }
     }
 
-    const { count: runCount } = await supabase
-      .from("runs")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id);
-    const installPrompt = runCount === 1 || runCount === 3 ? runCount : 0;
+    // インストールプロンプトは localStorage カウンタで判定（DB 不要）
+    const prevCount = parseInt(localStorage.getItem("kakeru_run_count") ?? "0", 10);
+    const newCount = prevCount + 1;
+    localStorage.setItem("kakeru_run_count", String(newCount));
+    const installPrompt = newCount === 1 || newCount === 3 ? newCount : 0;
 
     const goalDistParam = goalInstance?.distance_km ? `&goalDistKm=${goalInstance.distance_km}` : "";
     const goalDurParam = goalInstance?.duration_minutes ? `&goalDurMin=${goalInstance.duration_minutes}` : "";
 
+    // DB 書き込みを待たずに即遷移
     router.push(
-      `/run/result?runId=${run?.id ?? ""}&distanceKm=${distanceKm.toFixed(2)}&durationSec=${elapsedSec}&pace=${Math.round(avgPace)}&calories=${calories}&goalReached=${cumulativeGoalReached}${goalDistParam}${goalDurParam}${installPrompt ? `&installPrompt=${installPrompt}` : ""}`
+      `/run/result?distanceKm=${distanceKm.toFixed(2)}&durationSec=${elapsedSec}&pace=${Math.round(avgPace)}&calories=${calories}&goalReached=${cumulativeGoalReached}${goalDistParam}${goalDurParam}${installPrompt ? `&installPrompt=${installPrompt}` : ""}`
     );
+
+    // DB 書き込みをバックグラウンドで実行
+    void (async () => {
+      try {
+        const supabase = await createBrowserSupabaseClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { data: run, error: runError } = await supabase.from("runs").insert({
+          goal_instance_id: effectiveInstanceId || null,
+          user_id: user.id,
+          distance_km: Math.round(distanceKm * 100) / 100,
+          duration_seconds: elapsedSec,
+          pace_seconds_per_km: Math.round(avgPace),
+          calories,
+          gps_path: gpsPoints,
+          started_at: startedAt?.toISOString() ?? finishedAt.toISOString(),
+          finished_at: finishedAt.toISOString(),
+        }).select("id").single();
+
+        if (runError) {
+          console.error("Run save failed:", runError);
+          return;
+        }
+
+        // runId を結果ページへ橋渡し（自己ベスト判定に使用）
+        if (run?.id) resolveRunId(run.id);
+
+        if (cumulativeGoalReached && effectiveInstanceId) {
+          const [, instResult] = await Promise.all([
+            supabase.from("goal_instances").update({ status: "achieved" }).eq("id", effectiveInstanceId),
+            supabase.from("goal_instances").select("goal_id").eq("id", effectiveInstanceId).single(),
+          ]);
+          if (instResult.data?.goal_id) {
+            await supabase.from("goals").update({ consecutive_failures: 0 }).eq("id", instResult.data.goal_id);
+          }
+        }
+      } catch (e) {
+        console.error("Background save error:", e);
+      }
+    })();
   }
 
   const distPct = goalInstance?.distance_km && goalInstance.distance_km > 0

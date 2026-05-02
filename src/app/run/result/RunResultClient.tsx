@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { formatPace, formatDuration } from "@/lib/haversine";
 import { TrendingUp, Home } from "lucide-react";
+import { awaitRunId, clearRunIdBridge } from "../runResultBridge";
 import AppShell from "@/components/AppShell";
 import InstallPromptModal from "@/components/InstallPromptModal";
 import Image from "next/image";
@@ -22,31 +23,33 @@ export default function RunResultClient() {
   const goalReached = params.get("goalReached") === "true";
   const goalDistKm = params.get("goalDistKm") ? parseFloat(params.get("goalDistKm")!) : null;
   const goalDurMin = params.get("goalDurMin") ? parseInt(params.get("goalDurMin")!) : null;
-  const runId = params.get("runId");
   const rawInstall = params.get("installPrompt");
   const installTrigger: 1 | 3 | null = rawInstall === "1" ? 1 : rawInstall === "3" ? 3 : null;
   const [showInstallModal, setShowInstallModal] = useState(installTrigger !== null);
 
+  // バックグラウンド書き込み完了後、ブリッジ経由で runId を受け取って自己ベストを判定
   useEffect(() => {
-    if (!runId) return;
-    const supabase = createClient();
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user) return;
-      supabase
-        .from("runs")
-        .select("pace_seconds_per_km, distance_km")
-        .eq("user_id", user.id)
-        .not("id", "eq", runId)
-        .order("pace_seconds_per_km", { ascending: true })
-        .limit(1)
-        .then(({ data }) => {
-          const prevBestPace = data?.[0]?.pace_seconds_per_km ?? Infinity;
-          const prevBestDist = data?.[0]?.distance_km ?? 0;
-          if (pace > 0 && pace < prevBestPace) setIsNewPB(true);
-          setPersonalBest({ pace: prevBestPace, distance: prevBestDist });
-        });
+    awaitRunId((runId) => {
+      const supabase = createClient();
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        if (!user) return;
+        supabase
+          .from("runs")
+          .select("pace_seconds_per_km, distance_km")
+          .eq("user_id", user.id)
+          .not("id", "eq", runId)
+          .order("pace_seconds_per_km", { ascending: true })
+          .limit(1)
+          .then(({ data }) => {
+            const prevBestPace = data?.[0]?.pace_seconds_per_km ?? Infinity;
+            const prevBestDist = data?.[0]?.distance_km ?? 0;
+            if (pace > 0 && pace < prevBestPace) setIsNewPB(true);
+            setPersonalBest({ pace: prevBestPace, distance: prevBestDist });
+          });
+      });
     });
-  }, [runId, pace]);
+    return () => clearRunIdBridge();
+  }, [pace]);
 
   const achievementLabel = goalDistKm
     ? `${goalDistKm} km 達成！`
