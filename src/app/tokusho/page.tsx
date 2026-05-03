@@ -5,8 +5,8 @@ const CONTACT_EMAIL = "kakeruapp.official@gmail.com";
 const UPDATED_AT = "2026年4月23日";
 
 const ROWS = [
-  { label: "販売業者", value: "金子蒼天" },
-  { label: "運営責任者", value: "金子蒼天" },
+  { label: "販売業者", value: "※請求があった場合は遅滞なく開示します" },
+  { label: "運営責任者", value: "※請求があった場合は遅滞なく開示します" },
   { label: "所在地", value: "※請求があった場合は遅滞なく開示します" },
   { label: "電話番号", value: "※請求があった場合は遅滞なく開示します" },
   { label: "メールアドレス", value: CONTACT_EMAIL },
