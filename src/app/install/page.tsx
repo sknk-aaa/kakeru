@@ -27,7 +27,7 @@ const STEPS: Record<Browser, InstallStep[]> = {
   safari: [
     {
       icon: "①",
-      detail: "画面下部の「…」から",
+      detail: "画面下部の「⋯」から",
       inlineImage: { src: "/その他素材/共有ボタン.png", alt: "共有ボタン" },
       detailAfterImage: "をタップ",
     },
@@ -238,20 +238,21 @@ export default function InstallPage() {
                   color: "#FF6B00", lineHeight: 1, minWidth: "30px", textAlign: "center",
                 }}>{icon}</span>
                 <p style={{ fontSize: "14px", color: "#222222", lineHeight: 1.6 }}>
-                  {detail}
-                  {inlineImage && (
-                    <>
-                      {" "}
+                  {inlineImage ? (
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", whiteSpace: "nowrap" }}>
+                      <span>{detail}</span>
                       <Image
                         src={inlineImage.src}
                         alt={inlineImage.alt}
-                        width={24}
-                        height={24}
-                        style={{ verticalAlign: "middle", objectFit: "contain" }}
+                        width={18}
+                        height={18}
+                        style={{ display: "inline-block", flexShrink: 0, verticalAlign: "middle", objectFit: "contain" }}
                       />
-                    </>
+                      {detailAfterImage && <span>{detailAfterImage}</span>}
+                    </span>
+                  ) : (
+                    detail
                   )}
-                  {detailAfterImage && ` ${detailAfterImage}`}
                 </p>
               </div>
             ))}
