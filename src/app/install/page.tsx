@@ -1,12 +1,21 @@
 "use client";
 export const dynamic = "force-dynamic";
 
-import { useState, useEffect } from "react";
+import { useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeft, CheckCircle } from "lucide-react";
 
 type Browser = "safari" | "chrome" | "edge";
+type InstallStep = {
+  icon: string;
+  detail: string;
+  inlineImage?: {
+    src: string;
+    alt: string;
+  };
+  detailAfterImage?: string;
+};
 
 const BENEFITS: { img: string; w: number; h: number; label: string; sub: string; maxW?: string }[] = [
   { img: "/stickman-assets/stickman-20.png",       w: 187, h: 336,  label: "アプリのように", sub: "使える",  maxW: "45%" },
@@ -14,14 +23,24 @@ const BENEFITS: { img: string; w: number; h: number; label: string; sub: string;
   { img: "/その他素材/ホーム画面に追加モック.png", w: 604, h: 1187, label: "1タップで",     sub: "起動" },
 ];
 
-const STEPS: Record<Browser, { icon: string; detail: string }[]> = {
+const STEPS: Record<Browser, InstallStep[]> = {
   safari: [
-    { icon: "①", detail: "画面下部の 共有ボタン（□↑）をタップ" },
+    {
+      icon: "①",
+      detail: "画面下部の「…」から",
+      inlineImage: { src: "/その他素材/共有ボタン.png", alt: "共有ボタン" },
+      detailAfterImage: "をタップ",
+    },
     { icon: "②", detail: "「ホーム画面に追加」を選択" },
     { icon: "③", detail: "右上の「追加」をタップして完了" },
   ],
   chrome: [
-    { icon: "①", detail: "右上のメニュー（⋮）をタップ" },
+    {
+      icon: "①",
+      detail: "右上の",
+      inlineImage: { src: "/その他素材/共有ボタン.png", alt: "共有ボタン" },
+      detailAfterImage: "をタップ",
+    },
     { icon: "②", detail: "「ホーム画面に追加」を選択" },
     { icon: "③", detail: "「追加」をタップして完了" },
   ],
@@ -32,13 +51,24 @@ const STEPS: Record<Browser, { icon: string; detail: string }[]> = {
   ],
 };
 
-export default function InstallPage() {
-  const [isInstalled, setIsInstalled] = useState(false);
-  const [browser, setBrowser] = useState<Browser>("safari");
+function subscribeDisplayModeChange(onStoreChange: () => void) {
+  const mediaQuery = window.matchMedia("(display-mode: standalone)");
+  mediaQuery.addEventListener("change", onStoreChange);
 
-  useEffect(() => {
-    setIsInstalled(window.matchMedia("(display-mode: standalone)").matches);
-  }, []);
+  return () => mediaQuery.removeEventListener("change", onStoreChange);
+}
+
+function getDisplayModeSnapshot() {
+  return window.matchMedia("(display-mode: standalone)").matches;
+}
+
+export default function InstallPage() {
+  const isInstalled = useSyncExternalStore(
+    subscribeDisplayModeChange,
+    getDisplayModeSnapshot,
+    () => false
+  );
+  const [browser, setBrowser] = useState<Browser>("safari");
 
   return (
     <div style={{ background: "#F2F2F7", minHeight: "100dvh" }}>
@@ -194,7 +224,7 @@ export default function InstallPage() {
 
           {/* 手順 */}
           <div style={{ background: "#FAFAFA", borderRadius: "16px", padding: "4px 16px" }}>
-            {STEPS[browser].map(({ icon, detail }, i) => (
+            {STEPS[browser].map(({ icon, detail, inlineImage, detailAfterImage }, i) => (
               <div
                 key={i}
                 style={{
@@ -207,7 +237,22 @@ export default function InstallPage() {
                   fontFamily: "var(--font-display)", fontSize: "24px", fontWeight: 900,
                   color: "#FF6B00", lineHeight: 1, minWidth: "30px", textAlign: "center",
                 }}>{icon}</span>
-                <p style={{ fontSize: "14px", color: "#222222", lineHeight: 1.6 }}>{detail}</p>
+                <p style={{ fontSize: "14px", color: "#222222", lineHeight: 1.6 }}>
+                  {detail}
+                  {inlineImage && (
+                    <>
+                      {" "}
+                      <Image
+                        src={inlineImage.src}
+                        alt={inlineImage.alt}
+                        width={24}
+                        height={24}
+                        style={{ verticalAlign: "middle", objectFit: "contain" }}
+                      />
+                    </>
+                  )}
+                  {detailAfterImage && ` ${detailAfterImage}`}
+                </p>
               </div>
             ))}
           </div>
