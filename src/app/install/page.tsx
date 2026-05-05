@@ -94,7 +94,7 @@ export default function InstallPage() {
           alt=""
           width={240}
           height={240}
-          style={{ position: "absolute", top: -28, right: -48, opacity: 0.28, pointerEvents: "none", userSelect: "none" }}
+          style={{ width: 240, height: 240, position: "absolute", top: -28, right: -48, opacity: 0.28, pointerEvents: "none", userSelect: "none" }}
           aria-hidden
         />
         {/* 抽象画像3: 左下のアクセント */}
@@ -103,7 +103,7 @@ export default function InstallPage() {
           alt=""
           width={100}
           height={100}
-          style={{ position: "absolute", bottom: -20, left: -24, opacity: 0.18, pointerEvents: "none", userSelect: "none" }}
+          style={{ width: 100, height: 100, position: "absolute", bottom: -20, left: -24, opacity: 0.18, pointerEvents: "none", userSelect: "none" }}
           aria-hidden
         />
 
@@ -128,7 +128,7 @@ export default function InstallPage() {
             alt="だから続く！"
             width={110}
             height={28}
-            style={{ objectFit: "contain" }}
+            style={{ width: 110, height: 28, objectFit: "contain" }}
           />
         </div>
       </div>
@@ -141,12 +141,12 @@ export default function InstallPage() {
           alt=""
           width={200}
           height={200}
-          style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", opacity: 0.08, pointerEvents: "none", userSelect: "none" }}
+          style={{ width: 200, height: 200, position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", opacity: 0.08, pointerEvents: "none", userSelect: "none" }}
           aria-hidden
         />
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px", position: "relative", zIndex: 1 }}>
-          {BENEFITS.map(({ img, label, sub, maxW }) => (
+          {BENEFITS.map(({ img, w, h, label, sub, maxW }) => (
             <div key={label} style={{
               background: "#FFF8F4",
               borderRadius: "18px",
@@ -159,7 +159,7 @@ export default function InstallPage() {
               <div style={{ height: "130px", width: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <Image
                   src={img} alt=""
-                  width={0} height={0}
+                  width={w} height={h}
                   sizes="33vw"
                   style={{ width: maxW ?? "100%", height: "100%", objectFit: "contain" }}
                 />
@@ -179,6 +179,7 @@ export default function InstallPage() {
           alt=""
           width={420}
           height={80}
+          sizes="100vw"
           style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", opacity: 0.22, width: "100%", height: "auto" }}
           aria-hidden
         />
@@ -246,7 +247,7 @@ export default function InstallPage() {
                         alt={inlineImage.alt}
                         width={18}
                         height={18}
-                        style={{ display: "inline-block", flexShrink: 0, verticalAlign: "middle", objectFit: "contain" }}
+                        style={{ width: 18, height: 18, display: "inline-block", flexShrink: 0, verticalAlign: "middle", objectFit: "contain" }}
                       />
                       {detailAfterImage && <span>{detailAfterImage}</span>}
                     </span>

@@ -45,7 +45,7 @@ function ProSuccessContent() {
   return (
     <div style={{ minHeight: "70vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "48px 24px", textAlign: "center" }}>
       <div style={{ marginBottom: "24px" }}>
-        <Image src="/stickman-assets/stickman-15.png" alt="" width={120} height={120} style={{ objectFit: "contain" }} />
+        <Image src="/stickman-assets/stickman-15.png" alt="" width={120} height={120} style={{ width: 120, height: 120, objectFit: "contain" }} />
       </div>
 
       <div style={{ marginBottom: "12px" }}>

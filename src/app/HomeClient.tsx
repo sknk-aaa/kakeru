@@ -171,7 +171,7 @@ export default function HomeClient({
         display: "flex", alignItems: "center", justifyContent: "space-between",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-          <Image src="/stickman-assets/stickman-01.png" alt="" width={28} height={28} style={{ objectFit: "contain" }} priority />
+          <Image src="/stickman-assets/stickman-01.png" alt="" width={28} height={28} style={{ width: 28, height: 28, objectFit: "contain" }} priority />
           <span style={{
             fontFamily: "var(--font-display)",
             fontSize: "24px", fontWeight: 900, fontStyle: "italic",
@@ -210,7 +210,7 @@ export default function HomeClient({
                 <div style={{ height: "4px", background: "#22C55E" }} />
                 <div style={{ padding: "20px 20px 24px", textAlign: "center" }}>
                   <p style={{ fontSize: "10px", color: "#22C55E", fontWeight: 800, letterSpacing: "0.18em", marginBottom: "14px" }}>TODAY&apos;S MISSION</p>
-                  <Image src={todayMissionStickmanSrc} alt="" width={80} height={80} style={{ objectFit: "contain", marginBottom: "10px" }} />
+                  <Image src={todayMissionStickmanSrc} alt="" width={80} height={80} style={{ width: 80, height: 80, objectFit: "contain", marginBottom: "10px" }} />
                   <p style={{ fontSize: "18px", fontWeight: 800, color: "#111111", marginBottom: "4px" }}>目標達成！</p>
                   <p style={{ fontSize: "13px", color: "#888888" }}>お疲れ様でした</p>
                 </div>
@@ -239,7 +239,7 @@ export default function HomeClient({
                 background: "linear-gradient(135deg, #FFF5EE 0%, #FFFFFF 58%)",
               }}>
                 <div style={{ position: "absolute", right: "-12px", top: "4px", pointerEvents: "none" }}>
-                  <Image src={todayMissionStickmanSrc} alt="" width={138} height={138} style={{ objectFit: "contain", opacity: 0.95 }} />
+                  <Image src={todayMissionStickmanSrc} alt="" width={138} height={138} style={{ width: 138, height: 138, objectFit: "contain", opacity: 0.95 }} />
                 </div>
                 <div style={{ position: "absolute", right: "24px", bottom: "16px", width: "62px", height: "62px", borderRadius: "50%", background: "#FFE8D9", opacity: 0.72, pointerEvents: "none" }} />
 
@@ -298,7 +298,7 @@ export default function HomeClient({
             {/* 今月の距離 */}
             <div style={{ background: "white", borderRadius: "18px", padding: "13px 8px 12px", boxShadow: "0 8px 24px rgba(0,0,0,0.06)", border: "1px solid rgba(0,0,0,0.03)", overflow: "hidden", minHeight: "108px" }}>
               <div style={{ height: "34px", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "8px" }}>
-                <Image src="/その他素材/今月の距離-transparent.png" alt="" width={42} height={40} style={{ objectFit: "contain" }} />
+                <Image src="/その他素材/今月の距離-transparent.png" alt="" width={42} height={40} style={{ width: 42, height: 40, objectFit: "contain" }} />
               </div>
               <p style={{ fontSize: "10px", color: "#777777", fontWeight: 700, marginBottom: "2px", letterSpacing: "0.02em", textAlign: "center" }}>今月の距離</p>
               <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: "2px" }}>
@@ -311,7 +311,7 @@ export default function HomeClient({
             {/* 達成率 */}
             <div style={{ background: "white", borderRadius: "18px", padding: "13px 8px 12px", boxShadow: "0 8px 24px rgba(0,0,0,0.06)", border: "1px solid rgba(0,0,0,0.03)", overflow: "hidden", minHeight: "108px" }}>
               <div style={{ height: "34px", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "8px" }}>
-                <Image src="/その他素材/今月の達成率-transparent.png" alt="" width={48} height={48} style={{ objectFit: "contain" }} />
+                <Image src="/その他素材/今月の達成率-transparent.png" alt="" width={48} height={48} style={{ width: 48, height: 48, objectFit: "contain" }} />
               </div>
               <p style={{ fontSize: "10px", color: "#777777", fontWeight: 700, marginBottom: "2px", letterSpacing: "0.02em", textAlign: "center" }}>達成率</p>
               <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: "2px" }}>
@@ -326,7 +326,7 @@ export default function HomeClient({
               onClick={() => setShowPenaltySheet(true)}
             >
               <div style={{ height: "34px", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "9px" }}>
-                <Image src="/その他素材/ブタの貯金箱-透過.png" alt="" width={44} height={44} style={{ objectFit: "contain" }} />
+                <Image src="/その他素材/ブタの貯金箱-透過.png" alt="" width={44} height={44} style={{ width: 44, height: 44, objectFit: "contain" }} />
               </div>
               {totalPenaltyMonth > 0 ? (
                 <>
@@ -380,7 +380,7 @@ export default function HomeClient({
             display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
             minHeight: "45vh", padding: "24px 20px",
           }}>
-            <Image src="/stickman-assets/stickman-13.png" alt="" width={150} height={108} style={{ objectFit: "contain", marginBottom: "18px" }} priority />
+            <Image src="/stickman-assets/stickman-13.png" alt="" width={150} height={108} style={{ width: 150, height: 108, objectFit: "contain", marginBottom: "18px" }} priority />
             <p style={{ color: "#111111", fontSize: "16px", fontWeight: 800, marginBottom: "7px" }}>今週の目標がまだありません</p>
             <p style={{ color: "#888888", fontSize: "13px", lineHeight: 1.6, marginBottom: "20px", textAlign: "center" }}>まずは目標を一つ立ててみましょう！</p>
             <Link href="/goals/new">
@@ -397,7 +397,7 @@ export default function HomeClient({
                 minHeight: "45vh", padding: "20px",
                 display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
               }}>
-                <Image src="/stickman-assets/stickman-13.png" alt="" width={150} height={108} style={{ objectFit: "contain", marginBottom: "18px" }} priority />
+                <Image src="/stickman-assets/stickman-13.png" alt="" width={150} height={108} style={{ width: 150, height: 108, objectFit: "contain", marginBottom: "18px" }} priority />
                 <p style={{ color: "#111111", fontSize: "16px", fontWeight: 800, marginBottom: "7px" }}>今週の目標をすべてクリア！</p>
                 <p style={{ color: "#888888", fontSize: "13px", lineHeight: 1.6, marginBottom: "24px", textAlign: "center" }}>この流れのまま、次の目標を今のうちに入れておきましょう！</p>
                 <Link href="/goals/new">

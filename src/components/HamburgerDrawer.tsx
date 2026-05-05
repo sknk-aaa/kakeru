@@ -72,7 +72,7 @@ export default function HamburgerDrawer({ onClose, width = 300 }: { onClose: () 
       >
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px 12px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
-            <Image src="/stickman-assets/stickman-01.png" alt="" width={20} height={20} style={{ objectFit: "contain" }} />
+            <Image src="/stickman-assets/stickman-01.png" alt="" width={20} height={20} style={{ width: 20, height: 20, objectFit: "contain" }} />
             <span style={{ fontFamily: "var(--font-display)", fontSize: "18px", fontWeight: 900, fontStyle: "italic", color: "#FF6B00", letterSpacing: "0.06em" }}>KAKERU</span>
           </div>
           <button

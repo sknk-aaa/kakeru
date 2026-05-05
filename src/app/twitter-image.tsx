@@ -33,6 +33,8 @@ export default function Image() {
             bottom: "-30px",
             left: "-40px",
             width: "820px",
+            height: "820px",
+            objectFit: "contain",
             opacity: 0.1,
           }}
         />
@@ -78,7 +80,7 @@ export default function Image() {
             <img
               src={logoUrl}
               alt="走らなければ、課金される。"
-              style={{ width: "460px", objectFit: "contain" }}
+              style={{ width: "460px", height: "288px", objectFit: "contain" }}
             />
           </div>
 
@@ -109,7 +111,7 @@ export default function Image() {
           <img
             src={coinUrl}
             alt=""
-            style={{ width: "280px", objectFit: "contain" }}
+            style={{ width: "280px", height: "280px", objectFit: "contain" }}
           />
         </div>
       </div>

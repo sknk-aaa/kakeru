@@ -60,7 +60,7 @@ export default function InstallPromptModal({ triggerRun, onClose }: Props) {
         {/* ヘッダー */}
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "20px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
-            <Image src="/icon-192.png" alt="" width={52} height={52} style={{ borderRadius: "12px" }} />
+            <Image src="/icon-192.png" alt="" width={52} height={52} style={{ width: 52, height: 52, borderRadius: "12px" }} />
             <div>
               <p style={{ margin: 0, fontSize: "17px", fontWeight: 700, color: "#111111" }}>ホーム画面に追加する</p>
               <p style={{ margin: "3px 0 0", fontSize: "13px", color: "#888888" }}>カケル</p>

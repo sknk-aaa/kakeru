@@ -81,7 +81,7 @@ export default function ProManagePage() {
           alt=""
           width={100}
           height={100}
-          style={{ objectFit: "contain", marginBottom: "16px" }}
+          style={{ width: 100, height: 100, objectFit: "contain", marginBottom: "16px" }}
         />
 
         {/* PRO バッジ */}

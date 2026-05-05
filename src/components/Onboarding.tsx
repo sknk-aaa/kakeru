@@ -143,6 +143,7 @@ function Step1({ onNext, onSkip }: { onNext: () => void; onSkip: () => void }) {
           alt="走らなければ、課金される。"
           width={340}
           height={120}
+          sizes="300px"
           style={{ width: "88%", height: "auto", objectFit: "contain", filter: "drop-shadow(0 4px 16px rgba(255,107,0,0.2))" }}
         />
       </div>
@@ -321,6 +322,7 @@ function Step3({ onNext }: { onNext: () => void }) {
               alt="ホーム画面"
               width={400}
               height={800}
+              sizes="280px"
               style={{ width: "100%", height: "auto", display: "block" }}
             />
           </div>
@@ -388,6 +390,7 @@ function Step4({ onFinish }: { onFinish: () => void }) {
               alt="目標設定画面"
               width={440}
               height={240}
+              sizes="300px"
               style={{ width: "100%", height: "auto", display: "block" }}
             />
           </div>

@@ -47,7 +47,7 @@ export default function SplashScreen() {
         src="/stickman-assets/stickman-01.png"
         alt=""
         width={72} height={72}
-        style={{ objectFit: "contain", marginBottom: "12px" }}
+        style={{ width: 72, height: 72, objectFit: "contain", marginBottom: "12px" }}
         priority
       />
       <span style={{

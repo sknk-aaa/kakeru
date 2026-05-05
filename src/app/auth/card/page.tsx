@@ -69,7 +69,7 @@ export default function CardPage() {
           alt=""
           width={120}
           height={120}
-          style={{ objectFit: "contain", marginBottom: "16px" }}
+          style={{ width: 120, height: 120, objectFit: "contain", marginBottom: "16px" }}
           priority
         />
         <h1 style={{ fontSize: "22px", fontWeight: 800, color: "#111111", marginBottom: "8px", textAlign: "center" }}>

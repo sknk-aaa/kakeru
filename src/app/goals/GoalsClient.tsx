@@ -374,7 +374,7 @@ export default function GoalsClient({
         display: "flex", alignItems: "center", justifyContent: "space-between",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-          <Image src="/stickman-assets/stickman-01.png" alt="" width={28} height={28} style={{ objectFit: "contain" }} priority />
+          <Image src="/stickman-assets/stickman-01.png" alt="" width={28} height={28} style={{ width: 28, height: 28, objectFit: "contain" }} priority />
           <span style={{ fontFamily: "var(--font-display)", fontSize: "24px", fontWeight: 900, fontStyle: "italic", color: "#FF6B00", letterSpacing: "0.06em" }}>KAKERU</span>
         </div>
         <Link href="/goals/new">
@@ -420,9 +420,9 @@ export default function GoalsClient({
             position: "relative",
           }}>
             <div style={{ position: "absolute", right: "-28px", bottom: "-24px", pointerEvents: "none" }}>
-              <Image src="/その他素材/山-transparent.png" alt="" width={156} height={108} style={{ objectFit: "contain", opacity: 0.16 }} />
+              <Image src="/その他素材/山-transparent.png" alt="" width={156} height={108} style={{ width: 156, height: 108, objectFit: "contain", opacity: 0.16 }} />
             </div>
-            <Image src="/stickman-assets/stickman-13.png" alt="" width={122} height={88} style={{ display: "block", objectFit: "contain", margin: "0 auto 14px", position: "relative", zIndex: 1 }} />
+            <Image src="/stickman-assets/stickman-13.png" alt="" width={122} height={88} style={{ width: 122, height: 88, display: "block", objectFit: "contain", margin: "0 auto 14px", position: "relative", zIndex: 1 }} />
             <p style={{ color: "#111111", fontSize: "19px", fontWeight: 900, marginBottom: "8px", position: "relative", zIndex: 1 }}>目標を設定してみましょう</p>
             <p style={{ color: "#888888", fontSize: "13px", lineHeight: 1.7, marginBottom: "20px", position: "relative", zIndex: 1 }}>
               走る日と内容を先に決めておくと、今日やることが迷わず見えます。

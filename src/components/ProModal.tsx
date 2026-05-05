@@ -41,7 +41,7 @@ export default function ProModal({ featureName, description, onClose }: Props) {
             alt=""
             width={80}
             height={80}
-            style={{ objectFit: "contain" }}
+            style={{ width: 80, height: 80, objectFit: "contain" }}
           />
         </div>
 

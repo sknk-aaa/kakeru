@@ -414,7 +414,7 @@ function RunPageInner() {
                 <Image
                   src="/stickman-assets/stickman-05.png"
                   alt="" width={120} height={140}
-                  style={{ objectFit: "contain", opacity: 0.35, marginBottom: "16px" }}
+                  style={{ width: 120, height: 140, objectFit: "contain", opacity: 0.35, marginBottom: "16px" }}
                 />
                 <p style={{ fontSize: "13px", color: "#CCCCCC" }}>準備中...</p>
               </>
@@ -424,7 +424,7 @@ function RunPageInner() {
                 <Image
                   src={isFreeRun ? "/stickman-assets/stickman-01.png" : "/stickman-assets/stickman-05.png"}
                   alt="" width={130} height={150}
-                  style={{ objectFit: "contain", marginBottom: "24px" }}
+                  style={{ width: 130, height: 150, objectFit: "contain", marginBottom: "24px" }}
                 />
 
                 {/* 目標あり（1件） */}
@@ -626,7 +626,7 @@ function RunPageInner() {
           padding: "10px 16px",
           display: "flex", alignItems: "center", gap: "10px",
         }}>
-          <Image src="/stickman-assets/stickman-02.png" alt="" width={36} height={36} style={{ objectFit: "contain" }} />
+          <Image src="/stickman-assets/stickman-02.png" alt="" width={36} height={36} style={{ width: 36, height: 36, objectFit: "contain" }} />
           <p style={{ fontSize: "14px", fontWeight: 800, color: "white" }}>目標達成！このままゴールしよう 🎉</p>
         </div>
       )}

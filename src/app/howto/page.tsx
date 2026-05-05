@@ -130,7 +130,7 @@ export default function HowToPage() {
         }}>
           <BackButton loggedInHref="/goals" />
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <Image src="/stickman-assets/stickman-01.png" width={22} height={22} alt="" style={{ objectFit: "contain" }} />
+            <Image src="/stickman-assets/stickman-01.png" width={22} height={22} alt="" style={{ width: 22, height: 22, objectFit: "contain" }} />
             <span style={{ fontFamily: "var(--font-display)", fontSize: "19px", fontWeight: 900, fontStyle: "italic", color: "#FF6B00", letterSpacing: "0.06em" }}>KAKERU</span>
           </div>
           <div style={{ width: 60 }} />
@@ -213,6 +213,7 @@ export default function HowToPage() {
                       src={step.img}
                       alt=""
                       fill
+                      sizes={`${step.imgW}px`}
                       style={{ objectFit: "contain", objectPosition: "right bottom" }}
                     />
                   </div>

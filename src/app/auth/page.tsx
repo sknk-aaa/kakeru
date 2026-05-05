@@ -83,19 +83,19 @@ export default function AuthPage() {
 
           {/* 抽象画像 背景レイヤー */}
           <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
-            <Image src="/抽象画像/抽象画像2.png" alt="" fill style={{ objectFit: "cover", opacity: 0.1 }} />
+            <Image src="/抽象画像/抽象画像2.png" alt="" fill sizes="(max-width: 720px) 100vw, 720px" style={{ objectFit: "cover", opacity: 0.1 }} />
             <div style={{ position: "absolute", top: "-20px", right: "-30px", width: "200px", height: "200px" }}>
-              <Image src="/抽象画像/抽象画像4.png" alt="" fill style={{ objectFit: "contain", opacity: 0.18 }} />
+              <Image src="/抽象画像/抽象画像4.png" alt="" fill sizes="200px" style={{ objectFit: "contain", opacity: 0.18 }} />
             </div>
             <div style={{ position: "absolute", bottom: "0px", left: "-20px", width: "160px", height: "160px" }}>
-              <Image src="/抽象画像/抽象画像6.png" alt="" fill style={{ objectFit: "contain", opacity: 0.14 }} />
+              <Image src="/抽象画像/抽象画像6.png" alt="" fill sizes="160px" style={{ objectFit: "contain", opacity: 0.14 }} />
             </div>
           </div>
 
           {/* ヘッダー */}
           <div style={{ position: "relative", padding: "20px 24px 0", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <Image src="/stickman-assets/stickman-01.png" alt="" width={28} height={28} style={{ objectFit: "contain" }} />
+              <Image src="/stickman-assets/stickman-01.png" alt="" width={28} height={28} style={{ width: 28, height: 28, objectFit: "contain" }} />
               <span style={{ fontFamily: "var(--font-display)", fontSize: "22px", fontWeight: 900, fontStyle: "italic", color: "#FF6B00", letterSpacing: "0.06em" }}>KAKERU</span>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: "4px" }}>
@@ -115,6 +115,7 @@ export default function AuthPage() {
                   width={250}
                   height={164}
                   priority
+                  sizes="250px"
                   style={{ display: "block", maxWidth: "100%", height: "auto" }}
                 />
               </h1>
@@ -123,7 +124,7 @@ export default function AuthPage() {
               </p>
             </div>
             <div style={{ flexShrink: 0, marginTop: "-4px" }}>
-              <Image src="/stickman-assets/stickman-05.png" alt="" width={140} height={175} style={{ objectFit: "contain" }} />
+              <Image src="/stickman-assets/stickman-05.png" alt="" width={140} height={175} style={{ width: 140, height: 175, objectFit: "contain" }} />
             </div>
           </div>
         </div>
@@ -292,21 +293,21 @@ export default function AuthPage() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "10px", padding: "20px 16px 48px" }}>
           <div style={{ textAlign: "center" }}>
             <div style={{ width: "76px", height: "76px", borderRadius: "50%", background: "#FFF0E5", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 10px" }}>
-              <Image src="/その他素材/地図っぽい-transparent.png" alt="" width={54} height={54} style={{ objectFit: "contain" }} />
+              <Image src="/その他素材/地図っぽい-transparent.png" alt="" width={54} height={54} style={{ width: 54, height: 54, objectFit: "contain" }} />
             </div>
             <p style={{ fontSize: "13px", fontWeight: 700, color: "#111111", marginBottom: "5px" }}>GPSで正確に記録</p>
             <p style={{ fontSize: "12px", color: "#888888", lineHeight: 1.5 }}>距離・時間・ペースを自動で計測</p>
           </div>
           <div style={{ textAlign: "center" }}>
             <div style={{ width: "76px", height: "76px", borderRadius: "50%", background: "#FFF9E5", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 10px" }}>
-              <Image src="/その他素材/課金焦り-transparent.png" alt="" width={54} height={54} style={{ objectFit: "contain" }} />
+              <Image src="/その他素材/課金焦り-transparent.png" alt="" width={54} height={54} style={{ width: 54, height: 54, objectFit: "contain" }} />
             </div>
             <p style={{ fontSize: "13px", fontWeight: 700, color: "#111111", marginBottom: "5px" }}>未達成なら自動課金</p>
             <p style={{ fontSize: "12px", color: "#888888", lineHeight: 1.5 }}>目標を達成できないと登録カードに罰金が発生</p>
           </div>
           <div style={{ textAlign: "center" }}>
             <div style={{ width: "76px", height: "76px", borderRadius: "50%", background: "#E5F9F3", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 10px" }}>
-              <Image src="/その他素材/山-transparent.png" alt="" width={54} height={54} style={{ objectFit: "contain" }} />
+              <Image src="/その他素材/山-transparent.png" alt="" width={54} height={54} style={{ width: 54, height: 54, objectFit: "contain" }} />
             </div>
             <p style={{ fontSize: "13px", fontWeight: 700, color: "#111111", marginBottom: "5px" }}>習慣化をサポート</p>
             <p style={{ fontSize: "12px", color: "#888888", lineHeight: 1.5 }}>リマインダーや記録で継続を後押し</p>

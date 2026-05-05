@@ -75,8 +75,7 @@ export default function RunTutorial({ onClose }: Props) {
           alt=""
           width={72}
           height={84}
-          style={{
-            position: "absolute",
+          style={{ width: 72, height: 84, position: "absolute",
             right: 10,
             bottom: "max(env(safe-area-inset-bottom), 24px)",
             objectFit: "contain",
@@ -133,8 +132,7 @@ export default function RunTutorial({ onClose }: Props) {
             alt=""
             width={110}
             height={128}
-            style={{
-              position: "absolute",
+            style={{ width: 110, height: 128, position: "absolute",
               right: 12,
               bottom: -8,
               objectFit: "contain",

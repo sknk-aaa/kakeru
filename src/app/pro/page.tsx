@@ -205,7 +205,7 @@ export default function ProPage() {
                   alt=""
                   width={110}
                   height={110}
-                  style={{ objectFit: "contain" }}
+                  style={{ width: 110, height: 110, objectFit: "contain" }}
                 />
               </div>
             </div>
@@ -286,7 +286,7 @@ export default function ProPage() {
                   background: "#FFF5EE", borderRadius: "14px",
                   display: "flex", alignItems: "center", justifyContent: "center",
                 }}>
-                  <Image src={feature.img} alt="" width={52} height={52} style={{ objectFit: "contain" }} />
+                  <Image src={feature.img} alt="" width={52} height={52} style={{ width: 52, height: 52, objectFit: "contain" }} />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={{ fontSize: "10px", color: "#FF6B00", fontWeight: 800, letterSpacing: "0.1em", marginBottom: "4px" }}>
@@ -496,7 +496,7 @@ export default function ProPage() {
         {/* ═══ 底部 CTA ═══ */}
         {!isSubscribed && <div style={{ padding: "40px 16px calc(env(safe-area-inset-bottom) + 40px)", textAlign: "center" }}>
           <div style={{ display: "flex", justifyContent: "center", marginBottom: "20px" }}>
-            <Image src="/stickman-assets/stickman-01.png" alt="" width={80} height={80} style={{ objectFit: "contain" }} />
+            <Image src="/stickman-assets/stickman-01.png" alt="" width={80} height={80} style={{ width: 80, height: 80, objectFit: "contain" }} />
           </div>
           <p style={{ fontSize: "20px", fontWeight: 900, color: "#111111", marginBottom: "8px", letterSpacing: "-0.01em" }}>
             さあ、本気で始めよう。

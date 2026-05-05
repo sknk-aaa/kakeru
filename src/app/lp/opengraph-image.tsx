@@ -91,7 +91,7 @@ export default function Image() {
             position: "relative",
           }}
         >
-          <img src={catchcopy} style={{ height: 140 }} />
+          <img src={catchcopy} style={{ width: 224, height: 140, objectFit: "contain" }} />
         </div>
 
         {/* 水平区切り線 */}

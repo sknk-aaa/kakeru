@@ -79,7 +79,7 @@ export default function RunResultClient() {
               <Image
                 src="/stickman-assets/stickman-02.png"
                 alt="" width={130} height={150}
-                style={{ objectFit: "contain", marginBottom: "14px" }}
+                style={{ width: 130, height: 150, objectFit: "contain", marginBottom: "14px" }}
               />
               <p style={{ fontSize: "10px", color: "#22C55E", fontWeight: 800, letterSpacing: "0.2em", marginBottom: "10px" }}>
                 TODAY&apos;S MISSION CLEAR
@@ -91,7 +91,7 @@ export default function RunResultClient() {
               <Image
                 src="/stickman-assets/stickman-05.png"
                 alt="" width={110} height={128}
-                style={{ objectFit: "contain", marginBottom: "14px" }}
+                style={{ width: 110, height: 128, objectFit: "contain", marginBottom: "14px" }}
               />
               <p style={{ fontSize: "24px", fontWeight: 800, color: "#111111", marginBottom: "6px" }}>お疲れ様でした！</p>
               <p style={{ fontSize: "14px", color: "#888888" }}>

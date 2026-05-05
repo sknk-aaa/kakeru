@@ -141,7 +141,7 @@ export default function PenaltySheet({ open, onClose }: Props) {
                 alt=""
                 width={86}
                 height={118}
-                style={{ display: "block", objectFit: "contain", margin: "0 auto 12px" }}
+                style={{ width: 86, height: 118, display: "block", objectFit: "contain", margin: "0 auto 12px" }}
               />
               <p style={{ fontSize: "15px", fontWeight: 700, color: "#111111", marginBottom: "6px" }}>罰金なし！</p>
               <p style={{ fontSize: "13px", color: "#AAAAAA" }}>すばらしい継続力です</p>
@@ -209,7 +209,7 @@ function MonthSection({ group, fallbackLabel }: { group?: MonthGroup; fallbackLa
             alt=""
             width={52}
             height={71}
-            style={{ display: "block", objectFit: "contain", margin: "0 auto 8px" }}
+            style={{ width: 52, height: 71, display: "block", objectFit: "contain", margin: "0 auto 8px" }}
           />
           <p style={{ fontSize: "13px", color: "#AAAAAA" }}>今月の罰金はありません</p>
         </div>

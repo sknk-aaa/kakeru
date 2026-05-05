@@ -54,7 +54,7 @@ export default function PublicHamburger() {
         {/* ヘッダー */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <Image src="/stickman-assets/stickman-01.png" width={20} height={20} alt="" style={{ objectFit: "contain" }} />
+            <Image src="/stickman-assets/stickman-01.png" width={20} height={20} alt="" style={{ width: 20, height: 20, objectFit: "contain" }} />
             <span style={{ fontFamily: "var(--font-display)", fontSize: "17px", fontWeight: 900, fontStyle: "italic", color: "#FF6B00", letterSpacing: "0.06em" }}>KAKERU</span>
           </div>
           <button
