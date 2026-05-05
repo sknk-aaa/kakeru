@@ -81,7 +81,7 @@ export default async function HomePage() {
       .gte("scheduled_date", startOfMonth),
     supabase
       .from("penalties")
-      .select("id, amount, goal_instances(goals(title))")
+      .select("id, amount, goal_instances(goals(type, distance_km, duration_minutes))")
       .eq("user_id", user.id)
       .eq("status", "charged")
       .order("charged_at", { ascending: false })
@@ -117,16 +117,27 @@ export default async function HomePage() {
     return sum + (g?.penalty_amount ?? 0);
   }, 0);
 
+  function formatGoalSummary(goal: { type: string; distance_km: number | null; duration_minutes: number | null } | null) {
+    if (!goal) return null;
+
+    const parts: string[] = [];
+    if (goal.distance_km) parts.push(`${goal.distance_km}km`);
+    if (goal.duration_minutes) parts.push(`${goal.duration_minutes}分`);
+
+    const summary = parts.join("・") || "フリーラン";
+    return goal.type === "challenge" ? `${summary}チャレンジ` : summary;
+  }
+
   const latestPenalty = latestPenaltyRaw ? (() => {
     const raw = latestPenaltyRaw as unknown as {
       id: string;
       amount: number;
-      goal_instances: { goals: { title: string } | null } | null;
+      goal_instances: { goals: { type: string; distance_km: number | null; duration_minutes: number | null } | null } | null;
     };
     return {
       id: raw.id,
       amount: raw.amount,
-      goalTitle: raw.goal_instances?.goals?.title ?? null,
+      goalSummary: formatGoalSummary(raw.goal_instances?.goals ?? null),
     };
   })() : null;
 

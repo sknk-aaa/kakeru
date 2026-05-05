@@ -5,7 +5,7 @@ import Image from "next/image";
 interface Penalty {
   id: string;
   amount: number;
-  goalTitle: string | null;
+  goalSummary: string | null;
 }
 
 interface Props {
@@ -43,11 +43,11 @@ export default function PenaltyModal({ penalty, onClose }: Props) {
 
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", paddingTop: "12px" }}>
           <Image
-            src="/stickman-assets/stickman-11.png"
+            src="/stickman-assets/stickman-12.png"
             alt=""
-            width={100}
-            height={100}
-            style={{ width: 100, height: 100, objectFit: "contain", marginBottom: "16px" }}
+            width={156}
+            height={156}
+            style={{ width: 156, height: 156, objectFit: "contain", marginBottom: "12px" }}
           />
 
           <div style={{
@@ -60,11 +60,11 @@ export default function PenaltyModal({ penalty, onClose }: Props) {
           </div>
 
           <p style={{ fontSize: "14px", color: "#555555", lineHeight: 1.7, textAlign: "center", marginBottom: "24px" }}>
-            {penalty.goalTitle
-              ? <>「{penalty.goalTitle}」を達成できませんでしたが、<br /></>
+            {penalty.goalSummary
+              ? <>未達成の目標：{penalty.goalSummary}<br /></>
               : null}
-            ペナルティ課金は次を頑張るモチベーションに変えましょう！<br />
-            今週こそリベンジ！
+            目標未達成のため、ペナルティが発生しました。<br />
+            次回こそ達成しましょう。
           </p>
 
           <button

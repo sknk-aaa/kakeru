@@ -31,7 +31,7 @@ interface UserProfile {
 interface LatestPenalty {
   id: string;
   amount: number;
-  goalTitle: string | null;
+  goalSummary: string | null;
 }
 
 interface Props {
