@@ -1,5 +1,14 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import BackButton from "@/components/BackButton";
+
+export const metadata: Metadata = {
+  title: "ランニング習慣化の使い方｜Kakeru（カケル）",
+  description: "Kakeruの使い方を解説。目標設定・GPS計測・罰金の仕組みを紹介。三日坊主を防いでランニングを続けたい人、ダイエットや健康維持を強制力で習慣化したい人に。",
+  alternates: {
+    canonical: "https://www.kakeruapp.com/howto",
+  },
+};
 import {
   SkipForward, BarChart2, Mail, Bell, Download, CreditCard,
   TrendingUp, Lock, Shield, Target,
