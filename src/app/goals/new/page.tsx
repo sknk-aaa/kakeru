@@ -2,7 +2,7 @@
 
 export const dynamic = "force-dynamic";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client-lazy";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -64,7 +64,9 @@ export default function NewGoalPage() {
   const router = useRouter();
   const [type, setType] = useState<GoalType>("recurring");
   const [selectedDays, setSelectedDays] = useState<number[]>([]);
-  const [scheduledDate, setScheduledDate] = useState("");
+  const [scheduledDate, setScheduledDate] = useState(
+    () => new Date().toISOString().split("T")[0]
+  );
   const [challengeDays, setChallengeDays] = useState("30");
   const [distanceKm, setDistanceKm] = useState("");
   const [durationMinutes, setDurationMinutes] = useState("");
@@ -75,6 +77,7 @@ export default function NewGoalPage() {
   const [overlapDays, setOverlapDays] = useState<string[]>([]);
   const [showOverlapConfirm, setShowOverlapConfirm] = useState(false);
   const [proModal, setProModal] = useState<{ name: string; desc: string } | null>(null);
+  const dateInputRef = useRef<HTMLInputElement>(null);
 
   // サブスク機能
   const [isSubscribed, setIsSubscribed] = useState(false);
@@ -380,11 +383,19 @@ export default function NewGoalPage() {
           {type === "oneoff" && (
             <div style={{ marginBottom: "20px" }}>
               <SectionLabel>実施する日</SectionLabel>
-              <div style={{ background: "white", borderRadius: "16px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
+              <div
+                style={{ background: "white", borderRadius: "16px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", cursor: "pointer" }}
+                onClick={() => dateInputRef.current?.showPicker?.()}
+              >
                 <div style={{ padding: "14px 16px" }}>
-                  <input type="date" value={scheduledDate} min={todayStr}
+                  <input
+                    ref={dateInputRef}
+                    type="date"
+                    value={scheduledDate}
+                    min={todayStr}
                     onChange={(e) => setScheduledDate(e.target.value)}
-                    style={{ border: "none", outline: "none", fontSize: "15px", color: "#111111", background: "transparent", width: "100%" }} />
+                    style={{ border: "none", outline: "none", fontSize: "15px", color: "#111111", background: "transparent", width: "100%", cursor: "pointer" }}
+                  />
                 </div>
               </div>
               {includesToday && (
