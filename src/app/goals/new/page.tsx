@@ -11,6 +11,14 @@ import ProModal from "@/components/ProModal";
 
 const DAYS = ["日", "月", "火", "水", "木", "金", "土"];
 
+function getLocalDateStr(): string {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
 function formatScheduledDate(dateStr: string): string {
   const d = new Date(dateStr + "T00:00:00");
   return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日（${DAYS[d.getDay()]}）`;
@@ -69,9 +77,7 @@ export default function NewGoalPage() {
   const router = useRouter();
   const [type, setType] = useState<GoalType>("recurring");
   const [selectedDays, setSelectedDays] = useState<number[]>([]);
-  const [scheduledDate, setScheduledDate] = useState(
-    () => new Date().toISOString().split("T")[0]
-  );
+  const [scheduledDate, setScheduledDate] = useState(getLocalDateStr);
   const [challengeDays, setChallengeDays] = useState("30");
   const [distanceKm, setDistanceKm] = useState("");
   const [durationMinutes, setDurationMinutes] = useState("");
@@ -109,7 +115,7 @@ export default function NewGoalPage() {
     return () => { cancelled = true; };
   }, []);
 
-  const todayStr = new Date().toISOString().split("T")[0];
+  const todayStr = getLocalDateStr();
   const todayDayOfWeek = new Date(todayStr + "T00:00:00").getDay();
   const includesToday =
     (type === "recurring" && selectedDays.includes(todayDayOfWeek)) ||
