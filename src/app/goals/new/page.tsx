@@ -26,6 +26,7 @@ function formatScheduledDate(dateStr: string): string {
 
 type GoalType = "recurring" | "oneoff" | "challenge";
 type EscalationType = "multiplier" | "surcharge";
+type MetricMode = "distance" | "time" | "both";
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
@@ -79,6 +80,7 @@ export default function NewGoalPage() {
   const [selectedDays, setSelectedDays] = useState<number[]>([]);
   const [scheduledDate, setScheduledDate] = useState(getLocalDateStr);
   const [challengeDays, setChallengeDays] = useState("30");
+  const [metricMode, setMetricMode] = useState<MetricMode>("distance");
   const [distanceKm, setDistanceKm] = useState("");
   const [durationMinutes, setDurationMinutes] = useState("");
   const [penaltyAmount, setPenaltyAmount] = useState("500");
@@ -126,6 +128,12 @@ export default function NewGoalPage() {
     d.setDate(d.getDate() + parseInt(challengeDays) - 1);
     return d.toISOString().split("T")[0];
   })();
+
+  function handleMetricMode(mode: MetricMode) {
+    setMetricMode(mode);
+    if (mode === "distance") setDurationMinutes("");
+    if (mode === "time") setDistanceKm("");
+  }
 
   function toggleDay(day: number) {
     setSelectedDays((prev) => prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]);
@@ -445,15 +453,31 @@ export default function NewGoalPage() {
 
           {/* 距離・時間・罰金 */}
           <SectionLabel>{type === "challenge" ? "累計目標・罰金の設定" : "目標・罰金の設定"}</SectionLabel>
+          <div style={{ background: "#E4E4EB", borderRadius: "10px", padding: "2px", display: "flex", marginBottom: "12px" }}>
+            {([ ["distance", "距離"], ["time", "時間"], ["both", "両方"] ] as [MetricMode, string][]).map(([v, label]) => (
+              <button key={v} onClick={() => handleMetricMode(v)} style={{
+                flex: 1, padding: "8px 0", borderRadius: "8px",
+                background: metricMode === v ? "white" : "transparent",
+                boxShadow: metricMode === v ? "0 1px 3px rgba(0,0,0,0.12)" : "none",
+                fontSize: "13px", fontWeight: metricMode === v ? 600 : 500,
+                color: metricMode === v ? "#111111" : "#888888",
+                border: "none", cursor: "pointer", transition: "all 0.15s",
+              }}>{label}</button>
+            ))}
+          </div>
           <div style={{ background: "white", borderRadius: "16px", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", marginBottom: "20px" }}>
-            <ListRow label="距離 (km)">
-              <input type="number" inputMode="decimal" placeholder="例: 100" min="0.1" step="0.1"
-                value={distanceKm} onChange={(e) => setDistanceKm(e.target.value)} style={inputStyle} />
-            </ListRow>
-            <ListRow label="時間 (分)">
-              <input type="number" inputMode="numeric" placeholder="例: 300" min="1"
-                value={durationMinutes} onChange={(e) => setDurationMinutes(e.target.value)} style={inputStyle} />
-            </ListRow>
+            {(metricMode === "distance" || metricMode === "both") && (
+              <ListRow label="距離 (km)" last={metricMode === "distance"}>
+                <input type="number" inputMode="decimal" placeholder="例: 5" min="0.1" step="0.1"
+                  value={distanceKm} onChange={(e) => setDistanceKm(e.target.value)} style={inputStyle} />
+              </ListRow>
+            )}
+            {(metricMode === "time" || metricMode === "both") && (
+              <ListRow label="時間 (分)" last={metricMode === "time"}>
+                <input type="number" inputMode="numeric" placeholder="例: 30" min="1"
+                  value={durationMinutes} onChange={(e) => setDurationMinutes(e.target.value)} style={inputStyle} />
+              </ListRow>
+            )}
             <ListRow label="罰金 (円)" last>
               <input type="number" inputMode="numeric" placeholder="500" min="100" step="100"
                 value={penaltyAmount} onChange={(e) => setPenaltyAmount(e.target.value)}
@@ -462,8 +486,8 @@ export default function NewGoalPage() {
           </div>
           <p style={{ fontSize: "12px", color: "#AAAAAA", marginBottom: "20px", paddingLeft: "4px" }}>
             {type === "challenge"
-              ? "期間中の累計距離・累計時間を目標にします。どちらか一方でも両方でも設定できます。"
-              : "距離・時間はどちらか一方、または両方設定できます。罰金は最低100円。"}
+              ? "期間中の累計で達成を判定します。罰金は最低100円。"
+              : "罰金は最低100円。"}
           </p>
 
           {/* PRO機能（recurring） */}
