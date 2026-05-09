@@ -106,7 +106,7 @@ export default function InstallPage() {
           />
         </div>
 
-        <div style={{ position: "relative", zIndex: 1, maxWidth: "290px" }}>
+        <div style={{ position: "relative", zIndex: 1 }}>
           <p style={{
             fontFamily: "var(--font-display)",
             fontSize: "11px", fontWeight: 900, letterSpacing: "0.16em",
@@ -120,16 +120,7 @@ export default function InstallPage() {
           </p>
         </div>
 
-        {/* だから続く！ 右下 */}
-        <div style={{ position: "absolute", bottom: 16, right: 20, zIndex: 1 }}>
-          <Image
-            src="/その他素材/だから続く！-transparent.png"
-            alt="だから続く！"
-            width={330}
-            height={84}
-            style={{ width: 330, height: 84, objectFit: "contain" }}
-          />
-        </div>
+
       </div>
 
       {/* ベネフィット 3列 */}
