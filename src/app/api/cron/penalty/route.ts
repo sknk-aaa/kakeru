@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { buildEmailHtml, ctaButton } from "@/lib/emails";
 
 export async function GET(request: Request) {
   const authHeader = request.headers.get("authorization");
@@ -35,6 +36,31 @@ export async function GET(request: Request) {
 
   let charged = 0;
   let skipped = 0;
+  const emailedUserIds = new Set<string>();
+  const resend = process.env.RESEND_API_KEY
+    ? new (await import("resend")).Resend(process.env.RESEND_API_KEY)
+    : null;
+
+  async function sendNoCardEmail(userEmail: string, userId: string) {
+    if (!resend || emailedUserIds.has(userId)) return;
+    emailedUserIds.add(userId);
+    const html = buildEmailHtml(`
+      <p style="margin:0 0 8px;font-size:16px;font-weight:700;color:#111111;">今日の目標が未達成でした。</p>
+      <p style="margin:0 0 28px;font-size:15px;color:#555555;line-height:1.8;">
+        お疲れさまです。本日の目標は未達成でした。<br><br>
+        カケルでは、クレジットカードを登録しておくと<strong style="color:#111111;">サボった日だけ自動でペナルティが発生</strong>し、
+        目標へのコミットメントがより強くなります。<br><br>
+        登録は1分で完了します。ぜひ試してみてください。
+      </p>
+      ${ctaButton("カードを登録する", "https://www.kakeruapp.com/settings")}
+    `);
+    await resend.emails.send({
+      from: "カケル <noreply@kakeruapp.com>",
+      to: userEmail,
+      subject: "【カケル】今日の目標が未達成でした",
+      html,
+    });
+  }
 
   for (const instance of pendingInstances) {
     const goalData = instance.goals as { type: string; penalty_amount: number; distance_km: number | null; duration_minutes: number | null; escalation_type: string | null; escalation_value: number | null; consecutive_failures: number; challenge_start_date: string | null } | null;
@@ -60,8 +86,12 @@ export async function GET(request: Request) {
       await admin.from("goal_instances").update({ status: "failed" }).eq("id", instance.id);
       const basePenalty = goalData.penalty_amount ?? 0;
       if (basePenalty <= 0 || !stripe) { skipped++; continue; }
-      const { data: userData } = await admin.from("users").select("stripe_customer_id, stripe_payment_method_id").eq("id", instance.user_id).single();
-      if (!userData?.stripe_payment_method_id) { skipped++; continue; }
+      const { data: userData } = await admin.from("users").select("stripe_customer_id, stripe_payment_method_id, email").eq("id", instance.user_id).single();
+      if (!userData?.stripe_payment_method_id) {
+        skipped++;
+        if (userData?.email) await sendNoCardEmail(userData.email, instance.user_id);
+        continue;
+      }
       const { data: penaltyRecord } = await admin.from("penalties").insert({ user_id: instance.user_id, goal_instance_id: instance.id, amount: basePenalty, status: "pending" }).select().single();
       try {
         const pi = await stripe.paymentIntents.create({ amount: basePenalty, currency: "jpy", customer: userData.stripe_customer_id ?? undefined, payment_method: userData.stripe_payment_method_id, confirm: true, off_session: true });
@@ -97,12 +127,13 @@ export async function GET(request: Request) {
 
     const { data: userData } = await admin
       .from("users")
-      .select("stripe_customer_id, stripe_payment_method_id")
+      .select("stripe_customer_id, stripe_payment_method_id, email")
       .eq("id", instance.user_id)
       .single();
 
     if (!userData?.stripe_payment_method_id) {
       skipped++;
+      if (userData?.email) await sendNoCardEmail(userData.email, instance.user_id);
       continue;
     }
 
@@ -142,5 +173,5 @@ export async function GET(request: Request) {
     }
   }
 
-  return NextResponse.json({ processed: pendingInstances.length, charged, skipped });
+  return NextResponse.json({ processed: pendingInstances.length, charged, skipped, emailed: emailedUserIds.size });
 }
