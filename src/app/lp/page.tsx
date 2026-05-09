@@ -4,6 +4,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { Plus, X } from "lucide-react";
 import PublicHamburger from "@/components/PublicHamburger";
 
 const FAQ_ITEMS: { q: string; a: string }[] = [
@@ -197,10 +198,18 @@ export default function LpPage() {
           {FAQ_ITEMS.map((item, i) => (
             <div key={i} className={`faq-item${openFaq === i ? " open" : ""}`}>
               <button className="faq-q" onClick={() => setOpenFaq(openFaq === i ? null : i)}>
-                {item.q}
-                <span className="faq-ic">▼</span>
+                <div className="faq-q-icon">Q</div>
+                <span className="faq-q-text">{item.q}</span>
+                <span className="faq-ic">
+                  {openFaq === i
+                    ? <X size={17} strokeWidth={2} />
+                    : <Plus size={17} strokeWidth={2} />}
+                </span>
               </button>
-              <div className="faq-a">{item.a}</div>
+              <div className="faq-a">
+                <div className="faq-a-icon">A</div>
+                <p>{item.a}</p>
+              </div>
             </div>
           ))}
         </div>
@@ -588,27 +597,35 @@ html { scroll-behavior: smooth; }
 
 /* FAQ */
 .lp-root #faq { background: #FFFFFF; }
-.lp-root .faq-list { display: flex; flex-direction: column; margin-top: 48px; }
-.lp-root .faq-item { border-bottom: 1.5px solid var(--border); }
+.lp-root .faq-list { display: flex; flex-direction: column; margin-top: 48px; gap: 8px; }
+.lp-root .faq-item { background: white; border-radius: 14px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
 .lp-root .faq-q {
-  width: 100%; background: none; border: none; padding: 20px 0;
-  text-align: left; font-family: inherit; font-size: 15px; font-weight: 700;
-  cursor: pointer; display: flex; justify-content: space-between;
-  align-items: center; color: var(--dark); gap: 12px;
+  width: 100%; background: none; border: none; padding: 14px 16px;
+  text-align: left; font-family: inherit; font-size: 14px; font-weight: 600;
+  cursor: pointer; display: flex; align-items: center; color: var(--dark); gap: 12px;
 }
-.lp-root .faq-ic {
-  width: 26px; height: 26px; border-radius: 50%;
-  background: var(--orange-light); color: var(--orange);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 12px; flex-shrink: 0; transition: transform 0.3s;
+.lp-root .faq-q-icon {
+  width: 28px; height: 28px; border-radius: 50%; background: var(--orange);
+  color: white; display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 800; flex-shrink: 0; line-height: 1;
 }
-.lp-root .faq-item.open .faq-ic { transform: rotate(180deg); }
+.lp-root .faq-q-text { flex: 1; line-height: 1.5; }
+.lp-root .faq-ic { color: #BBBBBB; flex-shrink: 0; display: flex; align-items: center; }
 .lp-root .faq-a {
   max-height: 0; overflow: hidden;
-  transition: max-height 0.35s ease, padding 0.3s;
-  font-size: 14px; color: var(--text-sub); line-height: 1.85;
+  transition: max-height 0.35s ease;
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 0 16px;
+  font-size: 14px; color: var(--text-sub); line-height: 1.75;
 }
-.lp-root .faq-item.open .faq-a { max-height: 300px; padding-bottom: 20px; }
+.lp-root .faq-item.open .faq-a { max-height: 300px; padding-bottom: 16px; }
+.lp-root .faq-a-icon {
+  width: 28px; height: 28px; border-radius: 50%; background: #FFF0E5;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 800; color: var(--orange);
+  flex-shrink: 0; margin-top: 1px;
+}
+.lp-root .faq-a p { flex: 1; margin: 0; padding-top: 4px; }
 
 /* CTA */
 .lp-root #cta { background: var(--orange); color: white; text-align: center; padding: 80px 24px; }
