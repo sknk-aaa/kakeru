@@ -87,25 +87,24 @@ export default function InstallPage() {
       </div>
 
       {/* ヒーロー */}
-      <div style={{ position: "relative", padding: "36px 24px 32px", overflow: "hidden" }}>
-        {/* 抽象画像1: 右上の背景装飾 */}
-        <Image
-          src="/抽象画像/抽象画像1.png"
-          alt=""
-          width={240}
-          height={240}
-          style={{ width: 240, height: 240, position: "absolute", top: -28, right: -48, opacity: 0.28, pointerEvents: "none", userSelect: "none" }}
-          aria-hidden
-        />
-        {/* 抽象画像3: 左下のアクセント */}
-        <Image
-          src="/抽象画像/抽象画像3.png"
-          alt=""
-          width={100}
-          height={100}
-          style={{ width: 100, height: 100, position: "absolute", bottom: -20, left: -24, opacity: 0.18, pointerEvents: "none", userSelect: "none" }}
-          aria-hidden
-        />
+      <div style={{ position: "relative", padding: "36px 24px 32px" }}>
+        {/* 装飾画像は専用ラッパーでクリップ */}
+        <div style={{ position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none" }} aria-hidden>
+          <Image
+            src="/抽象画像/抽象画像1.png"
+            alt=""
+            width={240}
+            height={240}
+            style={{ width: 240, height: 240, position: "absolute", top: -28, right: -48, opacity: 0.28, userSelect: "none" }}
+          />
+          <Image
+            src="/抽象画像/抽象画像3.png"
+            alt=""
+            width={100}
+            height={100}
+            style={{ width: 100, height: 100, position: "absolute", bottom: -20, left: -24, opacity: 0.18, userSelect: "none" }}
+          />
+        </div>
 
         <div style={{ position: "relative", zIndex: 1, maxWidth: "290px" }}>
           <p style={{
@@ -121,14 +120,14 @@ export default function InstallPage() {
           </p>
         </div>
 
-        {/* だから続く！ 小さく右下 */}
+        {/* だから続く！ 右下 */}
         <div style={{ position: "absolute", bottom: 16, right: 20, zIndex: 1 }}>
           <Image
             src="/その他素材/だから続く！-transparent.png"
             alt="だから続く！"
-            width={110}
-            height={28}
-            style={{ width: 110, height: 28, objectFit: "contain" }}
+            width={330}
+            height={84}
+            style={{ width: 330, height: 84, objectFit: "contain" }}
           />
         </div>
       </div>
