@@ -169,7 +169,31 @@ export default function LpPage() {
 
       <div className="wave" style={{ background: "#1C1008" }}>
         <svg viewBox="0 0 1440 60" preserveAspectRatio="none" height={60}>
-          <path d="M0,35 C200,0 500,60 800,25 C1050,5 1280,50 1440,20 L1440,60 L0,60 Z" fill="#FEFCFA" />
+          <path d="M0,35 C200,0 500,60 800,25 C1050,5 1280,50 1440,20 L1440,60 L0,60 Z" fill="#FFFFFF" />
+        </svg>
+      </div>
+
+      {/* FAQ */}
+      <section id="faq" style={{ background: "#FFFFFF" }}>
+        <div className="s-label fi">FAQ</div>
+        <h2 className="s-title fi">よくある質問</h2>
+
+        <div className="faq-list fi">
+          {FAQ_ITEMS.map((item, i) => (
+            <div key={i} className={`faq-item${openFaq === i ? " open" : ""}`}>
+              <button className="faq-q" onClick={() => setOpenFaq(openFaq === i ? null : i)}>
+                {item.q}
+                <span className="faq-ic">▼</span>
+              </button>
+              <div className="faq-a">{item.a}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <div className="wave" style={{ background: "#FFFFFF" }}>
+        <svg viewBox="0 0 1440 60" preserveAspectRatio="none" height={60}>
+          <path d="M0,20 C300,55 700,0 1000,40 C1200,60 1340,10 1440,30 L1440,60 L0,60 Z" fill="#FEFCFA" />
         </svg>
       </div>
 
@@ -264,30 +288,6 @@ export default function LpPage() {
               </ul>
             </div>
           </div>
-        </div>
-      </section>
-
-      <div className="wave" style={{ background: "#FFFFFF" }}>
-        <svg viewBox="0 0 1440 60" preserveAspectRatio="none" height={60}>
-          <path d="M0,30 C240,60 600,0 900,45 C1100,65 1300,10 1440,30 L1440,60 L0,60 Z" fill="#FFFFFF" />
-        </svg>
-      </div>
-
-      {/* FAQ */}
-      <section id="faq" style={{ background: "#FFFFFF" }}>
-        <div className="s-label fi">FAQ</div>
-        <h2 className="s-title fi">よくある質問</h2>
-
-        <div className="faq-list fi">
-          {FAQ_ITEMS.map((item, i) => (
-            <div key={i} className={`faq-item${openFaq === i ? " open" : ""}`}>
-              <button className="faq-q" onClick={() => setOpenFaq(openFaq === i ? null : i)}>
-                {item.q}
-                <span className="faq-ic">▼</span>
-              </button>
-              <div className="faq-a">{item.a}</div>
-            </div>
-          ))}
         </div>
       </section>
 
