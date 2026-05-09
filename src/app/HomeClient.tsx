@@ -435,19 +435,13 @@ export default function HomeClient({
               const cardContent = (
                 <>
                   {/* 日付 */}
-                  <div style={{ width: "52px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, padding: "14px 0" }}>
-                    <div style={{
-                      width: "44px", height: "44px", borderRadius: "50%",
-                      background: isToday ? "#FF6B00" : "#F2F2F7",
-                      display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-                    }}>
-                      <p className="metric-value" style={{ fontSize: "20px", lineHeight: 1, color: isToday ? "white" : "#1A1A1A" }}>
-                        {d.getDate()}
-                      </p>
-                      <p style={{ fontSize: "9px", color: isToday ? "rgba(255,255,255,0.8)" : "#BBBBBB", fontWeight: 700 }}>
-                        {DAY_NAMES[d.getDay()]}
-                      </p>
-                    </div>
+                  <div style={{ width: "44px", textAlign: "center", flexShrink: 0, padding: "14px 0" }}>
+                    <p className="metric-value" style={{ fontSize: "28px", lineHeight: 1, color: isToday ? "#FF6B00" : "#1A1A1A" }}>
+                      {d.getDate()}
+                    </p>
+                    <p style={{ fontSize: "10px", marginTop: "2px", color: isToday ? "#FF6B00" : "#BBBBBB", fontWeight: isToday ? 700 : 400 }}>
+                      {DAY_NAMES[d.getDay()]}
+                    </p>
                   </div>
 
                   <div style={{ width: "1px", height: "36px", background: isToday ? "#FFD5B0" : "#EBEBEB", margin: "0 12px", flexShrink: 0 }} />
@@ -456,14 +450,14 @@ export default function HomeClient({
                   <div style={{ flex: 1, minWidth: 0, padding: "14px 0" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "7px", flexWrap: "wrap" }}>
                       {instance.goals?.distance_km && (
-                        <span style={{ display: "flex", alignItems: "center", gap: "3px", fontSize: "13px", fontWeight: 700, color: "#333333", background: "#F0F0F0", padding: "3px 8px", borderRadius: "6px" }}>
-                          <MapPin size={11} color="#FF6B00" strokeWidth={2.5} aria-hidden="true" />
+                        <span style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "17px", fontWeight: 700, color: "#111111" }}>
+                          <MapPin size={14} color="#FF6B00" strokeWidth={2.5} aria-hidden="true" />
                           {instance.goals.distance_km}km
                         </span>
                       )}
                       {instance.goals?.duration_minutes && (
-                        <span style={{ display: "flex", alignItems: "center", gap: "3px", fontSize: "13px", fontWeight: 700, color: "#333333", background: "#F0F0F0", padding: "3px 8px", borderRadius: "6px" }}>
-                          <Clock size={11} color="#AAAAAA" strokeWidth={2.5} aria-hidden="true" />
+                        <span style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "17px", fontWeight: 700, color: "#111111" }}>
+                          <Clock size={14} color="#AAAAAA" strokeWidth={2.5} aria-hidden="true" />
                           {instance.goals.duration_minutes}分
                         </span>
                       )}
@@ -478,15 +472,15 @@ export default function HomeClient({
                         }}>TODAY</span>
                       )}
                     </div>
+                    {instance.goals && (
+                      <p style={{ fontSize: "13px", color: "#EF4444", marginTop: "4px", fontWeight: 700 }}>
+                        ¥{instance.goals.penalty_amount.toLocaleString()}
+                      </p>
+                    )}
                   </div>
 
                   {/* アクション */}
                   <div style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: "6px", padding: "14px 0 14px 6px" }}>
-                    {instance.goals && instance.status === "pending" && (
-                      <span style={{ fontSize: "11px", fontWeight: 700, color: "white", background: "#EF4444", padding: "3px 8px", borderRadius: "99px", flexShrink: 0 }}>
-                        ¥{instance.goals.penalty_amount.toLocaleString()}
-                      </span>
-                    )}
                     {instance.status === "achieved" && <CheckCircle size={22} color="#22C55E" aria-hidden="true" />}
                     {instance.status === "failed" && <XCircle size={22} color="#EF4444" aria-hidden="true" />}
                     {instance.status === "skipped" && (
