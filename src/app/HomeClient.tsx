@@ -427,7 +427,7 @@ export default function HomeClient({
                 width: "100%",
                 background: isToday ? "rgba(255,107,0,0.035)" : "none",
                 border: "none", textAlign: "left", cursor: isPendingNotToday ? "pointer" : "default",
-                opacity: isFuture && !isToday ? 0.9 : 1,
+                opacity: isFuture && !isToday ? 0.7 : 1,
                 borderLeft: isToday ? "3px solid #FF6B00" : "3px solid transparent",
                 minHeight: "64px",
               };
