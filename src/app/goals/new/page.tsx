@@ -11,6 +11,11 @@ import ProModal from "@/components/ProModal";
 
 const DAYS = ["日", "月", "火", "水", "木", "金", "土"];
 
+function formatScheduledDate(dateStr: string): string {
+  const d = new Date(dateStr + "T00:00:00");
+  return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日（${DAYS[d.getDay()]}）`;
+}
+
 type GoalType = "recurring" | "oneoff" | "challenge";
 type EscalationType = "multiplier" | "surcharge";
 
@@ -384,19 +389,23 @@ export default function NewGoalPage() {
             <div style={{ marginBottom: "20px" }}>
               <SectionLabel>実施する日</SectionLabel>
               <div
-                style={{ background: "white", borderRadius: "16px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", cursor: "pointer" }}
+                style={{ background: "white", borderRadius: "16px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", cursor: "pointer", position: "relative" }}
                 onClick={() => dateInputRef.current?.showPicker?.()}
               >
-                <div style={{ padding: "14px 16px" }}>
-                  <input
-                    ref={dateInputRef}
-                    type="date"
-                    value={scheduledDate}
-                    min={todayStr}
-                    onChange={(e) => setScheduledDate(e.target.value)}
-                    style={{ border: "none", outline: "none", fontSize: "15px", color: "#111111", background: "transparent", width: "100%", cursor: "pointer" }}
-                  />
+                <div style={{ padding: "14px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <span style={{ fontSize: "15px", color: "#111111" }}>
+                    {formatScheduledDate(scheduledDate)}
+                  </span>
+                  <ChevronRight size={16} color="#BBBBBB" />
                 </div>
+                <input
+                  ref={dateInputRef}
+                  type="date"
+                  value={scheduledDate}
+                  min={todayStr}
+                  onChange={(e) => setScheduledDate(e.target.value)}
+                  style={{ position: "absolute", opacity: 0, width: 0, height: 0, pointerEvents: "none" }}
+                />
               </div>
               {includesToday && (
                 <p style={{ fontSize: "12px", color: "#AAAAAA", marginTop: "8px", paddingLeft: "4px" }}>
