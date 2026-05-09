@@ -2,7 +2,7 @@
 
 export const dynamic = "force-dynamic";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client-lazy";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -116,6 +116,7 @@ export default function NewGoalPage() {
     return () => { cancelled = true; };
   }, []);
 
+  const dateInputRef = useRef<HTMLInputElement>(null);
   const todayStr = getLocalDateStr();
   const todayDayOfWeek = new Date(todayStr + "T00:00:00").getDay();
   const includesToday =
@@ -411,10 +412,12 @@ export default function NewGoalPage() {
                   <ChevronRight size={16} color="#BBBBBB" />
                 </div>
                 <input
+                  ref={dateInputRef}
                   type="date"
                   value={scheduledDate}
                   min={todayStr}
                   onChange={(e) => setScheduledDate(e.target.value)}
+                  onClick={() => { try { dateInputRef.current?.showPicker(); } catch { /* unsupported */ } }}
                   style={{ position: "absolute", inset: 0, opacity: 0, width: "100%", height: "100%", cursor: "pointer" }}
                 />
               </div>
