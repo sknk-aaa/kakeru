@@ -126,9 +126,9 @@ export default function InstallPage() {
           <Image
             src="/その他素材/だから続く！-transparent.png"
             alt="だから続く！"
-            width={180}
-            height={46}
-            style={{ width: 180, height: 46, objectFit: "contain" }}
+            width={440}
+            height={112}
+            style={{ width: 440, height: 112, objectFit: "contain" }}
           />
         </div>
       </div>

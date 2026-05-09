@@ -2,7 +2,7 @@
 
 export const dynamic = "force-dynamic";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client-lazy";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -88,7 +88,6 @@ export default function NewGoalPage() {
   const [overlapDays, setOverlapDays] = useState<string[]>([]);
   const [showOverlapConfirm, setShowOverlapConfirm] = useState(false);
   const [proModal, setProModal] = useState<{ name: string; desc: string } | null>(null);
-  const dateInputRef = useRef<HTMLInputElement>(null);
 
   // サブスク機能
   const [isSubscribed, setIsSubscribed] = useState(false);
@@ -395,22 +394,20 @@ export default function NewGoalPage() {
             <div style={{ marginBottom: "20px" }}>
               <SectionLabel>実施する日</SectionLabel>
               <div
-                style={{ background: "white", borderRadius: "16px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", cursor: "pointer", position: "relative" }}
-                onClick={() => dateInputRef.current?.showPicker?.()}
+                style={{ background: "white", borderRadius: "16px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", position: "relative" }}
               >
-                <div style={{ padding: "14px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <div style={{ padding: "14px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", pointerEvents: "none" }}>
                   <span style={{ fontSize: "15px", color: "#111111" }}>
                     {formatScheduledDate(scheduledDate)}
                   </span>
                   <ChevronRight size={16} color="#BBBBBB" />
                 </div>
                 <input
-                  ref={dateInputRef}
                   type="date"
                   value={scheduledDate}
                   min={todayStr}
                   onChange={(e) => setScheduledDate(e.target.value)}
-                  style={{ position: "absolute", opacity: 0, width: 0, height: 0, pointerEvents: "none" }}
+                  style={{ position: "absolute", inset: 0, opacity: 0, width: "100%", height: "100%", cursor: "pointer" }}
                 />
               </div>
               {includesToday && (
