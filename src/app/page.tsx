@@ -16,9 +16,8 @@ export default async function HomePage() {
   const nowJst = new Date(new Date().getTime() + 9 * 60 * 60 * 1000);
   const todayStr = nowJst.toISOString().split("T")[0];
   const startOfWeek = new Date(nowJst);
-  startOfWeek.setUTCDate(nowJst.getUTCDate() - nowJst.getUTCDay());
-  const endOfWeek = new Date(startOfWeek);
-  endOfWeek.setUTCDate(startOfWeek.getUTCDate() + 6);
+  const endOfWeek = new Date(nowJst);
+  endOfWeek.setUTCDate(nowJst.getUTCDate() + 6);
 
   const startOfMonth = `${nowJst.getUTCFullYear()}-${String(nowJst.getUTCMonth() + 1).padStart(2, "0")}-01`;
 
