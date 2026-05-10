@@ -142,21 +142,34 @@ export default function SettingsClient({ initialData }: { initialData: SettingsI
 
   async function handleTogglePush(field: "push_notify_morning" | "push_notify_evening", value: boolean) {
     if (value) {
-      if (!("Notification" in window) || !("serviceWorker" in navigator)) return;
+      if (!("Notification" in window) || !("serviceWorker" in navigator)) {
+        alert("お使いのブラウザはプッシュ通知に対応していません");
+        return;
+      }
       const permission = await Notification.requestPermission();
-      if (permission !== "granted") return;
+      if (permission !== "granted") {
+        alert("通知の許可が得られませんでした");
+        return;
+      }
       try {
         const reg = await navigator.serviceWorker.ready;
         const sub = await reg.pushManager.subscribe({
           userVisibleOnly: true,
           applicationServerKey: urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!),
         });
-        await fetch("/api/push/subscribe", {
+        const res = await fetch("/api/push/subscribe", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(sub.toJSON()),
         });
-      } catch { return; }
+        if (!res.ok) {
+          alert(`サブスクリプション保存に失敗しました（${res.status}）`);
+          return;
+        }
+      } catch (err) {
+        alert(`通知の登録に失敗しました: ${err instanceof Error ? err.message : String(err)}`);
+        return;
+      }
     } else {
       try {
         const reg = await navigator.serviceWorker.ready;
@@ -175,6 +188,21 @@ export default function SettingsClient({ initialData }: { initialData: SettingsI
     else setPushNotifyEvening(value);
     const supabase = await createBrowserSupabaseClient();
     await supabase.from("users").update({ [field]: value }).eq("id", initialData.userId);
+  }
+
+  async function handleTestPush() {
+    try {
+      const res = await fetch("/api/push/test", { method: "POST" });
+      const data = await res.json();
+      if (data.ok) {
+        alert(`✅ ${data.sent}件のテスト通知を送信しました。届かない場合は iPhone の設定 > 通知 > Safari/カケル を確認してください。`);
+      } else {
+        const detail = data.results?.map((r: { ok: boolean; error?: string }) => r.error).filter(Boolean).join("\n") ?? "";
+        alert(`❌ 送信失敗: ${data.error ?? "unknown"}\n${detail}`);
+      }
+    } catch (err) {
+      alert(`❌ 通信エラー: ${err instanceof Error ? err.message : String(err)}`);
+    }
   }
 
   async function handleLogout() {
@@ -453,6 +481,17 @@ export default function SettingsClient({ initialData }: { initialData: SettingsI
             <p style={{ fontSize: "11px", color: "#AAAAAA", lineHeight: 1.6 }}>
               目標がある日のみ通知します。iOS の場合はホーム画面に追加済みの場合のみ受信できます。
             </p>
+            <button
+              onClick={handleTestPush}
+              style={{
+                marginTop: "8px",
+                background: "none", border: "none",
+                color: "#FF6B00", fontSize: "13px", fontWeight: 600,
+                padding: 0, cursor: "pointer", textDecoration: "underline",
+              }}
+            >
+              テスト通知を送る
+            </button>
           </div>
         </div>
 
