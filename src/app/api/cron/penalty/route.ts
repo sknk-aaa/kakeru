@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { buildEmailHtml, ctaButton } from "@/lib/emails";
+import { sendPenaltyChargedEmail } from "@/lib/penalty-notify";
 
 export async function GET(request: Request) {
   const authHeader = request.headers.get("authorization");
@@ -95,7 +96,8 @@ export async function GET(request: Request) {
       const { data: penaltyRecord } = await admin.from("penalties").insert({ user_id: instance.user_id, goal_instance_id: instance.id, amount: basePenalty, status: "pending" }).select().single();
       try {
         const pi = await stripe.paymentIntents.create({ amount: basePenalty, currency: "jpy", customer: userData.stripe_customer_id ?? undefined, payment_method: userData.stripe_payment_method_id, confirm: true, off_session: true });
-        await admin.from("penalties").update({ stripe_payment_intent_id: pi.id }).eq("id", penaltyRecord?.id);
+        await admin.from("penalties").update({ stripe_payment_intent_id: pi.id, status: "charged", charged_at: new Date().toISOString() }).eq("id", penaltyRecord?.id);
+        if (penaltyRecord?.id) await sendPenaltyChargedEmail(admin, { penaltyId: penaltyRecord.id });
         charged++;
       } catch (err) {
         console.error("Stripe charge failed:", err);
@@ -160,8 +162,14 @@ export async function GET(request: Request) {
 
       await admin
         .from("penalties")
-        .update({ stripe_payment_intent_id: paymentIntent.id })
+        .update({
+          stripe_payment_intent_id: paymentIntent.id,
+          status: "charged",
+          charged_at: new Date().toISOString(),
+        })
         .eq("id", penaltyRecord?.id);
+
+      if (penaltyRecord?.id) await sendPenaltyChargedEmail(admin, { penaltyId: penaltyRecord.id });
 
       charged++;
     } catch (err) {
