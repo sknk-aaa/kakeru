@@ -7,11 +7,25 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { CreditCard, Lock, ArrowLeft } from "lucide-react";
 
+function formatBrand(brand: string): string {
+  const map: Record<string, string> = {
+    visa: "VISA",
+    mastercard: "Mastercard",
+    amex: "American Express",
+    jcb: "JCB",
+    diners: "Diners",
+    discover: "Discover",
+    unionpay: "UnionPay",
+  };
+  return map[brand] ?? brand.toUpperCase();
+}
+
 export default function CardPage() {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [stripeAvailable, setStripeAvailable] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [currentCard, setCurrentCard] = useState<{ brand: string; last4: string } | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -27,6 +41,15 @@ export default function CardPage() {
         }
       })
       .catch(() => setStripeAvailable(false));
+  }, []);
+
+  useEffect(() => {
+    fetch("/api/stripe/payment-method")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.card) setCurrentCard(d.card);
+      })
+      .catch(() => {});
   }, []);
 
   if (!stripeAvailable) {
@@ -73,15 +96,35 @@ export default function CardPage() {
           priority
         />
         <h1 style={{ fontSize: "22px", fontWeight: 800, color: "#111111", marginBottom: "8px", textAlign: "center" }}>
-          クレジットカードを登録
+          {currentCard ? "クレジットカードを変更" : "クレジットカードを登録"}
         </h1>
         <p style={{ fontSize: "14px", color: "#888888", textAlign: "center", lineHeight: 1.6 }}>
-          目標未達成の場合、登録カードから<br />自動的に課金されます。
+          {currentCard ? (
+            <>新しいカードに切り替えます。<br />古いカードは自動的に置き換わります。</>
+          ) : (
+            <>目標未達成の場合、登録カードから<br />自動的に課金されます。</>
+          )}
         </p>
       </div>
 
       {/* フォームカード */}
       <div className="card mb-3">
+        {currentCard && (
+          <div style={{
+            display: "flex", alignItems: "center", gap: "8px",
+            padding: "10px 12px",
+            background: "#FFF8F0",
+            border: "1px solid #FFE2C7",
+            borderRadius: "8px",
+            marginBottom: "16px",
+          }}>
+            <CreditCard size={16} color="#FF6B00" />
+            <span style={{ fontSize: "13px", color: "#555555" }}>
+              現在のカード: <strong style={{ color: "#111111" }}>{formatBrand(currentCard.brand)} •••• {currentCard.last4}</strong>
+            </span>
+          </div>
+        )}
+
         <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "20px" }}>
           <Lock size={13} color="#888888" />
           <span style={{ fontSize: "12px", color: "#888888" }}>Stripe による安全な決済</span>
@@ -94,6 +137,7 @@ export default function CardPage() {
             setError={setError}
             loading={loading}
             setLoading={setLoading}
+            hasExistingCard={!!currentCard}
           />
         ) : error ? null : (
           <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
@@ -130,12 +174,14 @@ function StripeCardForm({
   setError,
   loading,
   setLoading,
+  hasExistingCard,
 }: {
   clientSecret: string;
   onSuccess: () => void;
   setError: (e: string | null) => void;
   loading: boolean;
   setLoading: (v: boolean) => void;
+  hasExistingCard?: boolean;
 }) {
   const [stripeLoaded, setStripeLoaded] = useState(false);
   const [stripeInstance, setStripeInstance] = useState<{
@@ -269,7 +315,9 @@ function StripeCardForm({
         type="submit"
         disabled={loading || !stripeLoaded}
       >
-        {loading ? "登録中..." : "カードを登録する"}
+        {loading
+          ? (hasExistingCard ? "変更中..." : "登録中...")
+          : (hasExistingCard ? "カードを変更する" : "カードを登録する")}
       </button>
     </form>
   );
