@@ -8,7 +8,22 @@ interface PenaltyRow {
   id: string;
   amount: number;
   charged_at: string;
-  goal_instances: { goals: { title: string } | null } | null;
+  goal_instances: {
+    goals: {
+      type: string;
+      distance_km: number | null;
+      duration_minutes: number | null;
+    } | null;
+  } | null;
+}
+
+function formatGoalSummary(goal: { type: string; distance_km: number | null; duration_minutes: number | null } | null): string {
+  if (!goal) return "目標削除済み";
+  const parts: string[] = [];
+  if (goal.distance_km) parts.push(`${goal.distance_km}km`);
+  if (goal.duration_minutes) parts.push(`${goal.duration_minutes}分`);
+  const summary = parts.join("・") || "フリーラン";
+  return goal.type === "challenge" ? `${summary}チャレンジ` : summary;
 }
 
 interface MonthGroup {
@@ -216,7 +231,7 @@ function MonthSection({ group, fallbackLabel }: { group?: MonthGroup; fallbackLa
       ) : (
         <div style={{ background: "#F9F9F9", borderRadius: "14px", overflow: "hidden" }}>
           {group.rows.map((row, idx) => {
-            const goalTitle = row.goal_instances?.goals?.title ?? "目標削除済み";
+            const goalTitle = formatGoalSummary(row.goal_instances?.goals ?? null);
             return (
               <div key={row.id}>
                 {idx > 0 && <div style={{ height: "1px", background: "#EFEFEF", marginLeft: "16px" }} />}
