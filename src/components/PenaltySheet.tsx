@@ -240,11 +240,18 @@ function MonthSection({ group, fallbackLabel }: { group?: MonthGroup; fallbackLa
                   padding: "13px 16px", gap: "10px",
                 }}>
                   <div style={{
-                    width: "36px", height: "36px", borderRadius: "10px",
-                    background: "#FFF0F0", flexShrink: 0,
+                    width: "40px", height: "40px",
+                    flexShrink: 0,
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: "16px",
-                  }}>💸</div>
+                  }}>
+                    <Image
+                      src="/その他素材/ブタの貯金箱-透過.png"
+                      alt=""
+                      width={40}
+                      height={40}
+                      style={{ width: 40, height: 40, objectFit: "contain" }}
+                    />
+                  </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{
                       fontSize: "13px", fontWeight: 700, color: "#111111",
