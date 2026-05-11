@@ -289,31 +289,6 @@ export default function AuthPage() {
           </div>
         </div>
 
-        {/* ── フィーチャー ── */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "10px", padding: "20px 16px 48px" }}>
-          <div style={{ textAlign: "center" }}>
-            <div style={{ width: "76px", height: "76px", borderRadius: "50%", background: "#FFF0E5", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 10px" }}>
-              <Image src="/その他素材/地図っぽい-transparent.png" alt="" width={54} height={54} style={{ width: 54, height: 54, objectFit: "contain" }} />
-            </div>
-            <p style={{ fontSize: "13px", fontWeight: 700, color: "#111111", marginBottom: "5px" }}>GPSで正確に記録</p>
-            <p style={{ fontSize: "12px", color: "#888888", lineHeight: 1.5 }}>距離・時間・ペースを自動で計測</p>
-          </div>
-          <div style={{ textAlign: "center" }}>
-            <div style={{ width: "76px", height: "76px", borderRadius: "50%", background: "#FFF9E5", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 10px" }}>
-              <Image src="/その他素材/課金焦り-transparent.png" alt="" width={54} height={54} style={{ width: 54, height: 54, objectFit: "contain" }} />
-            </div>
-            <p style={{ fontSize: "13px", fontWeight: 700, color: "#111111", marginBottom: "5px" }}>未達成なら自動課金</p>
-            <p style={{ fontSize: "12px", color: "#888888", lineHeight: 1.5 }}>目標を達成できないと登録カードに罰金が発生</p>
-          </div>
-          <div style={{ textAlign: "center" }}>
-            <div style={{ width: "76px", height: "76px", borderRadius: "50%", background: "#E5F9F3", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 10px" }}>
-              <Image src="/その他素材/山-transparent.png" alt="" width={54} height={54} style={{ width: 54, height: 54, objectFit: "contain" }} />
-            </div>
-            <p style={{ fontSize: "13px", fontWeight: 700, color: "#111111", marginBottom: "5px" }}>習慣化をサポート</p>
-            <p style={{ fontSize: "12px", color: "#888888", lineHeight: 1.5 }}>リマインダーや記録で継続を後押し</p>
-          </div>
-        </div>
-
       </div>
     </div>
   );
