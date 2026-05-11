@@ -311,7 +311,6 @@ function UtmStackedBar({ sourcesSorted }: { sourcesSorted: [string, number][] })
 // ── main component ─────────────────────────────────────────────────────────
 
 export default function AdminShell({ data: d }: { data: AdminData }) {
-  const totalRevenue = d.mrrEstimate + d.monthPenaltySum;
   const utmTotal = d.sourcesSorted.reduce((s, [, c]) => s + c, 0) || 1;
 
   return (
@@ -332,56 +331,6 @@ export default function AdminShell({ data: d }: { data: AdminData }) {
       {/* コンテンツ */}
       <main style={{ maxWidth: "1060px", margin: "0 auto", padding: "36px 40px" }}>
 
-        {/* ① ヒーロー */}
-        <div style={{ marginBottom: "28px" }}>
-          <div style={{
-            background: INK, color: "#fff", borderRadius: "14px", padding: "28px 32px",
-            display: "grid", gridTemplateColumns: "1fr auto", alignItems: "center",
-            gap: "24px", position: "relative", overflow: "hidden",
-          }}>
-            <div style={{
-              position: "absolute", right: "-60px", bottom: "-80px",
-              width: "240px", height: "240px",
-              background: "radial-gradient(circle, rgba(255,107,0,0.32), transparent 65%)",
-              pointerEvents: "none",
-            }} />
-            <div style={{ position: "relative", zIndex: 1 }}>
-              <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.6)", letterSpacing: "0.06em", fontWeight: 600, textTransform: "uppercase" }}>
-                今月の総売上
-              </div>
-              <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.7)", marginTop: "2px" }}>{d.jstMonthLabel}</div>
-              <div style={{ fontSize: "56px", fontWeight: 800, letterSpacing: "-0.02em", marginTop: "12px", lineHeight: 1, fontFamily: "var(--font-display), sans-serif" }}>
-                ¥{totalRevenue.toLocaleString()}
-              </div>
-              <div style={{ marginTop: "14px", display: "flex", gap: "12px", flexWrap: "wrap", fontSize: "13px", color: "rgba(255,255,255,0.8)" }}>
-                {[
-                  { label: "PRO", value: `¥${d.mrrEstimate.toLocaleString()}` },
-                  { label: "罰金", value: `¥${d.monthPenaltySum.toLocaleString()}` },
-                ].map(({ label, value }) => (
-                  <span key={label} style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", padding: "5px 10px", borderRadius: "100px" }}>
-                    {label} <strong style={{ color: "#fff", fontWeight: 700, marginLeft: "4px" }}>{value}</strong>
-                  </span>
-                ))}
-              </div>
-            </div>
-            <div style={{ position: "relative", zIndex: 1, textAlign: "right" }}>
-              <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.65)", marginBottom: "8px" }}>月次推移</div>
-              <svg width="200" height="70" viewBox="0 0 220 80" preserveAspectRatio="none">
-                <defs>
-                  <linearGradient id="heroGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#FF6B00" stopOpacity={0.4} />
-                    <stop offset="100%" stopColor="#FF6B00" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <path d="M0 60 L30 58 L60 55 L90 52 L120 45 L150 38 L180 22 L220 12 L220 80 L0 80 Z" fill="url(#heroGrad)" />
-                <polyline points="0,60 30,58 60,55 90,52 120,45 150,38 180,22 220,12" stroke="#FF6B00" strokeWidth={2} fill="none" strokeLinecap="round" />
-                <circle cx={220} cy={12} r={3.5} fill="#FF6B00" />
-                <circle cx={220} cy={12} r={6} fill="#FF6B00" opacity={0.25} />
-              </svg>
-            </div>
-          </div>
-        </div>
-
         {/* ② アラート */}
         <div style={{ marginBottom: "28px" }}>
           <SectionHead title="アラート" note="対応が必要な項目" />
@@ -398,24 +347,6 @@ export default function AdminShell({ data: d }: { data: AdminData }) {
               sub={(d.pendingTodayCount ?? 0) > 0 ? `罰金処理キューに ${d.pendingTodayCount} 件` : "処理なし"}
               type={(d.pendingTodayCount ?? 0) === 0 ? "zero" : "warn"}
             />
-          </div>
-        </div>
-
-        {/* ③ サービス状況 + OnboardingRadial */}
-        <div style={{ marginBottom: "28px" }}>
-          <SectionHead title="サービス状況" note="主要指標サマリー" />
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-[14px]">
-            <MetricCard label="総ユーザー数" value={d.totalUsersNum} sub="全期間" />
-            <MetricCard label="PRO 加入数" value={d.proCount ?? 0} sub={`MRR ¥${d.mrrEstimate.toLocaleString()}`} />
-            <MetricCard label="DAU (24h ラン)" value={d.dau} unit={`/ ${d.totalUsersNum}`} sub={`アクティブ率 ${d.totalUsersNum > 0 ? Math.round((d.dau / d.totalUsersNum) * 100) : 0}%`} />
-            <MetricCard label="今月の新規登録" value={d.newMonth ?? 0} sub={`${d.monthNum}月1日から`} dimValue={(d.newMonth ?? 0) === 0} />
-            <MetricCard label="今日のラン" value={d.runsToday ?? 0} deltaVal={(d.runsToday ?? 0) - (d.runsYesterday ?? 0)} sub="vs 昨日" />
-            <MetricCard label="今月の罰金売上" value={`¥${d.monthPenaltySum.toLocaleString()}`} sub={`累計: ¥${d.allPenaltySum.toLocaleString()}`} />
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-[14px]" style={{ marginTop: "14px" }}>
-            <ObCard label="カード登録"   value={d.cardRegisteredCount ?? 0} total={d.totalUsersNum} color={ORANGE} />
-            <ObCard label="目標作成"     value={d.goalCreatedCount}         total={d.totalUsersNum} color={GREEN}  />
-            <ObCard label="初回ラン完了" value={d.firstRunCount}            total={d.totalUsersNum} color={BLUE}   />
           </div>
         </div>
 
