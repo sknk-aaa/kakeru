@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
-import { Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, Plus, X } from "lucide-react";
 import Image from "next/image";
 
 const FAQ_ITEMS = [
@@ -48,6 +48,12 @@ export default function AuthPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [openFaq, setOpenFaq] = useState<Record<number, boolean>>({});
+
+  function toggleFaq(i: number) {
+    setOpenFaq((prev) => ({ ...prev, [i]: !prev[i] }));
+  }
+
   const router = useRouter();
   const supabase = createClient();
 
@@ -320,15 +326,38 @@ export default function AuthPage() {
             <span style={{ marginLeft: "6px" }}>╱</span>
           </p>
           <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-            {FAQ_ITEMS.map(({ q, a }) => (
-              <details key={q} style={{ background: "white", border: "1px solid #F0E4D8", borderRadius: "12px", padding: "14px 18px" }}>
-                <summary style={{ fontSize: "14px", fontWeight: 700, color: "#111111", cursor: "pointer", listStyle: "none", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "10px" }}>
-                  <span>{q}</span>
-                  <span style={{ color: "#FF6B00", fontSize: "20px", fontWeight: 400, flexShrink: 0 }}>+</span>
-                </summary>
-                <p style={{ fontSize: "13px", color: "#666666", lineHeight: 1.75, marginTop: "12px", marginBottom: 0 }}>{a}</p>
-              </details>
-            ))}
+            {FAQ_ITEMS.map((item, i) => {
+              const isOpen = !!openFaq[i];
+              return (
+                <div key={item.q} style={{ background: "white", borderRadius: "14px", overflow: "hidden", boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}>
+                  <button
+                    onClick={() => toggleFaq(i)}
+                    style={{ width: "100%", display: "flex", alignItems: "center", gap: "12px", padding: "14px 16px", background: "none", border: "none", cursor: "pointer", textAlign: "left" }}
+                  >
+                    <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "#FF6B00", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <span style={{ fontSize: "11px", fontWeight: 800, color: "white", lineHeight: 1 }}>Q</span>
+                    </div>
+                    <span style={{ flex: 1, fontSize: "14px", fontWeight: 600, color: "#111111", lineHeight: 1.5 }}>{item.q}</span>
+                    {isOpen
+                      ? <X size={17} color="#BBBBBB" strokeWidth={2} style={{ flexShrink: 0 }} />
+                      : <Plus size={17} color="#BBBBBB" strokeWidth={2} style={{ flexShrink: 0 }} />
+                    }
+                  </button>
+                  {isOpen && (
+                    <div style={{ display: "flex", gap: "12px", padding: "0 16px 16px" }}>
+                      <div style={{ flexShrink: 0, paddingTop: "1px" }}>
+                        <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "#FFF0E5", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          <span style={{ fontSize: "11px", fontWeight: 800, color: "#FF6B00", lineHeight: 1 }}>A</span>
+                        </div>
+                      </div>
+                      <p style={{ flex: 1, fontSize: "14px", color: "#555555", lineHeight: 1.75, whiteSpace: "pre-line", paddingTop: "4px", marginBottom: 0 }}>
+                        {item.a}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
 
