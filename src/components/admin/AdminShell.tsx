@@ -1,6 +1,5 @@
 "use client";
 
-import { RadialBarChart, RadialBar, Legend, ResponsiveContainer } from "recharts";
 import DailyBarChart from "./DailyBarChart";
 
 // ── types ──────────────────────────────────────────────────────────────────
@@ -142,6 +141,26 @@ function AlertCard({ label, value, sub, type }: {
   );
 }
 
+function ObCard({ label, value, total, color }: { label: string; value: number; total: number; color: string }) {
+  const pct = total > 0 ? (value / total) * 100 : 0;
+  return (
+    <Card>
+      <div style={{ fontSize: "12px", fontWeight: 600, color: INK3, marginBottom: "8px" }}>{label}</div>
+      <div style={{ display: "flex", alignItems: "baseline", gap: "8px" }}>
+        <span style={{ fontSize: "28px", fontWeight: 700, color: INK }}>{value}</span>
+        <span style={{ fontSize: "14px", fontWeight: 600, color: INK3 }}>/ {total}</span>
+      </div>
+      <div style={{ height: "6px", background: LINE2, borderRadius: "100px", marginTop: "12px", overflow: "hidden" }}>
+        <div style={{ height: "100%", width: `${Math.max(pct, 0)}%`, background: color, borderRadius: "100px" }} />
+      </div>
+      <div style={{ display: "flex", justifyContent: "space-between", marginTop: "8px", fontSize: "11px", color: INK4, fontWeight: 500 }}>
+        <span>達成率</span>
+        <b style={{ color: "#3A4256", fontWeight: 700 }}>{pct.toFixed(1)}%</b>
+      </div>
+    </Card>
+  );
+}
+
 function Badge({ children, variant }: {
   children: React.ReactNode;
   variant: "card-yes" | "card-no" | "plan-pro" | "plan-free";
@@ -255,40 +274,6 @@ function OnboardingFunnel({ d }: { d: AdminData }) {
           );
         })}
       </div>
-    </Card>
-  );
-}
-
-function OnboardingRadial({ d }: { d: AdminData }) {
-  const total = d.totalUsersNum || 1;
-  const items = [
-    { name: "カード登録",   value: Math.round((d.cardRegisteredCount ?? 0) / total * 100), fill: ORANGE },
-    { name: "目標作成",     value: Math.round(d.goalCreatedCount            / total * 100), fill: GREEN  },
-    { name: "初回ラン完了", value: Math.round(d.firstRunCount               / total * 100), fill: BLUE   },
-  ];
-  return (
-    <Card style={{ padding: "20px 20px 12px" }}>
-      <div style={{ fontSize: "12px", fontWeight: 600, color: INK3, marginBottom: "4px" }}>
-        オンボーディング達成率
-      </div>
-      <ResponsiveContainer width="100%" height={200}>
-        <RadialBarChart
-          cx="50%" cy="50%" innerRadius="30%" outerRadius="90%"
-          barSize={14} data={items} startAngle={90} endAngle={-270}
-        >
-          <RadialBar dataKey="value" cornerRadius={4} background={{ fill: LINE2 }} />
-          <Legend
-            iconSize={10}
-            layout="vertical"
-            verticalAlign="middle"
-            align="right"
-            formatter={(value: string) => {
-              const item = items.find((i) => i.name === value);
-              return <span style={{ fontSize: "11px", color: INK }}>{value} {item?.value ?? 0}%</span>;
-            }}
-          />
-        </RadialBarChart>
-      </ResponsiveContainer>
     </Card>
   );
 }
@@ -419,16 +404,18 @@ export default function AdminShell({ data: d }: { data: AdminData }) {
         {/* ③ サービス状況 + OnboardingRadial */}
         <div style={{ marginBottom: "28px" }}>
           <SectionHead title="サービス状況" note="主要指標サマリー" />
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: "14px", alignItems: "start" }}>
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-[14px]">
-              <MetricCard label="総ユーザー数" value={d.totalUsersNum} sub="全期間" />
-              <MetricCard label="PRO 加入数" value={d.proCount ?? 0} sub={`MRR ¥${d.mrrEstimate.toLocaleString()}`} />
-              <MetricCard label="DAU (24h ラン)" value={d.dau} unit={`/ ${d.totalUsersNum}`} sub={`アクティブ率 ${d.totalUsersNum > 0 ? Math.round((d.dau / d.totalUsersNum) * 100) : 0}%`} />
-              <MetricCard label="今月の新規登録" value={d.newMonth ?? 0} sub={`${d.monthNum}月1日から`} dimValue={(d.newMonth ?? 0) === 0} />
-              <MetricCard label="今日のラン" value={d.runsToday ?? 0} deltaVal={(d.runsToday ?? 0) - (d.runsYesterday ?? 0)} sub="vs 昨日" />
-              <MetricCard label="今月の罰金売上" value={`¥${d.monthPenaltySum.toLocaleString()}`} sub={`累計: ¥${d.allPenaltySum.toLocaleString()}`} />
-            </div>
-            <OnboardingRadial d={d} />
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-[14px]">
+            <MetricCard label="総ユーザー数" value={d.totalUsersNum} sub="全期間" />
+            <MetricCard label="PRO 加入数" value={d.proCount ?? 0} sub={`MRR ¥${d.mrrEstimate.toLocaleString()}`} />
+            <MetricCard label="DAU (24h ラン)" value={d.dau} unit={`/ ${d.totalUsersNum}`} sub={`アクティブ率 ${d.totalUsersNum > 0 ? Math.round((d.dau / d.totalUsersNum) * 100) : 0}%`} />
+            <MetricCard label="今月の新規登録" value={d.newMonth ?? 0} sub={`${d.monthNum}月1日から`} dimValue={(d.newMonth ?? 0) === 0} />
+            <MetricCard label="今日のラン" value={d.runsToday ?? 0} deltaVal={(d.runsToday ?? 0) - (d.runsYesterday ?? 0)} sub="vs 昨日" />
+            <MetricCard label="今月の罰金売上" value={`¥${d.monthPenaltySum.toLocaleString()}`} sub={`累計: ¥${d.allPenaltySum.toLocaleString()}`} />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-[14px]" style={{ marginTop: "14px" }}>
+            <ObCard label="カード登録"   value={d.cardRegisteredCount ?? 0} total={d.totalUsersNum} color={ORANGE} />
+            <ObCard label="目標作成"     value={d.goalCreatedCount}         total={d.totalUsersNum} color={GREEN}  />
+            <ObCard label="初回ラン完了" value={d.firstRunCount}            total={d.totalUsersNum} color={BLUE}   />
           </div>
         </div>
 
