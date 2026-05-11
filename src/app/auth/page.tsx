@@ -8,6 +8,29 @@ import { useRouter } from "next/navigation";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
 
+const FAQ_ITEMS = [
+  {
+    q: "どのように課金されるの？",
+    a: "目標を設定して達成できなかった日に、登録されたカードへ自動でペナルティが課金されます。走った日は一切請求されません。",
+  },
+  {
+    q: "クレカ情報は安全？",
+    a: "決済は世界基準のStripeを利用しており、カード番号は当アプリのサーバーには保存されません。暗号化された通信で安全に処理されます。",
+  },
+  {
+    q: "課金額は自分で決められる？",
+    a: "はい。目標を作成するときに、ペナルティ金額をご自身で設定できます。無理のない範囲からはじめましょう。",
+  },
+  {
+    q: "走れば無料ってどういうこと？",
+    a: "設定した目標を達成すれば、ペナルティは一切発生しません。継続するほどお金もかからず、習慣だけが身についていきます。",
+  },
+  {
+    q: "いきなり高額請求されない？",
+    a: "自分で設定した金額以上は絶対に請求されません。また、カード登録は目標を作成するときのみ必要で、アカウント作成だけなら課金は発生しません。",
+  },
+];
+
 const GoogleIcon = () => (
   <svg width="20" height="20" viewBox="0 0 18 18" style={{ flexShrink: 0 }}>
     <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
@@ -18,7 +41,7 @@ const GoogleIcon = () => (
 );
 
 export default function AuthPage() {
-  const [mode, setMode] = useState<"login" | "signup" | "reset">("login");
+  const [mode, setMode] = useState<"login" | "signup" | "reset">("signup");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -259,7 +282,7 @@ export default function AuthPage() {
                       opacity: loading ? 0.7 : 1,
                     }}
                   >
-                    {loading ? "処理中..." : mode === "login" ? "ログイン" : mode === "signup" ? "新規登録" : "リセットメールを送る"}
+                    {loading ? "処理中..." : mode === "login" ? "ログイン" : mode === "signup" ? "無料ではじめる" : "リセットメールを送る"}
                   </button>
                 </form>
 
@@ -286,6 +309,26 @@ export default function AuthPage() {
                 </div>
               </>
             )}
+          </div>
+        </div>
+
+        {/* ── FAQ ── */}
+        <div style={{ padding: "16px 16px 40px" }}>
+          <p style={{ textAlign: "center", fontSize: "11px", color: "#AAAAAA", letterSpacing: "0.08em", marginBottom: "14px" }}>
+            <span style={{ marginRight: "6px" }}>╲</span>
+            よくある質問
+            <span style={{ marginLeft: "6px" }}>╱</span>
+          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+            {FAQ_ITEMS.map(({ q, a }) => (
+              <details key={q} style={{ background: "white", border: "1px solid #F0E4D8", borderRadius: "12px", padding: "14px 18px" }}>
+                <summary style={{ fontSize: "14px", fontWeight: 700, color: "#111111", cursor: "pointer", listStyle: "none", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "10px" }}>
+                  <span>{q}</span>
+                  <span style={{ color: "#FF6B00", fontSize: "20px", fontWeight: 400, flexShrink: 0 }}>+</span>
+                </summary>
+                <p style={{ fontSize: "13px", color: "#666666", lineHeight: 1.75, marginTop: "12px", marginBottom: 0 }}>{a}</p>
+              </details>
+            ))}
           </div>
         </div>
 
