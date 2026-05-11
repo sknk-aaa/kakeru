@@ -4,6 +4,7 @@ import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import SplashScreen from "@/components/SplashScreen";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
+import UtmTracker from "@/components/UtmTracker";
 
 const barlowCondensed = Barlow_Condensed({
   variable: "--font-display",
@@ -74,6 +75,7 @@ export default function RootLayout({
       <body className="min-h-full bg-white text-[#111111] font-body">
         <SplashScreen />
         <ServiceWorkerRegister />
+        <UtmTracker />
         {children}
         <Analytics />
       </body>
