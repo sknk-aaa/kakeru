@@ -9,7 +9,7 @@ export async function GET() {
 
   const { data } = await supabase
     .from("penalties")
-    .select("id, amount, charged_at, status, goal_instances(goals(type, distance_km, duration_minutes))")
+    .select("id, amount, charged_at, status, goal_instances(scheduled_date, goals(type, distance_km, duration_minutes))")
     .eq("user_id", user.id)
     .eq("status", "charged")
     .order("charged_at", { ascending: false });

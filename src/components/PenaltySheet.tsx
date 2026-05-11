@@ -9,6 +9,7 @@ interface PenaltyRow {
   amount: number;
   charged_at: string;
   goal_instances: {
+    scheduled_date: string;
     goals: {
       type: string;
       distance_km: number | null;
@@ -33,8 +34,8 @@ interface MonthGroup {
   total: number;
 }
 
-function toMonthKey(iso: string) {
-  return iso.slice(0, 7);
+function toMonthKey(scheduledDate: string) {
+  return scheduledDate.slice(0, 7);
 }
 
 function formatMonthLabel(key: string) {
@@ -42,15 +43,17 @@ function formatMonthLabel(key: string) {
   return `${y}年${parseInt(m)}月`;
 }
 
-function formatDay(iso: string) {
-  const d = new Date(iso);
-  return `${d.getMonth() + 1}/${d.getDate()}`;
+function formatDay(scheduledDate: string) {
+  const [, m, d] = scheduledDate.split("-");
+  return `${parseInt(m)}/${parseInt(d)}`;
 }
 
 function groupByMonth(penalties: PenaltyRow[]): MonthGroup[] {
   const map = new Map<string, PenaltyRow[]>();
   for (const p of penalties) {
-    const key = toMonthKey(p.charged_at);
+    const sd = p.goal_instances?.scheduled_date;
+    if (!sd) continue;
+    const key = toMonthKey(sd);
     if (!map.has(key)) map.set(key, []);
     map.get(key)!.push(p);
   }
@@ -93,7 +96,8 @@ export default function PenaltySheet({ open, onClose }: Props) {
 
   if (!open) return null;
 
-  const currentMonthKey = new Date().toISOString().slice(0, 7);
+  const jstNow = new Date(Date.now() + 9 * 60 * 60 * 1000);
+  const currentMonthKey = `${jstNow.getUTCFullYear()}-${String(jstNow.getUTCMonth() + 1).padStart(2, "0")}`;
   const groups = groupByMonth(penalties);
   const currentGroup = groups.find((g) => g.key === currentMonthKey);
   const pastGroups = groups.filter((g) => g.key !== currentMonthKey);
@@ -258,7 +262,7 @@ function MonthSection({ group, fallbackLabel }: { group?: MonthGroup; fallbackLa
                       overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                     }}>{goalTitle}</p>
                     <p style={{ fontSize: "11px", color: "#AAAAAA", marginTop: "2px" }}>
-                      {formatDay(row.charged_at)}
+                      {row.goal_instances?.scheduled_date ? formatDay(row.goal_instances.scheduled_date) : "—"}
                     </p>
                   </div>
                   <p style={{ fontSize: "15px", fontWeight: 800, color: "#EF4444", flexShrink: 0 }}>
