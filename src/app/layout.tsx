@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Barlow_Condensed, DM_Sans } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import SplashScreen from "@/components/SplashScreen";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
@@ -74,6 +75,7 @@ export default function RootLayout({
         <SplashScreen />
         <ServiceWorkerRegister />
         {children}
+        <Analytics />
       </body>
     </html>
   );
