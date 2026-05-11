@@ -134,7 +134,7 @@ export default function PenaltySheet({ open, onClose }: Props) {
           padding: "8px 20px 16px",
           borderBottom: "1px solid #F0F0F0",
         }}>
-          <h2 style={{ fontSize: "18px", fontWeight: 800, color: "#111111", margin: 0 }}>罰金履歴</h2>
+          <h2 style={{ fontSize: "18px", fontWeight: 800, color: "#111111", margin: 0 }}>課金履歴</h2>
           <button
             onClick={onClose}
             style={{

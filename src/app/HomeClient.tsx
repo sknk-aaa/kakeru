@@ -330,7 +330,7 @@ export default function HomeClient({
               </div>
               {totalPenaltyMonth > 0 ? (
                 <>
-                  <p style={{ fontSize: "10px", color: "#777777", fontWeight: 700, marginBottom: "2px", letterSpacing: "0.02em", textAlign: "center" }}>今月の罰金</p>
+                  <p style={{ fontSize: "10px", color: "#777777", fontWeight: 700, marginBottom: "2px", letterSpacing: "0.02em", textAlign: "center" }}>今月の課金</p>
                   <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: "1px" }}>
                     <span style={{ fontSize: "14px", color: "#EF4444", fontWeight: 900 }}>¥</span>
                     <span className="metric-value" style={{ fontSize: "30px", color: "#EF4444" }}>
@@ -350,7 +350,7 @@ export default function HomeClient({
                 </>
               ) : (
                 <>
-                  <p style={{ fontSize: "10px", color: "#777777", fontWeight: 700, marginBottom: "2px", letterSpacing: "0.02em", textAlign: "center" }}>今月の罰金</p>
+                  <p style={{ fontSize: "10px", color: "#777777", fontWeight: 700, marginBottom: "2px", letterSpacing: "0.02em", textAlign: "center" }}>今月の課金</p>
                   <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: "1px" }}>
                     <span style={{ fontSize: "14px", color: "#111111", fontWeight: 900 }}>¥</span>
                     <span className="metric-value" style={{ fontSize: "30px", color: "#111111" }}>0</span>

@@ -159,7 +159,7 @@ export default function LpPage() {
         <img src="/抽象画像/抽象画像5.png" className="abs-bg" style={{ width: 260, bottom: -40, right: -60, opacity: 0.1 }} alt="" />
         <div className="rel">
           <div className="s-label fi">THE SCIENCE</div>
-          <h2 className="s-title fi" style={{ color: "white" }}>なぜ、罰金が効くのか</h2>
+          <h2 className="s-title fi" style={{ color: "white" }}>なぜ、ペナルティが効くのか</h2>
 
           <div className="why-vs fi">
             <div className="vs a">
