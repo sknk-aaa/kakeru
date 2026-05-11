@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { RadialBarChart, RadialBar, Legend, ResponsiveContainer } from "recharts";
 import DailyBarChart from "./DailyBarChart";
 
@@ -143,26 +142,6 @@ function AlertCard({ label, value, sub, type }: {
   );
 }
 
-function ObCard({ label, value, total, color }: { label: string; value: number; total: number; color: string }) {
-  const pct = total > 0 ? (value / total) * 100 : 0;
-  return (
-    <Card>
-      <div style={{ fontSize: "12px", fontWeight: 600, color: INK3, marginBottom: "8px" }}>{label}</div>
-      <div style={{ display: "flex", alignItems: "baseline", gap: "8px" }}>
-        <span style={{ fontSize: "28px", fontWeight: 700, color: INK }}>{value}</span>
-        <span style={{ fontSize: "14px", fontWeight: 600, color: INK3 }}>/ {total}</span>
-      </div>
-      <div style={{ height: "6px", background: LINE2, borderRadius: "100px", marginTop: "12px", overflow: "hidden" }}>
-        <div style={{ height: "100%", width: `${Math.max(pct, 0)}%`, background: color, borderRadius: "100px" }} />
-      </div>
-      <div style={{ display: "flex", justifyContent: "space-between", marginTop: "8px", fontSize: "11px", color: INK4, fontWeight: 500 }}>
-        <span>達成率</span>
-        <b style={{ color: "#3A4256", fontWeight: 700 }}>{pct.toFixed(1)}%</b>
-      </div>
-    </Card>
-  );
-}
-
 function Badge({ children, variant }: {
   children: React.ReactNode;
   variant: "card-yes" | "card-no" | "plan-pro" | "plan-free";
@@ -202,8 +181,6 @@ const thNum: React.CSSProperties = { ...th, textAlign: "right" };
 const td: React.CSSProperties = { padding: "13px 20px", color: INK, verticalAlign: "middle" };
 const tdNum: React.CSSProperties = { ...td, textAlign: "right", fontVariantNumeric: "tabular-nums", fontWeight: 600 };
 
-// ── chart wrapper ──────────────────────────────────────────────────────────
-
 function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <Card style={{ padding: "20px 20px 12px", marginTop: "14px" }}>
@@ -213,7 +190,7 @@ function ChartCard({ title, children }: { title: string; children: React.ReactNo
   );
 }
 
-// ── new visual components ──────────────────────────────────────────────────
+// ── visual components ──────────────────────────────────────────────────────
 
 function NewSignupsCard({ d }: { d: AdminData }) {
   const cells = [
@@ -290,7 +267,7 @@ function OnboardingRadial({ d }: { d: AdminData }) {
     { name: "初回ラン完了", value: Math.round(d.firstRunCount               / total * 100), fill: BLUE   },
   ];
   return (
-    <Card style={{ padding: "20px 20px 12px", marginTop: "14px" }}>
+    <Card style={{ padding: "20px 20px 12px" }}>
       <div style={{ fontSize: "12px", fontWeight: 600, color: INK3, marginBottom: "4px" }}>
         オンボーディング達成率
       </div>
@@ -346,415 +323,256 @@ function UtmStackedBar({ sourcesSorted }: { sourcesSorted: [string, number][] })
   );
 }
 
-// ── views ──────────────────────────────────────────────────────────────────
-
-function OverviewView({ d }: { d: AdminData }) {
-  const totalRevenue = d.mrrEstimate + d.monthPenaltySum;
-  return (
-    <div>
-      {/* ヒーロー */}
-      <div style={{ marginBottom: "28px" }}>
-        <div style={{
-          background: INK, color: "#fff", borderRadius: "14px", padding: "28px 32px",
-          display: "grid", gridTemplateColumns: "1fr auto", alignItems: "center",
-          gap: "24px", position: "relative", overflow: "hidden",
-        }}>
-          <div style={{
-            position: "absolute", right: "-60px", bottom: "-80px",
-            width: "240px", height: "240px",
-            background: "radial-gradient(circle, rgba(255,107,0,0.32), transparent 65%)",
-            pointerEvents: "none",
-          }} />
-          <div style={{ position: "relative", zIndex: 1 }}>
-            <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.6)", letterSpacing: "0.06em", fontWeight: 600, textTransform: "uppercase" }}>
-              今月の総売上
-            </div>
-            <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.7)", marginTop: "2px" }}>{d.jstMonthLabel}</div>
-            <div style={{ fontSize: "56px", fontWeight: 800, letterSpacing: "-0.02em", marginTop: "12px", lineHeight: 1, fontFamily: "var(--font-display), sans-serif" }}>
-              ¥{totalRevenue.toLocaleString()}
-            </div>
-            <div style={{ marginTop: "14px", display: "flex", gap: "12px", flexWrap: "wrap", fontSize: "13px", color: "rgba(255,255,255,0.8)" }}>
-              {[
-                { label: "PRO", value: `¥${d.mrrEstimate.toLocaleString()}` },
-                { label: "罰金", value: `¥${d.monthPenaltySum.toLocaleString()}` },
-              ].map(({ label, value }) => (
-                <span key={label} style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", padding: "5px 10px", borderRadius: "100px" }}>
-                  {label} <strong style={{ color: "#fff", fontWeight: 700, marginLeft: "4px" }}>{value}</strong>
-                </span>
-              ))}
-            </div>
-          </div>
-          <div style={{ position: "relative", zIndex: 1, textAlign: "right" }}>
-            <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.65)", marginBottom: "8px" }}>月次推移</div>
-            <svg width="200" height="70" viewBox="0 0 220 80" preserveAspectRatio="none">
-              <defs>
-                <linearGradient id="heroGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#FF6B00" stopOpacity={0.4} />
-                  <stop offset="100%" stopColor="#FF6B00" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <path d="M0 60 L30 58 L60 55 L90 52 L120 45 L150 38 L180 22 L220 12 L220 80 L0 80 Z" fill="url(#heroGrad)" />
-              <polyline points="0,60 30,58 60,55 90,52 120,45 150,38 180,22 220,12" stroke="#FF6B00" strokeWidth={2} fill="none" strokeLinecap="round" />
-              <circle cx={220} cy={12} r={3.5} fill="#FF6B00" />
-              <circle cx={220} cy={12} r={6} fill="#FF6B00" opacity={0.25} />
-            </svg>
-          </div>
-        </div>
-      </div>
-
-      {/* アラート */}
-      <div style={{ marginBottom: "28px" }}>
-        <SectionHead title="アラート" note="対応が必要な項目" />
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-[14px]">
-          <AlertCard
-            label="課金失敗(直近7日)"
-            value={d.paymentFailuresLast7d}
-            sub={d.paymentFailuresLast7d === 0 ? "問題なし" : `${d.paymentFailuresLast7d}件の失敗`}
-            type={d.paymentFailuresLast7d === 0 ? "zero" : "error"}
-          />
-          <AlertCard
-            label="今日の判定待ち"
-            value={d.pendingTodayCount ?? 0}
-            sub={(d.pendingTodayCount ?? 0) > 0 ? `罰金処理キューに ${d.pendingTodayCount} 件` : "処理なし"}
-            type={(d.pendingTodayCount ?? 0) === 0 ? "zero" : "warn"}
-          />
-        </div>
-      </div>
-
-      {/* クイック指標 */}
-      <div>
-        <SectionHead title="サービス状況" note="主要指標サマリー" />
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-[14px]">
-          <MetricCard label="総ユーザー数" value={d.totalUsersNum} sub="全期間" />
-          <MetricCard label="PRO 加入数" value={d.proCount ?? 0} sub={`MRR ¥${d.mrrEstimate.toLocaleString()}`} />
-          <MetricCard label="DAU (24h ラン)" value={d.dau} unit={`/ ${d.totalUsersNum}`} sub={`アクティブ率 ${d.totalUsersNum > 0 ? Math.round((d.dau / d.totalUsersNum) * 100) : 0}%`} />
-          <MetricCard
-            label="今月の新規登録"
-            value={d.newMonth ?? 0}
-            sub={`${d.monthNum}月1日から`}
-            dimValue={(d.newMonth ?? 0) === 0}
-          />
-          <MetricCard
-            label="今日のラン"
-            value={d.runsToday ?? 0}
-            deltaVal={(d.runsToday ?? 0) - (d.runsYesterday ?? 0)}
-            sub="vs 昨日"
-          />
-          <MetricCard
-            label="今月の罰金売上"
-            value={`¥${d.monthPenaltySum.toLocaleString()}`}
-            sub={`サービス開始累計: ¥${d.allPenaltySum.toLocaleString()}`}
-          />
-        </div>
-        <OnboardingRadial d={d} />
-      </div>
-    </div>
-  );
-}
-
-function UsersView({ d }: { d: AdminData }) {
-  return (
-    <div>
-      <div style={{ marginBottom: "28px" }}>
-        <SectionHead title="ユーザー登録推移" note="過去30日" />
-        <ChartCard title="日別新規登録数">
-          <DailyBarChart data={d.userChart30} today={d.today} color={ORANGE} height={280} />
-        </ChartCard>
-      </div>
-
-      <div style={{ marginBottom: "28px" }}>
-        <SectionHead title="ユーザー指標" note="登録数とアクティブ状況" />
-        <div style={{ marginBottom: "14px" }}>
-          <NewSignupsCard d={d} />
-        </div>
-        <div className="grid grid-cols-2 gap-[14px]">
-          <MetricCard label="総ユーザー数" value={d.totalUsersNum} sub="全期間" />
-          <MetricCard
-            label="DAU (24h ラン)"
-            value={d.dau}
-            unit={`/ ${d.totalUsersNum}`}
-            sub={`アクティブ率 ${d.totalUsersNum > 0 ? Math.round((d.dau / d.totalUsersNum) * 100) : 0}%`}
-          />
-        </div>
-      </div>
-
-      <div>
-        <SectionHead title="オンボーディング" note={`N = ${d.totalUsersNum}ユーザー`} />
-        <OnboardingFunnel d={d} />
-      </div>
-    </div>
-  );
-}
-
-function RevenueActivityView({ d }: { d: AdminData }) {
-  return (
-    <div>
-      {/* 売上 */}
-      <div style={{ marginBottom: "36px" }}>
-        <SectionHead title="売上" note="PRO課金と罰金の内訳" />
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-[14px]">
-          <MetricCard label="PRO 加入数" value={d.proCount ?? 0} sub="アクティブ契約" />
-          <MetricCard label="推定 MRR" value={`¥${d.mrrEstimate.toLocaleString()}`} sub="PRO数 × ¥480" />
-          <MetricCard
-            label="今月の罰金売上"
-            value={`¥${d.monthPenaltySum.toLocaleString()}`}
-            deltaVal={d.monthPenaltySum - d.penaltyYesterdaySum}
-            deltaPrefix="¥"
-          />
-          <MetricCard label="累計罰金売上" value={`¥${d.allPenaltySum.toLocaleString()}`} sub="サービス開始から" />
-        </div>
-        <ChartCard title="罰金推移 (過去7日)">
-          <DailyBarChart data={d.penaltyChart7} today={d.today} color={ORANGE} unit="¥" height={200} />
-        </ChartCard>
-      </div>
-
-      {/* アクティビティ */}
-      <div>
-        <SectionHead title="アクティビティ" note="本日のユーザー行動" />
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-[14px]">
-          <MetricCard
-            label="今日の目標作成"
-            value={d.goalsToday ?? 0}
-            deltaVal={(d.goalsToday ?? 0) - (d.goalsYesterday ?? 0)}
-            sub="vs 昨日"
-          />
-          <MetricCard
-            label="今日のラン"
-            value={d.runsToday ?? 0}
-            deltaVal={(d.runsToday ?? 0) - (d.runsYesterday ?? 0)}
-            sub="vs 昨日"
-          />
-          <MetricCard
-            label="今日の達成率"
-            value={d.achieveRate != null ? `${d.achieveRate}%` : "—"}
-            sub={d.todayDone > 0 ? `${d.achievedToday ?? 0}/${d.todayDone}` : "本日まだ結果なし"}
-            dimValue={d.achieveRate == null}
-          />
-          <MetricCard label="今月の累計ラン" value={d.runsMonth ?? 0} sub={`${d.monthNum}月累計`} />
-        </div>
-        <ChartCard title="ラン推移 (過去7日)">
-          <DailyBarChart data={d.runsChart7} today={d.today} color={GREEN} height={200} />
-        </ChartCard>
-      </div>
-    </div>
-  );
-}
-
-function DataView({ d }: { d: AdminData }) {
-  const utmTotal = d.sourcesSorted.reduce((s, [, c]) => s + c, 0) || 1;
-  return (
-    <div>
-      {/* 流入元 */}
-      <div style={{ marginBottom: "36px" }}>
-        <SectionHead title="流入元" note="UTMソース別の登録数" />
-        {d.sourcesSorted.length > 0 && <UtmStackedBar sourcesSorted={d.sourcesSorted} />}
-        <Card>
-          {d.sourcesSorted.length === 0 ? (
-            <p style={{ textAlign: "center", color: INK4, fontSize: "13px" }}>データがありません</p>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-              {d.sourcesSorted.map(([source, count]) => {
-                const pct = (count / utmTotal) * 100;
-                const color = getUtmColor(source);
-                return (
-                  <div key={source} style={{ display: "grid", gridTemplateColumns: "1fr auto", alignItems: "center", gap: "14px" }}>
-                    <div>
-                      <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", fontWeight: 500, color: "#3A4256" }}>
-                        <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: color, flexShrink: 0, display: "inline-block" }} />
-                        {source}
-                      </div>
-                      <div style={{ height: "6px", background: LINE2, borderRadius: "100px", overflow: "hidden", marginTop: "6px" }}>
-                        <div style={{ width: `${Math.max(pct, 0)}%`, height: "100%", background: color, borderRadius: "100px" }} />
-                      </div>
-                    </div>
-                    <div style={{ fontSize: "14px", fontWeight: 700, color: count === 0 ? INK4 : INK, minWidth: "40px", textAlign: "right" }}>
-                      {count}
-                      <span style={{ display: "block", fontSize: "10px", color: INK4, fontWeight: 500, marginTop: "1px" }}>{Math.round(pct)}%</span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </Card>
-      </div>
-
-      {/* ユーザーテーブル */}
-      <div>
-        <SectionHead title="最新ユーザー一覧" note="登録日の新しい順" />
-        <div style={{ background: "#fff", border: `1px solid ${LINE}`, borderRadius: "12px", overflow: "hidden" }}>
-          <div style={{ padding: "16px 20px", display: "flex", alignItems: "baseline", justifyContent: "space-between", borderBottom: `1px solid ${LINE}` }}>
-            <h3 style={{ fontSize: "14px", fontWeight: 700, color: INK }}>直近の登録</h3>
-            <span style={{ fontSize: "12px", color: INK4 }}>表示 {d.recentUsers.length} 件</span>
-          </div>
-          <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px", minWidth: "720px" }}>
-              <thead>
-                <tr>
-                  <th style={th}>メール</th>
-                  <th style={th}>登録日</th>
-                  <th style={th}>カード</th>
-                  <th style={thNum}>目標</th>
-                  <th style={thNum}>ラン</th>
-                  <th style={th}>プラン</th>
-                  <th style={thNum}>累計罰金</th>
-                </tr>
-              </thead>
-              <tbody>
-                {d.recentUsers.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} style={{ padding: "20px", textAlign: "center", color: INK4, fontSize: "13px" }}>
-                      まだユーザーがいません
-                    </td>
-                  </tr>
-                ) : d.recentUsers.map((u) => {
-                  const fines = d.penaltiesBy[u.id] ?? 0;
-                  return (
-                    <tr key={u.id} style={{ borderBottom: `1px solid ${LINE2}` }}>
-                      <td style={{ ...td, color: BLUE, fontWeight: 500, whiteSpace: "nowrap", maxWidth: "200px", overflow: "hidden", textOverflow: "ellipsis" }}>
-                        {u.email}
-                      </td>
-                      <td style={{ ...td, color: INK3, whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}>
-                        {jstDateStr(u.created_at)}
-                      </td>
-                      <td style={td}>
-                        <Badge variant={u.stripe_payment_method_id ? "card-yes" : "card-no"}>
-                          {u.stripe_payment_method_id ? "登録済" : "未登録"}
-                        </Badge>
-                      </td>
-                      <td style={tdNum}>{d.goalsBy[u.id] ?? 0}</td>
-                      <td style={tdNum}>{d.runsBy[u.id] ?? 0}</td>
-                      <td style={td}>
-                        <Badge variant={u.is_subscribed ? "plan-pro" : "plan-free"}>
-                          {u.is_subscribed ? "PRO" : "FREE"}
-                        </Badge>
-                      </td>
-                      <td style={{ ...tdNum, color: fines > 0 ? "#E55F00" : INK4, fontWeight: fines > 0 ? 700 : 500 }}>
-                        ¥{fines.toLocaleString()}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ── nav icons (inline SVG) ─────────────────────────────────────────────────
-
-function IconOverview() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" />
-      <rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" />
-    </svg>
-  );
-}
-function IconUsers() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" />
-      <path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
-    </svg>
-  );
-}
-function IconRevenue() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" /><polyline points="17 6 23 6 23 12" />
-    </svg>
-  );
-}
-function IconData() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <ellipse cx="12" cy="5" rx="9" ry="3" />
-      <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" /><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
-    </svg>
-  );
-}
-
 // ── main component ─────────────────────────────────────────────────────────
 
-type ViewId = "overview" | "users" | "revenue-activity" | "data";
-
-const NAV: { id: ViewId; label: string; Icon: () => React.JSX.Element }[] = [
-  { id: "overview",          label: "概要",     Icon: IconOverview },
-  { id: "users",             label: "ユーザー",  Icon: IconUsers },
-  { id: "revenue-activity",  label: "売上・活動", Icon: IconRevenue },
-  { id: "data",              label: "データ",    Icon: IconData },
-];
-
-export default function AdminShell({ data }: { data: AdminData }) {
-  const [view, setView] = useState<ViewId>("overview");
+export default function AdminShell({ data: d }: { data: AdminData }) {
+  const totalRevenue = d.mrrEstimate + d.monthPenaltySum;
+  const utmTotal = d.sourcesSorted.reduce((s, [, c]) => s + c, 0) || 1;
 
   return (
-    <div style={{ display: "flex", minHeight: "100dvh", background: BG }}>
-      {/* ── サイドバー ── */}
-      <aside style={{
-        width: "220px", background: INK, position: "fixed", top: 0, left: 0,
-        height: "100dvh", display: "flex", flexDirection: "column",
-        zIndex: 10, overflowY: "auto",
-      }}>
-        {/* ロゴ */}
-        <div style={{ padding: "24px 20px 20px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <span style={{ fontSize: "18px", fontWeight: 800, color: "#fff", letterSpacing: "-0.01em", fontFamily: "var(--font-display), sans-serif" }}>
-              KAKERU
-            </span>
-            <span style={{ fontSize: "10px", fontWeight: 700, background: ORANGE, color: "#fff", padding: "2px 7px", borderRadius: "100px", letterSpacing: "0.04em" }}>
-              ADMIN
-            </span>
+    <div style={{ background: BG, minHeight: "100dvh" }}>
+      {/* ヘッダー */}
+      <header style={{ background: INK, padding: "16px 40px", display: "flex", alignItems: "center", gap: "10px" }}>
+        <span style={{ fontFamily: "var(--font-display), sans-serif", fontSize: "18px", fontWeight: 800, color: "#fff", letterSpacing: "-0.01em" }}>
+          KAKERU
+        </span>
+        <span style={{ fontSize: "10px", fontWeight: 700, background: ORANGE, color: "#fff", padding: "2px 7px", borderRadius: "100px", letterSpacing: "0.04em" }}>
+          ADMIN
+        </span>
+        <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", marginLeft: "auto" }}>
+          {d.today} JST
+        </span>
+      </header>
+
+      {/* コンテンツ */}
+      <main style={{ maxWidth: "1060px", margin: "0 auto", padding: "36px 40px" }}>
+
+        {/* ① ヒーロー */}
+        <div style={{ marginBottom: "28px" }}>
+          <div style={{
+            background: INK, color: "#fff", borderRadius: "14px", padding: "28px 32px",
+            display: "grid", gridTemplateColumns: "1fr auto", alignItems: "center",
+            gap: "24px", position: "relative", overflow: "hidden",
+          }}>
+            <div style={{
+              position: "absolute", right: "-60px", bottom: "-80px",
+              width: "240px", height: "240px",
+              background: "radial-gradient(circle, rgba(255,107,0,0.32), transparent 65%)",
+              pointerEvents: "none",
+            }} />
+            <div style={{ position: "relative", zIndex: 1 }}>
+              <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.6)", letterSpacing: "0.06em", fontWeight: 600, textTransform: "uppercase" }}>
+                今月の総売上
+              </div>
+              <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.7)", marginTop: "2px" }}>{d.jstMonthLabel}</div>
+              <div style={{ fontSize: "56px", fontWeight: 800, letterSpacing: "-0.02em", marginTop: "12px", lineHeight: 1, fontFamily: "var(--font-display), sans-serif" }}>
+                ¥{totalRevenue.toLocaleString()}
+              </div>
+              <div style={{ marginTop: "14px", display: "flex", gap: "12px", flexWrap: "wrap", fontSize: "13px", color: "rgba(255,255,255,0.8)" }}>
+                {[
+                  { label: "PRO", value: `¥${d.mrrEstimate.toLocaleString()}` },
+                  { label: "罰金", value: `¥${d.monthPenaltySum.toLocaleString()}` },
+                ].map(({ label, value }) => (
+                  <span key={label} style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", padding: "5px 10px", borderRadius: "100px" }}>
+                    {label} <strong style={{ color: "#fff", fontWeight: 700, marginLeft: "4px" }}>{value}</strong>
+                  </span>
+                ))}
+              </div>
+            </div>
+            <div style={{ position: "relative", zIndex: 1, textAlign: "right" }}>
+              <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.65)", marginBottom: "8px" }}>月次推移</div>
+              <svg width="200" height="70" viewBox="0 0 220 80" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="heroGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#FF6B00" stopOpacity={0.4} />
+                    <stop offset="100%" stopColor="#FF6B00" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <path d="M0 60 L30 58 L60 55 L90 52 L120 45 L150 38 L180 22 L220 12 L220 80 L0 80 Z" fill="url(#heroGrad)" />
+                <polyline points="0,60 30,58 60,55 90,52 120,45 150,38 180,22 220,12" stroke="#FF6B00" strokeWidth={2} fill="none" strokeLinecap="round" />
+                <circle cx={220} cy={12} r={3.5} fill="#FF6B00" />
+                <circle cx={220} cy={12} r={6} fill="#FF6B00" opacity={0.25} />
+              </svg>
+            </div>
           </div>
-          <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", marginTop: "6px" }}>
-            {data.today} JST
+        </div>
+
+        {/* ② アラート */}
+        <div style={{ marginBottom: "28px" }}>
+          <SectionHead title="アラート" note="対応が必要な項目" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-[14px]">
+            <AlertCard
+              label="課金失敗(直近7日)"
+              value={d.paymentFailuresLast7d}
+              sub={d.paymentFailuresLast7d === 0 ? "問題なし" : `${d.paymentFailuresLast7d}件の失敗`}
+              type={d.paymentFailuresLast7d === 0 ? "zero" : "error"}
+            />
+            <AlertCard
+              label="今日の判定待ち"
+              value={d.pendingTodayCount ?? 0}
+              sub={(d.pendingTodayCount ?? 0) > 0 ? `罰金処理キューに ${d.pendingTodayCount} 件` : "処理なし"}
+              type={(d.pendingTodayCount ?? 0) === 0 ? "zero" : "warn"}
+            />
           </div>
         </div>
 
-        {/* ナビ */}
-        <nav style={{ flex: 1, padding: "12px 0" }}>
-          {NAV.map(({ id, label, Icon }) => {
-            const active = view === id;
-            return (
-              <button
-                key={id}
-                onClick={() => setView(id)}
-                style={{
-                  display: "flex", alignItems: "center", gap: "10px",
-                  width: "100%", padding: "11px 20px",
-                  border: "none", cursor: "pointer",
-                  borderLeft: active ? `3px solid ${ORANGE}` : "3px solid transparent",
-                  background: active ? "rgba(255,107,0,0.12)" : "transparent",
-                  color: active ? "#fff" : "rgba(255,255,255,0.5)",
-                  fontSize: "14px", fontWeight: active ? 600 : 400,
-                  textAlign: "left",
-                }}
-              >
-                <Icon />
-                {label}
-              </button>
-            );
-          })}
-        </nav>
-
-        {/* フッター */}
-        <div style={{ padding: "16px 20px", borderTop: "1px solid rgba(255,255,255,0.08)", fontSize: "11px", color: "rgba(255,255,255,0.3)" }}>
-          管理ツール · 社外秘
+        {/* ③ サービス状況 + OnboardingRadial */}
+        <div style={{ marginBottom: "28px" }}>
+          <SectionHead title="サービス状況" note="主要指標サマリー" />
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: "14px", alignItems: "start" }}>
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-[14px]">
+              <MetricCard label="総ユーザー数" value={d.totalUsersNum} sub="全期間" />
+              <MetricCard label="PRO 加入数" value={d.proCount ?? 0} sub={`MRR ¥${d.mrrEstimate.toLocaleString()}`} />
+              <MetricCard label="DAU (24h ラン)" value={d.dau} unit={`/ ${d.totalUsersNum}`} sub={`アクティブ率 ${d.totalUsersNum > 0 ? Math.round((d.dau / d.totalUsersNum) * 100) : 0}%`} />
+              <MetricCard label="今月の新規登録" value={d.newMonth ?? 0} sub={`${d.monthNum}月1日から`} dimValue={(d.newMonth ?? 0) === 0} />
+              <MetricCard label="今日のラン" value={d.runsToday ?? 0} deltaVal={(d.runsToday ?? 0) - (d.runsYesterday ?? 0)} sub="vs 昨日" />
+              <MetricCard label="今月の罰金売上" value={`¥${d.monthPenaltySum.toLocaleString()}`} sub={`累計: ¥${d.allPenaltySum.toLocaleString()}`} />
+            </div>
+            <OnboardingRadial d={d} />
+          </div>
         </div>
-      </aside>
 
-      {/* ── メインエリア ── */}
-      <main style={{ marginLeft: "220px", flex: 1, padding: "36px 40px", minWidth: 0 }}>
-        <div style={{ maxWidth: "1060px" }}>
-          {view === "overview"         && <OverviewView d={data} />}
-          {view === "users"            && <UsersView d={data} />}
-          {view === "revenue-activity" && <RevenueActivityView d={data} />}
-          {view === "data"             && <DataView d={data} />}
+        {/* ④ ユーザー登録推移 */}
+        <div style={{ marginBottom: "28px" }}>
+          <SectionHead title="ユーザー" note="登録推移とオンボーディング" />
+          <ChartCard title="ユーザー登録推移 (過去30日)">
+            <DailyBarChart data={d.userChart30} today={d.today} color={ORANGE} height={280} />
+          </ChartCard>
+          <div style={{ marginTop: "14px", marginBottom: "14px" }}>
+            <NewSignupsCard d={d} />
+          </div>
+          <div className="grid grid-cols-2 gap-[14px]" style={{ marginBottom: "14px" }}>
+            <MetricCard label="総ユーザー数" value={d.totalUsersNum} sub="全期間" />
+            <MetricCard label="DAU (24h ラン)" value={d.dau} unit={`/ ${d.totalUsersNum}`} sub={`アクティブ率 ${d.totalUsersNum > 0 ? Math.round((d.dau / d.totalUsersNum) * 100) : 0}%`} />
+          </div>
+          <OnboardingFunnel d={d} />
         </div>
+
+        {/* ⑤ 売上 */}
+        <div style={{ marginBottom: "28px" }}>
+          <SectionHead title="売上" note="PRO課金と罰金の内訳" />
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-[14px]">
+            <MetricCard label="PRO 加入数" value={d.proCount ?? 0} sub="アクティブ契約" />
+            <MetricCard label="推定 MRR" value={`¥${d.mrrEstimate.toLocaleString()}`} sub="PRO数 × ¥480" />
+            <MetricCard label="今月の罰金売上" value={`¥${d.monthPenaltySum.toLocaleString()}`} deltaVal={d.monthPenaltySum - d.penaltyYesterdaySum} deltaPrefix="¥" />
+            <MetricCard label="累計罰金売上" value={`¥${d.allPenaltySum.toLocaleString()}`} sub="サービス開始から" />
+          </div>
+          <ChartCard title="罰金推移 (過去7日)">
+            <DailyBarChart data={d.penaltyChart7} today={d.today} color={ORANGE} unit="¥" height={200} />
+          </ChartCard>
+        </div>
+
+        {/* ⑤ アクティビティ */}
+        <div style={{ marginBottom: "28px" }}>
+          <SectionHead title="アクティビティ" note="本日のユーザー行動" />
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-[14px]">
+            <MetricCard label="今日の目標作成" value={d.goalsToday ?? 0} deltaVal={(d.goalsToday ?? 0) - (d.goalsYesterday ?? 0)} sub="vs 昨日" />
+            <MetricCard label="今日のラン" value={d.runsToday ?? 0} deltaVal={(d.runsToday ?? 0) - (d.runsYesterday ?? 0)} sub="vs 昨日" />
+            <MetricCard label="今日の達成率" value={d.achieveRate != null ? `${d.achieveRate}%` : "—"} sub={d.todayDone > 0 ? `${d.achievedToday ?? 0}/${d.todayDone}` : "本日まだ結果なし"} dimValue={d.achieveRate == null} />
+            <MetricCard label="今月の累計ラン" value={d.runsMonth ?? 0} sub={`${d.monthNum}月累計`} />
+          </div>
+          <ChartCard title="ラン推移 (過去7日)">
+            <DailyBarChart data={d.runsChart7} today={d.today} color={GREEN} height={200} />
+          </ChartCard>
+        </div>
+
+        {/* ⑥ 流入元 */}
+        <div style={{ marginBottom: "28px" }}>
+          <SectionHead title="流入元" note="UTMソース別の登録数" />
+          {d.sourcesSorted.length > 0 && <UtmStackedBar sourcesSorted={d.sourcesSorted} />}
+          <Card>
+            {d.sourcesSorted.length === 0 ? (
+              <p style={{ textAlign: "center", color: INK4, fontSize: "13px" }}>データがありません</p>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                {d.sourcesSorted.map(([source, count]) => {
+                  const pct = (count / utmTotal) * 100;
+                  const color = getUtmColor(source);
+                  return (
+                    <div key={source} style={{ display: "grid", gridTemplateColumns: "1fr auto", alignItems: "center", gap: "14px" }}>
+                      <div>
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", fontWeight: 500, color: "#3A4256" }}>
+                          <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: color, flexShrink: 0, display: "inline-block" }} />
+                          {source}
+                        </div>
+                        <div style={{ height: "6px", background: LINE2, borderRadius: "100px", overflow: "hidden", marginTop: "6px" }}>
+                          <div style={{ width: `${Math.max(pct, 0)}%`, height: "100%", background: color, borderRadius: "100px" }} />
+                        </div>
+                      </div>
+                      <div style={{ fontSize: "14px", fontWeight: 700, color: count === 0 ? INK4 : INK, minWidth: "40px", textAlign: "right" }}>
+                        {count}
+                        <span style={{ display: "block", fontSize: "10px", color: INK4, fontWeight: 500, marginTop: "1px" }}>{Math.round(pct)}%</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </Card>
+        </div>
+
+        {/* ⑥ ユーザーテーブル */}
+        <div>
+          <SectionHead title="最新ユーザー一覧" note="登録日の新しい順" />
+          <div style={{ background: "#fff", border: `1px solid ${LINE}`, borderRadius: "12px", overflow: "hidden" }}>
+            <div style={{ padding: "16px 20px", display: "flex", alignItems: "baseline", justifyContent: "space-between", borderBottom: `1px solid ${LINE}` }}>
+              <h3 style={{ fontSize: "14px", fontWeight: 700, color: INK }}>直近の登録</h3>
+              <span style={{ fontSize: "12px", color: INK4 }}>表示 {d.recentUsers.length} 件</span>
+            </div>
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px", minWidth: "720px" }}>
+                <thead>
+                  <tr>
+                    <th style={th}>メール</th>
+                    <th style={th}>登録日</th>
+                    <th style={th}>カード</th>
+                    <th style={thNum}>目標</th>
+                    <th style={thNum}>ラン</th>
+                    <th style={th}>プラン</th>
+                    <th style={thNum}>累計罰金</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {d.recentUsers.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} style={{ padding: "20px", textAlign: "center", color: INK4, fontSize: "13px" }}>
+                        まだユーザーがいません
+                      </td>
+                    </tr>
+                  ) : d.recentUsers.map((u) => {
+                    const fines = d.penaltiesBy[u.id] ?? 0;
+                    return (
+                      <tr key={u.id} style={{ borderBottom: `1px solid ${LINE2}` }}>
+                        <td style={{ ...td, color: BLUE, fontWeight: 500, whiteSpace: "nowrap", maxWidth: "200px", overflow: "hidden", textOverflow: "ellipsis" }}>
+                          {u.email}
+                        </td>
+                        <td style={{ ...td, color: INK3, whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}>
+                          {jstDateStr(u.created_at)}
+                        </td>
+                        <td style={td}>
+                          <Badge variant={u.stripe_payment_method_id ? "card-yes" : "card-no"}>
+                            {u.stripe_payment_method_id ? "登録済" : "未登録"}
+                          </Badge>
+                        </td>
+                        <td style={tdNum}>{d.goalsBy[u.id] ?? 0}</td>
+                        <td style={tdNum}>{d.runsBy[u.id] ?? 0}</td>
+                        <td style={td}>
+                          <Badge variant={u.is_subscribed ? "plan-pro" : "plan-free"}>
+                            {u.is_subscribed ? "PRO" : "FREE"}
+                          </Badge>
+                        </td>
+                        <td style={{ ...tdNum, color: fines > 0 ? "#E55F00" : INK4, fontWeight: fines > 0 ? 700 : 500 }}>
+                          ¥{fines.toLocaleString()}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
       </main>
     </div>
   );
