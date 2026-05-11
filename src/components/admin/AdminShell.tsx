@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { RadialBarChart, RadialBar, Legend, ResponsiveContainer } from "recharts";
 import DailyBarChart from "./DailyBarChart";
 
 // ── types ──────────────────────────────────────────────────────────────────
@@ -212,6 +213,139 @@ function ChartCard({ title, children }: { title: string; children: React.ReactNo
   );
 }
 
+// ── new visual components ──────────────────────────────────────────────────
+
+function NewSignupsCard({ d }: { d: AdminData }) {
+  const cells = [
+    { label: "今日", value: d.newToday ?? 0, delta: (d.newToday ?? 0) - (d.newYesterday ?? 0), showDelta: true },
+    { label: "今週", value: d.newWeek ?? 0, showDelta: false },
+    { label: "今月", value: d.newMonth ?? 0, showDelta: false },
+  ];
+  return (
+    <Card style={{ padding: 0, overflow: "hidden" }}>
+      <div style={{ padding: "14px 20px 12px", borderBottom: `1px solid ${LINE}`, fontSize: "12px", fontWeight: 600, color: INK3 }}>
+        新規登録
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr" }}>
+        {cells.map(({ label, value, delta, showDelta }, i) => (
+          <div key={label} style={{ padding: "16px 20px", borderRight: i < 2 ? `1px solid ${LINE}` : undefined }}>
+            <div style={{ fontSize: "11px", color: INK4, fontWeight: 500, marginBottom: "6px" }}>{label}</div>
+            <div style={{ fontSize: "32px", fontWeight: 800, lineHeight: 1, color: value === 0 ? INK4 : INK, letterSpacing: "-0.02em" }}>
+              {value}
+            </div>
+            {showDelta && delta !== undefined && (
+              <div style={{ marginTop: "6px" }}>
+                <DeltaBadge n={delta} />
+                <span style={{ fontSize: "10px", color: INK4, marginLeft: "4px" }}>vs 昨日</span>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
+function OnboardingFunnel({ d }: { d: AdminData }) {
+  const steps = [
+    { label: "カード登録",   value: d.cardRegisteredCount ?? 0, color: ORANGE },
+    { label: "目標作成",     value: d.goalCreatedCount,         color: GREEN  },
+    { label: "初回ラン完了", value: d.firstRunCount,            color: BLUE   },
+  ];
+  const max = d.totalUsersNum || 1;
+  return (
+    <Card>
+      <div style={{ fontSize: "12px", fontWeight: 600, color: INK3, marginBottom: "16px" }}>
+        オンボーディングファネル{" "}
+        <span style={{ color: INK4, fontWeight: 500 }}>N = {d.totalUsersNum}</span>
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+        {steps.map(({ label, value, color }) => {
+          const pct = (value / max) * 100;
+          return (
+            <div key={label}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px", fontSize: "12px" }}>
+                <span style={{ color: INK, fontWeight: 600 }}>{label}</span>
+                <span style={{ color: INK3, fontWeight: 700 }}>
+                  {value}{" "}
+                  <span style={{ color: INK4, fontWeight: 400 }}>({pct.toFixed(1)}%)</span>
+                </span>
+              </div>
+              <div style={{ height: "28px", background: LINE2, borderRadius: "6px", overflow: "hidden" }}>
+                <div style={{ height: "100%", width: `${Math.max(pct, 0)}%`, background: color, borderRadius: "6px" }} />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </Card>
+  );
+}
+
+function OnboardingRadial({ d }: { d: AdminData }) {
+  const total = d.totalUsersNum || 1;
+  const items = [
+    { name: "カード登録",   value: Math.round((d.cardRegisteredCount ?? 0) / total * 100), fill: ORANGE },
+    { name: "目標作成",     value: Math.round(d.goalCreatedCount            / total * 100), fill: GREEN  },
+    { name: "初回ラン完了", value: Math.round(d.firstRunCount               / total * 100), fill: BLUE   },
+  ];
+  return (
+    <Card style={{ padding: "20px 20px 12px", marginTop: "14px" }}>
+      <div style={{ fontSize: "12px", fontWeight: 600, color: INK3, marginBottom: "4px" }}>
+        オンボーディング達成率
+      </div>
+      <ResponsiveContainer width="100%" height={200}>
+        <RadialBarChart
+          cx="50%" cy="50%" innerRadius="30%" outerRadius="90%"
+          barSize={14} data={items} startAngle={90} endAngle={-270}
+        >
+          <RadialBar dataKey="value" cornerRadius={4} background={{ fill: LINE2 }} />
+          <Legend
+            iconSize={10}
+            layout="vertical"
+            verticalAlign="middle"
+            align="right"
+            formatter={(value: string) => {
+              const item = items.find((i) => i.name === value);
+              return <span style={{ fontSize: "11px", color: INK }}>{value} {item?.value ?? 0}%</span>;
+            }}
+          />
+        </RadialBarChart>
+      </ResponsiveContainer>
+    </Card>
+  );
+}
+
+function UtmStackedBar({ sourcesSorted }: { sourcesSorted: [string, number][] }) {
+  const total = sourcesSorted.reduce((s, [, c]) => s + c, 0) || 1;
+  return (
+    <div style={{ marginBottom: "16px" }}>
+      <div style={{ height: "32px", borderRadius: "8px", overflow: "hidden", display: "flex" }}>
+        {sourcesSorted.map(([source, count]) => (
+          <div
+            key={source}
+            style={{
+              width: `${(count / total) * 100}%`,
+              background: getUtmColor(source),
+              minWidth: count > 0 ? "2px" : 0,
+            }}
+            title={`${source}: ${count} (${Math.round((count / total) * 100)}%)`}
+          />
+        ))}
+      </div>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "10px 16px", marginTop: "10px" }}>
+        {sourcesSorted.map(([source, count]) => (
+          <div key={source} style={{ display: "flex", alignItems: "center", gap: "5px", fontSize: "11px", color: INK3 }}>
+            <span style={{ width: "8px", height: "8px", borderRadius: "2px", background: getUtmColor(source), display: "inline-block", flexShrink: 0 }} />
+            <span style={{ fontWeight: 600, color: INK }}>{source}</span>
+            <span>{Math.round((count / total) * 100)}%</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ── views ──────────────────────────────────────────────────────────────────
 
 function OverviewView({ d }: { d: AdminData }) {
@@ -312,6 +446,7 @@ function OverviewView({ d }: { d: AdminData }) {
             sub={`サービス開始累計: ¥${d.allPenaltySum.toLocaleString()}`}
           />
         </div>
+        <OnboardingRadial d={d} />
       </div>
     </div>
   );
@@ -329,17 +464,11 @@ function UsersView({ d }: { d: AdminData }) {
 
       <div style={{ marginBottom: "28px" }}>
         <SectionHead title="ユーザー指標" note="登録数とアクティブ状況" />
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-[14px]">
+        <div style={{ marginBottom: "14px" }}>
+          <NewSignupsCard d={d} />
+        </div>
+        <div className="grid grid-cols-2 gap-[14px]">
           <MetricCard label="総ユーザー数" value={d.totalUsersNum} sub="全期間" />
-          <MetricCard
-            label="今日の新規"
-            value={d.newToday ?? 0}
-            deltaVal={(d.newToday ?? 0) - (d.newYesterday ?? 0)}
-            sub="vs 昨日"
-            dimValue={(d.newToday ?? 0) === 0}
-          />
-          <MetricCard label="今週の新規" value={d.newWeek ?? 0} sub="月曜起算" dimValue={(d.newWeek ?? 0) === 0} />
-          <MetricCard label="今月の新規" value={d.newMonth ?? 0} sub={`${d.monthNum}月1日から`} dimValue={(d.newMonth ?? 0) === 0} />
           <MetricCard
             label="DAU (24h ラン)"
             value={d.dau}
@@ -351,11 +480,7 @@ function UsersView({ d }: { d: AdminData }) {
 
       <div>
         <SectionHead title="オンボーディング" note={`N = ${d.totalUsersNum}ユーザー`} />
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-[14px]">
-          <ObCard label="カード登録" value={d.cardRegisteredCount ?? 0} total={d.totalUsersNum} color={ORANGE} />
-          <ObCard label="目標作成" value={d.goalCreatedCount} total={d.totalUsersNum} color={GREEN} />
-          <ObCard label="初回ラン完了" value={d.firstRunCount} total={d.totalUsersNum} color={BLUE} />
-        </div>
+        <OnboardingFunnel d={d} />
       </div>
     </div>
   );
@@ -422,6 +547,7 @@ function DataView({ d }: { d: AdminData }) {
       {/* 流入元 */}
       <div style={{ marginBottom: "36px" }}>
         <SectionHead title="流入元" note="UTMソース別の登録数" />
+        {d.sourcesSorted.length > 0 && <UtmStackedBar sourcesSorted={d.sourcesSorted} />}
         <Card>
           {d.sourcesSorted.length === 0 ? (
             <p style={{ textAlign: "center", color: INK4, fontSize: "13px" }}>データがありません</p>
