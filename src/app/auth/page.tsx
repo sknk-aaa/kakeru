@@ -41,7 +41,7 @@ const GoogleIcon = () => (
 );
 
 export default function AuthPage() {
-  const [mode, setMode] = useState<"login" | "signup" | "reset">("signup");
+  const [mode, setMode] = useState<"login" | "signup" | "reset">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
