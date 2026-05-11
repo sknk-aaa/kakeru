@@ -1,10 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import { Barlow_Condensed, DM_Sans } from "next/font/google";
-import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import SplashScreen from "@/components/SplashScreen";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 import UtmTracker from "@/components/UtmTracker";
+import AdminFlagSetter from "@/components/AdminFlagSetter";
+import AnalyticsWithFilter from "@/components/AnalyticsWithFilter";
 
 const barlowCondensed = Barlow_Condensed({
   variable: "--font-display",
@@ -76,8 +77,9 @@ export default function RootLayout({
         <SplashScreen />
         <ServiceWorkerRegister />
         <UtmTracker />
+        <AdminFlagSetter />
         {children}
-        <Analytics />
+        <AnalyticsWithFilter />
       </body>
     </html>
   );
