@@ -4,7 +4,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Plus, X } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight, Plus, X } from "lucide-react";
 import PublicHamburger from "@/components/PublicHamburger";
 
 const FAQ_ITEMS: { q: string; a: string }[] = [
@@ -30,9 +30,89 @@ const FAQ_ITEMS: { q: string; a: string }[] = [
   },
 ];
 
+const TARGET_MOCK_SLIDES = [
+  {
+    label: "目標を設定",
+    title: "日付や距離、課金額を決める",
+    desc: "曜日ごとに走る目標と、未達成時に課金される金額を設定します。",
+    image: "/スクショ/目標作成画面スクショ.PNG",
+    alt: "目標設定画面",
+  },
+  {
+    label: "ランニングを開始",
+    title: "スマホを持って走る",
+    desc: "スタートボタンを押して走り出すだけ。GPSで距離やペースを記録します。",
+    image: "/スクショ/ランニング画面スクショ.png",
+    alt: "ランニング画面",
+  },
+  {
+    label: "目標を達成",
+    title: "達成判定もおまかせ",
+    desc: "走行記録から目標達成を自動で判定します。達成すれば課金はありません。少し健康になります。",
+    image: "/スクショ/目標達成画面スクショ.PNG",
+    alt: "目標達成画面",
+  },
+  {
+    label: "未達成時に課金",
+    title: "走らなければ\n自動で課金",
+    desc: "23:59までに未達成の場合、設定した金額が自動で引き落とされます。",
+    image: "/スクショ/課金されました画面スクショ.png",
+    alt: "課金時のモーダル",
+  },
+  {
+    label: "記録を振り返る",
+    title: "達成率や走行距離を確認",
+    desc: "これまでのランニング記録や達成状況をあとから確認できます。",
+    image: "/スクショ/記録画面スクショ.PNG",
+    alt: "記録画面",
+  },
+  {
+    label: "カードを登録",
+    title: "決済情報は安全に管理",
+    desc: "カード情報はStripeで安全に管理され、KAKERUには保存されません。",
+    image: "/スクショ/クレカ登録画面スクショ.PNG",
+    alt: "クレカ登録画面",
+  },
+];
+
+const HOW_SLIDES = [
+  TARGET_MOCK_SLIDES[0],
+  TARGET_MOCK_SLIDES[1],
+  TARGET_MOCK_SLIDES[2],
+  TARGET_MOCK_SLIDES[4],
+];
+
+const MOBILE_HOW_SLIDES = [
+  TARGET_MOCK_SLIDES[0],
+  TARGET_MOCK_SLIDES[1],
+  TARGET_MOCK_SLIDES[2],
+  TARGET_MOCK_SLIDES[4],
+  TARGET_MOCK_SLIDES[5],
+];
+
+const DESKTOP_HOW_SLIDES = HOW_SLIDES;
+
+const FOR_YOU_MOCK_SLIDES = [
+  TARGET_MOCK_SLIDES[0],
+  TARGET_MOCK_SLIDES[1],
+  TARGET_MOCK_SLIDES[2],
+  TARGET_MOCK_SLIDES[4],
+  TARGET_MOCK_SLIDES[5],
+];
+
 export default function LpPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [activeTargetMockSlide, setActiveTargetMockSlide] = useState(0);
+  const [activeHowSlide, setActiveHowSlide] = useState(0);
+  const [displayedHowTextSlide, setDisplayedHowTextSlide] = useState(0);
+  const [isHowTextVisible, setIsHowTextVisible] = useState(true);
+  const [howDragOffset, setHowDragOffset] = useState(0);
+  const [isHowDragging, setIsHowDragging] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
+  const howSliderRef = useRef<HTMLDivElement>(null);
+  const isHowDraggingRef = useRef(false);
+  const howDragStartXRef = useRef(0);
+  const howDragOffsetRef = useRef(0);
 
   useEffect(() => {
     if (!rootRef.current) return;
@@ -47,6 +127,65 @@ export default function LpPage() {
     rootRef.current.querySelectorAll(".fi").forEach((el) => obs.observe(el));
     return () => obs.disconnect();
   }, []);
+
+  useEffect(() => {
+    const hideTimer = window.setTimeout(() => {
+      setIsHowTextVisible(false);
+    }, 0);
+    const swapTimer = window.setTimeout(() => {
+      setDisplayedHowTextSlide(activeHowSlide);
+      setIsHowTextVisible(true);
+    }, 400);
+    return () => {
+      window.clearTimeout(hideTimer);
+      window.clearTimeout(swapTimer);
+    };
+  }, [activeHowSlide]);
+
+  const scrollToHowSlide = (index: number) => {
+    setActiveHowSlide(index);
+    setHowDragOffset(0);
+  };
+
+  const moveTargetMockSlide = (direction: 1 | -1) => {
+    setActiveTargetMockSlide((current) => (
+      (current + direction + FOR_YOU_MOCK_SLIDES.length) % FOR_YOU_MOCK_SLIDES.length
+    ));
+  };
+
+  const handleHowPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    const slider = howSliderRef.current;
+    if (!slider) return;
+    isHowDraggingRef.current = true;
+    setIsHowDragging(true);
+    setHowDragOffset(0);
+    howDragOffsetRef.current = 0;
+    howDragStartXRef.current = e.clientX;
+    slider.setPointerCapture(e.pointerId);
+  };
+
+  const handleHowPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isHowDragging) return;
+    const nextOffset = e.clientX - howDragStartXRef.current;
+    howDragOffsetRef.current = nextOffset;
+    setHowDragOffset(nextOffset);
+  };
+
+  const handleHowPointerEnd = (e: React.PointerEvent<HTMLDivElement>) => {
+    const slider = howSliderRef.current;
+    if (!slider) return;
+    const threshold = Math.min(90, slider.clientWidth * 0.18);
+    if (howDragOffsetRef.current < -threshold) {
+      setActiveHowSlide((current) => Math.min(current + 1, MOBILE_HOW_SLIDES.length - 1));
+    } else if (howDragOffsetRef.current > threshold) {
+      setActiveHowSlide((current) => Math.max(current - 1, 0));
+    }
+    isHowDraggingRef.current = false;
+    setIsHowDragging(false);
+    setHowDragOffset(0);
+    howDragOffsetRef.current = 0;
+    if (slider.hasPointerCapture(e.pointerId)) slider.releasePointerCapture(e.pointerId);
+  };
 
   return (
     <div ref={rootRef} className="lp-root">
@@ -65,6 +204,18 @@ export default function LpPage() {
           <Link href="/howto">使い方</Link>
           <a href="#faq">よくある質問</a>
           <Link href="/terms">利用規約</Link>
+          <div className="nav-socials" aria-label="SNSリンク">
+            <a className="nav-social-icon" href="https://x.com/Kakeru_runApp" target="_blank" rel="noreferrer" aria-label="X">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M13.9 10.5 21.3 2h-1.8l-6.4 7.3L8 2H2l7.8 11.2L2 22h1.8l6.8-7.7L16 22h6l-8.1-11.5Zm-2.4 2.7-.8-1.1L4.5 3.3h2.6l5 7.1.8 1.1 6.6 9.3h-2.6l-5.4-7.6Z" />
+              </svg>
+            </a>
+            <a className="nav-social-icon" href="https://www.youtube.com/channel/UCqPrg3o0GExIwmGQf5GkF5g" target="_blank" rel="noreferrer" aria-label="YouTube">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31.4 31.4 0 0 0 0 12a31.4 31.4 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31.4 31.4 0 0 0 24 12a31.4 31.4 0 0 0-.5-5.8ZM9.6 15.6V8.4L15.9 12l-6.3 3.6Z" />
+              </svg>
+            </a>
+          </div>
           <Link href="/auth" className="btn-nav">今すぐ始める</Link>
         </div>
       </nav>
@@ -72,22 +223,25 @@ export default function LpPage() {
       {/* HERO */}
       <section id="hero">
         <div className="hero-bg">
-          <img src="/抽象画像/抽象画像4.png" style={{ position: "absolute", width: 280, top: -40, right: -50, opacity: 0.4 }} alt="" />
+          <img src="/抽象画像/抽象画像4.png" style={{ position: "absolute", width: 280, top: -40, right: -50, opacity: 0.86 }} alt="" />
+          <img src="/抽象画像/抽象画像1.png" className="hero-bg-low" alt="" />
         </div>
 
         <div style={{ position: "relative", zIndex: 1 }} className="hero-inner">
           <div className="hero-content">
             <h1 className="hero-tag">ランニング習慣化アプリ</h1>
             <img src="/その他素材/走らなければ-transparent.png" className="hero-run-img" style={{ width: "100%", maxWidth: 280, display: "block", marginBottom: 20 }} alt="走らなければ、課金される。" />
-            <p className="hero-sub">
-              自分に甘いあなたのための、<br />本気の習慣化アプリ。
-            </p>
-            <div className="hero-before-after" aria-hidden="true">
-              <img src="/stickman-assets/stickman-14.png" alt="" />
-              <span className="hero-before-after-arrow">
-                <ArrowRight size={18} strokeWidth={2.4} />
-              </span>
-              <img src="/stickman-assets/stickman-02.png" alt="" />
+            <div className="hero-sub-row">
+              <p className="hero-sub">
+                自分に甘いあなたのための、<br />本気の習慣化アプリ。
+              </p>
+              <div className="hero-before-after" aria-hidden="true">
+                <img src="/stickman-assets/stickman-14.png" alt="" />
+                <span className="hero-before-after-arrow">
+                  <ArrowRight size={18} strokeWidth={2.4} />
+                </span>
+                <img src="/stickman-assets/stickman-02.png" alt="" />
+              </div>
             </div>
           </div>
           <div className="hero-visual">
@@ -95,12 +249,9 @@ export default function LpPage() {
               <div className="phone-mock-notch" />
               <div className="phone-mock-screen">
                 <div className="phone-slider-track">
-                  <img src="/スクショ/IMG_3735.PNG" alt="アプリ画面" />
-                  <img src="/スクショ/IMG_3735.PNG" alt="アプリ画面" />
-                  <img src="/スクショ/IMG_3735.PNG" alt="アプリ画面" />
-                  <img src="/スクショ/IMG_3735.PNG" alt="アプリ画面" />
-                  <img src="/スクショ/IMG_3735.PNG" alt="アプリ画面" />
-                  <img src="/スクショ/IMG_3735.PNG" alt="アプリ画面" />
+                  {TARGET_MOCK_SLIDES.map((slide) => (
+                    <img src={slide.image} alt={slide.alt} key={`hero-${slide.label}`} />
+                  ))}
                 </div>
               </div>
             </div>
@@ -120,26 +271,61 @@ export default function LpPage() {
 
       {/* TARGET */}
       <section id="target" style={{ background: "#FFFFFF" }}>
-        <img src="/抽象画像/抽象画像5.png" className="abs-bg" style={{ width: 200, bottom: 20, right: -70, opacity: 0.25 }} alt="" />
-        <div className="rel" style={{ maxWidth: 640, margin: "0 auto", textAlign: "center" }}>
-          <div className="s-label fi">FOR YOU</div>
-          <h2 className="s-title fi" style={{ marginBottom: 28 }}>こんなあなたへ</h2>
-          <p className="target-body fi">
-            ほんとうは走りたいのに<br />
-            ジョギングを習慣にしたいのに<br />
-            思うように続かない。
-          </p>
-          <p className="target-body fi d2" style={{ marginTop: 20 }}>
-            走り始めても、3日で挫折してしまう。<br />
-            せっかく続いても、すぐサボってしまう。
-          </p>
-          <p className="target-conclusion fi d3">
-            『Kakeru』を使えば、<br />もうそんなことはできません。
-          </p>
+        <img src="/抽象画像/抽象画像5.png" className="abs-bg" style={{ width: 200, bottom: 20, right: -70, opacity: 0.55 }} alt="" />
+        <div className="rel target-layout" style={{ maxWidth: 640, margin: "0 auto", textAlign: "center" }}>
+          <div className="target-phone-col fi">
+            <div className="target-mock-label-viewport">
+              <div className="target-mock-step-num">
+                <span className="how-step-num-badge">{activeTargetMockSlide + 1}</span>
+                {FOR_YOU_MOCK_SLIDES[activeTargetMockSlide].label}
+              </div>
+            </div>
+            <div className="phone-mock how-phone target-phone">
+              <div className="phone-mock-notch" />
+              <div className="phone-mock-screen">
+                <img src={FOR_YOU_MOCK_SLIDES[activeTargetMockSlide].image} alt="" />
+              </div>
+            </div>
+            <div className="target-mock-controls" aria-label="For You モック切り替え">
+              <button type="button" onClick={() => moveTargetMockSlide(-1)} aria-label="前のスクリーンショット">
+                <ChevronLeft size={18} strokeWidth={2.4} />
+              </button>
+              <div className="target-mock-dots">
+                {FOR_YOU_MOCK_SLIDES.map((slide, i) => (
+                  <button
+                    key={`target-dot-${slide.label}`}
+                    type="button"
+                    className={activeTargetMockSlide === i ? "active" : ""}
+                    onClick={() => setActiveTargetMockSlide(i)}
+                    aria-label={`${i + 1}枚目: ${slide.label}`}
+                    aria-current={activeTargetMockSlide === i ? "true" : undefined}
+                  />
+                ))}
+              </div>
+              <button type="button" onClick={() => moveTargetMockSlide(1)} aria-label="次のスクリーンショット">
+                <ChevronRight size={18} strokeWidth={2.4} />
+              </button>
+            </div>
+          </div>
+          <div className="target-copy">
+            <div className="s-label fi">FOR YOU</div>
+            <h2 className="s-title fi" style={{ marginBottom: 28 }}>こんなあなたへ</h2>
+            <p className="target-body fi">
+              ダイエットをしたい、健康になりたいのに<br />
+              ジョギング･ランニングを習慣にしたいのに<br />
+              思うように続かない。
+            </p>
+            <p className="target-body fi d2" style={{ marginTop: 20 }}>
+              ランニングアプリをインストールしたものの<br />結局使わなくなってしまう。
+            </p>
+            <p className="target-conclusion fi d3">
+              『Kakeru』を使えば、<br />もうサボれない。挫折しない。<br />
+            </p>
+          </div>
         </div>
       </section>
 
-      <div className="wave" style={{ background: "#FFFFFF" }}>
+      <div className="wave science-wave-top" style={{ background: "#FFFFFF" }}>
         <svg viewBox="0 0 1440 60" preserveAspectRatio="none" height={60}>
           <path d="M0,30 C300,55 700,5 1000,30 C1200,45 1340,15 1440,30 L1440,60 L0,60 Z" fill="#FEFCFA" />
         </svg>
@@ -147,39 +333,36 @@ export default function LpPage() {
 
       {/* FEATURES */}
       <section id="features" style={{ background: "#FEFCFA" }}>
-        <img src="/抽象画像/抽象画像6.png" className="abs-bg" style={{ width: 220, top: 0, right: -70, opacity: 0.25 }} alt="" />
+        <img src="/抽象画像/抽象画像2.png" className="abs-bg" style={{ width: 220, top: 20, right: -60, opacity: 0.52 }} alt="" />
         <div className="rel">
           <div className="s-label fi">FEATURES</div>
           <h2 className="s-title fi">3つの特徴</h2>
 
-          <div className="feat-grid">
-            <div className="feat-card fi d1">
-              <div className="feat-icon">
-                <img src="stickman-assets/stickman-13.png" alt="目標を設定" />
-              </div>
-              <div>
-                <div className="feat-catch">目標を設定する</div>
-                <div className="feat-desc">距離・時間・罰金額を自分で決める。<br />続けやすい設計。</div>
-              </div>
-            </div>
-
-            <div className="feat-card fi d2">
-              <div className="feat-icon">
-                <img src="stickman-assets/stickman-02.png" alt="走れば無料" />
-              </div>
-              <div>
-                <div className="feat-catch">走れば無料</div>
-                <div className="feat-desc">目標を達成し続ければ、<br />お金は1円もかからない。</div>
+          <div className="feature-steps">
+            <div className="feature-step fi d1">
+              <img src="/stickman-assets/stickman-13.png" className="feature-step-img" alt="目標を設定" />
+              <div className="feature-step-text">
+                <div className="feature-step-num">STEP 01</div>
+                <div className="feature-step-title">目標を設定</div>
+                <p className="feature-step-desc">曜日や距離、課金額を自分で決められます。</p>
               </div>
             </div>
 
-            <div className="feat-card fi d3">
-              <div className="feat-icon">
-                <img src="stickman-assets/stickman-21.png" alt="記録で振り返る" />
+            <div className="feature-step reverse fi d2">
+              <img src="/stickman-assets/stickman-02.png" className="feature-step-img" alt="走って達成" />
+              <div className="feature-step-text">
+                <div className="feature-step-num">STEP 02</div>
+                <div className="feature-step-title">走れば無料</div>
+                <p className="feature-step-desc">目標を達成すれば課金はされませんし、少しだけ健康になります。</p>
               </div>
-              <div>
-                <div className="feat-catch">記録で振り返る</div>
-                <div className="feat-desc">達成率・走行距離・コースが<br />一目で確認できる。</div>
+            </div>
+
+            <div className="feature-step fi d3">
+              <img src="/stickman-assets/stickman-21.png" className="feature-step-img" alt="課金" />
+              <div className="feature-step-text">
+                <div className="feature-step-num">STEP 03</div>
+                <div className="feature-step-title">記録で振り返る</div>
+                <p className="feature-step-desc">走った記録を確認し、自分の成長を可視化できます。</p>
               </div>
             </div>
           </div>
@@ -194,65 +377,101 @@ export default function LpPage() {
 
       {/* HOW IT WORKS */}
       <section id="how" style={{ background: "#FFFFFF" }}>
-        <img src="/抽象画像/抽象画像3.png" className="abs-bg" style={{ width: 220, top: 280, left: -80, opacity: 0.22 }} alt="" />
+        <img src="/抽象画像/抽象画像3.png" className="abs-bg" style={{ width: 220, top: 280, left: -80, opacity: 0.52 }} alt="" />
         <div className="rel">
           <div className="s-label fi">HOW IT WORKS</div>
           <h2 className="s-title fi">使い方</h2>
-          <div className="how-dots fi"><span /><span /><span /></div>
 
-          <div className="how-steps">
-            <div className="how-step fi d1">
-              <div className="how-step-visual">
-                <div className="phone-mock how-phone">
-                  <div className="phone-mock-notch" />
-                  <div className="phone-mock-screen">
-                    <img src="/スクショ/IMG_3735.PNG" alt="目標を設定" />
+          <div className={`how-text-panel fi${isHowTextVisible ? " visible" : ""}`}>
+            <div className="how-step-num">
+              <span className="how-step-num-badge">{displayedHowTextSlide + 1}</span>
+              {MOBILE_HOW_SLIDES[displayedHowTextSlide].label}
+            </div>
+            <div className="how-step-title">
+              {MOBILE_HOW_SLIDES[displayedHowTextSlide].title.split("\n").map((line, lineIndex, lines) => (
+                <span key={line}>
+                  {line}
+                  {lineIndex < lines.length - 1 && <br />}
+                </span>
+              ))}
+            </div>
+            <p className="how-step-desc">{MOBILE_HOW_SLIDES[displayedHowTextSlide].desc}</p>
+          </div>
+
+          <div
+            className="how-slider fi"
+            ref={howSliderRef}
+            onPointerDown={handleHowPointerDown}
+            onPointerMove={handleHowPointerMove}
+            onPointerUp={handleHowPointerEnd}
+            onPointerCancel={handleHowPointerEnd}
+            onPointerLeave={handleHowPointerEnd}
+          >
+            <div
+              className={`how-track${isHowDragging ? " dragging" : ""}`}
+              style={{ transform: `translateX(calc(${-activeHowSlide * 100}% + ${howDragOffset}px))` }}
+            >
+              {MOBILE_HOW_SLIDES.map((slide) => (
+                <div className="how-slide" key={slide.label}>
+                  <div className="how-step-visual">
+                    <div className="phone-mock how-phone">
+                      <div className="phone-mock-notch" />
+                      <div className="phone-mock-screen">
+                        <img src={slide.image} alt={slide.alt} />
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div className="how-step-text">
-                <div className="how-step-num"><span className="how-step-num-badge">1</span>目標を設定する</div>
-                <div className="how-step-title">距離・時間・<br />罰金額を決める</div>
-                <p className="how-step-desc">曜日ごとに走る目標と、未達成時に課金される金額を設定してください。「サボらない」と覚悟を決めたら、続けやすい習慣の第一歩です。</p>
-              </div>
+              ))}
             </div>
+          </div>
 
-            <div className="how-step fi d2">
-              <div className="how-step-visual">
-                <div className="phone-mock how-phone">
-                  <div className="phone-mock-notch" />
-                  <div className="phone-mock-screen">
-                    <img src="/スクショ/IMG_3735.PNG" alt="走って達成" />
+          <div className="how-slide-dots fi" aria-label="使い方スライド">
+            {MOBILE_HOW_SLIDES.map((slide, i) => (
+              <button
+                key={slide.label}
+                type="button"
+                className={activeHowSlide === i ? "active" : ""}
+                onClick={() => scrollToHowSlide(i)}
+                aria-label={`${i + 1}枚目: ${slide.label}`}
+                aria-current={activeHowSlide === i ? "true" : undefined}
+              />
+            ))}
+          </div>
+
+          <div className="how-desktop-list fi">
+            {DESKTOP_HOW_SLIDES.map((slide, i) => (
+              <div className={`how-desktop-step${i % 2 === 1 ? " reverse" : ""}`} key={`desktop-${slide.label}`}>
+                <div className="how-step-visual">
+                  <div className="phone-mock how-phone">
+                    <div className="phone-mock-notch" />
+                    <div className="phone-mock-screen">
+                      <img src={slide.image} alt={slide.alt} />
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div className="how-step-text">
-                <div className="how-step-num"><span className="how-step-num-badge">2</span>スマホを持って走る</div>
-                <div className="how-step-title">GPSで自動計測<br />達成判定もおまかせ</div>
-                <p className="how-step-desc">スタートボタンを押して走り出すだけ。距離・ペース・コースが自動で記録され、目標達成も自動で判定されます。</p>
-              </div>
-            </div>
-
-            <div className="how-step fi d3">
-              <div className="how-step-visual">
-                <div className="phone-mock how-phone">
-                  <div className="phone-mock-notch" />
-                  <div className="phone-mock-screen">
-                    <img src="/スクショ/IMG_3735.PNG" alt="課金" />
+                <div className="how-step-text">
+                  <div className="how-step-num">
+                    <span className="how-step-num-badge">{i + 1}</span>
+                    {slide.label}
                   </div>
+                  <div className="how-step-title">
+                    {slide.title.split("\n").map((line, lineIndex, lines) => (
+                      <span key={`${slide.label}-${line}`}>
+                        {line}
+                        {lineIndex < lines.length - 1 && <br />}
+                      </span>
+                    ))}
+                  </div>
+                  <p className="how-step-desc">{slide.desc}</p>
                 </div>
               </div>
-              <div className="how-step-text">
-                <div className="how-step-num"><span className="how-step-num-badge">3</span>走らなければ自動で課金</div>
-                <div className="how-step-title">達成しなければ<br />設定額を自動引き落とし</div>
-                <p className="how-step-desc">23:59 までに目標を達成できなかった場合、登録カードから設定した罰金額が自動で引き落とされます。逆に走れば、課金は一切ありません。</p>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
-      <div className="wave" style={{ background: "#FFFFFF" }}>
+      <div className="wave science-wave-top" style={{ background: "#FFFFFF" }}>
         <svg viewBox="0 0 1440 60" preserveAspectRatio="none" height={60}>
           <path d="M0,40 C300,0 700,55 1000,20 C1200,5 1340,50 1440,30 L1440,60 L0,60 Z" fill="#1C1008" />
         </svg>
@@ -279,7 +498,8 @@ export default function LpPage() {
           </div>
 
           <p className="why-note fi">
-            人は「得ること」より<strong>「失うこと」</strong>に強く反応します——<strong>損失回避</strong>と呼ばれる心理です。KAKERUはこれを活用し、習慣化の壁を下げます。
+            人は「得ること」より<strong>「失うこと」</strong>に強く反応します——<strong>損失回避</strong>と呼ばれる心理です。
+            KAKERUはこの心理効果を活用し、ランニング習慣化の手助けをします。
           </p>
           <div style={{ textAlign: "center", marginTop: 20 }} className="fi">
             <img src="/その他素材/だから続く！-transparent.png" style={{ width: 140 }} alt="だから続く！" />
@@ -287,7 +507,7 @@ export default function LpPage() {
         </div>
       </section>
 
-      <div className="wave" style={{ background: "#1C1008" }}>
+      <div className="wave science-wave-bottom" style={{ background: "#1C1008" }}>
         <svg viewBox="0 0 1440 60" preserveAspectRatio="none" height={60}>
           <path d="M0,35 C200,0 500,60 800,25 C1050,5 1280,50 1440,20 L1440,60 L0,60 Z" fill="#FFFFFF" />
         </svg>
@@ -295,7 +515,7 @@ export default function LpPage() {
 
       {/* FAQ */}
       <section id="faq" style={{ background: "#FFFFFF" }}>
-        <img src="/抽象画像/抽象画像1.png" className="abs-bg" style={{ width: 180, top: 40, left: -60, opacity: 0.18 }} alt="" />
+        <img src="/抽象画像/抽象画像1.png" className="abs-bg" style={{ width: 180, top: 40, left: -60, opacity: 0.20 }} alt="" />
         <div className="s-label fi">FAQ</div>
         <h2 className="s-title fi">よくある質問</h2>
 
@@ -320,66 +540,12 @@ export default function LpPage() {
         </div>
       </section>
 
-      {/* PRICING */}
-      <section id="pricing" style={{ background: "#FFFFFF" }}>
-        <img src="/抽象画像/抽象画像3.png" className="abs-bg" style={{ width: 200, top: -30, right: -60, opacity: 0.22 }} alt="" />
-        <div className="rel">
-          <div className="s-label fi">PRICING</div>
-          <h2 className="s-title fi">料金プラン</h2>
-
-          <div className="pricing-intro fi">
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" style={{ flexShrink: 0, marginTop: 2 }}>
-              <circle cx="9" cy="9" r="8" stroke="#F97316" strokeWidth="1.5" />
-              <line x1="9" y1="8" x2="9" y2="13" stroke="#F97316" strokeWidth="2" strokeLinecap="round" />
-              <circle cx="9" cy="5.5" r="1" fill="#F97316" />
-            </svg>
-            <p>罰金額は¥100から自由に設定できます。走り続ければ課金は一切ありません。</p>
-          </div>
-
-          <div className="plan-cards">
-            <div className="plan free fi d1">
-              <div className="plan-label">FREE</div>
-              <div className="plan-price"><span>¥</span>0</div>
-              <div className="plan-period">完全無料・ずっと無料</div>
-              <ul className="plan-list">
-                <li><span className="ck">✓</span> GPS ランニング計測</li>
-                <li><span className="ck">✓</span> 繰り返し・単発目標</li>
-                <li><span className="ck">✓</span> 月1回スキップ・雨天スキップ</li>
-                <li><span className="ck">✓</span> 記録・統計・軌跡マップ</li>
-                <li><span className="dk">—</span> チャレンジ目標</li>
-                <li><span className="dk">—</span> エスカレーション</li>
-                <li><span className="dk">—</span> クーリング期間・目標ロック</li>
-              </ul>
-            </div>
-
-            <div className="plan pro fi d2">
-              <div className="plan-label">PRO</div>
-              <div className="plan-price"><span>¥</span>480<span style={{ fontSize: 16, opacity: 0.6 }}>/月</span></div>
-              <div className="plan-period">年額 ¥4,800（2ヶ月分お得）・いつでも解約可</div>
-              <ul className="plan-list">
-                <li><span className="ck">✓</span> FREEの全機能</li>
-                <li><span className="ck">✓</span> チャレンジ目標（期間累積達成）</li>
-                <li><span className="ck">✓</span> エスカレーション（連続失敗で罰金増加）</li>
-                <li><span className="ck">✓</span> クーリング期間（目標変更を禁止）</li>
-                <li><span className="ck">✓</span> 目標ロック（永久に変更・停止不可）</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <div className="wave" style={{ background: "#FFFFFF" }}>
-        <svg viewBox="0 0 1440 60" preserveAspectRatio="none" height={60}>
-          <path d="M0,40 C360,0 720,60 1080,20 C1250,5 1380,45 1440,25 L1440,60 L0,60 Z" fill="#F97316" />
-        </svg>
-      </div>
-
       {/* CTA */}
       <section id="cta" style={{ paddingTop: 0 }}>
-        <img src="/抽象画像/抽象画像3.png" className="abs-bg" style={{ width: 200, top: -30, right: -50, opacity: 0.14 }} alt="" />
+        <img src="/抽象画像/抽象画像3.png" className="abs-bg" style={{ width: 200, top: -30, right: -50, opacity: 0.44 }} alt="" />
         <div style={{ position: "relative", zIndex: 1 }}>
           <div style={{ display: "flex", justifyContent: "center", marginBottom: 24 }}>
-            <img src="/stickman-assets/stickman-02.png" style={{ width: 160, filter: "brightness(0) invert(1)" }} alt="" />
+            <img src="/stickman-assets/stickman-02.png" style={{ width: 160 }} alt="" />
           </div>
           <div className="s-label">GET STARTED</div>
           <h2 className="s-title">さあ、今日から<br />変わろう。</h2>
@@ -389,7 +555,7 @@ export default function LpPage() {
         </div>
       </section>
 
-      <div className="wave" style={{ background: "#F97316" }}>
+      <div className="wave footer-wave" style={{ background: "#FFFFFF" }}>
         <svg viewBox="0 0 1440 60" preserveAspectRatio="none" height={60}>
           <path d="M0,20 C200,60 500,0 800,40 C1050,65 1280,10 1440,35 L1440,60 L0,60 Z" fill="#1C1008" />
         </svg>
@@ -422,6 +588,7 @@ const LP_CSS = `
 
 .lp-root {
   --orange: #F97316;
+  --orange-bright: #FF7A1A;
   --orange-dark: #C85C0A;
   --orange-light: #FFF3E8;
   --orange-mid: #FFD9B0;
@@ -462,31 +629,6 @@ html { scroll-behavior: smooth; }
 }
 .lp-root .lp-mobile-nav { display: flex; }
 .lp-root .lp-pc-nav { display: none; }
-@media (max-width: 899px) {
-  .lp-root .lp-nav {
-    height: 96px;
-    padding: 0 48px;
-    background: rgba(255, 254, 252, 0.96);
-    border-bottom: 1px solid #EDE0CC;
-  }
-  .lp-root .nav-logo {
-    gap: 18px;
-    font-size: 27px;
-    color: #111111;
-  }
-  .lp-root .nav-logo img {
-    width: 34px !important;
-    height: 34px !important;
-  }
-  .lp-root .lp-mobile-nav button {
-    padding: 8px !important;
-  }
-  .lp-root .lp-mobile-nav svg {
-    width: 34px;
-    height: 34px;
-    stroke-width: 2;
-  }
-}
 
 /* SHARED */
 .lp-root section { padding: 80px 24px; position: relative; overflow: hidden; }
@@ -497,6 +639,18 @@ html { scroll-behavior: smooth; }
 .lp-root .rel { position: relative; z-index: 1; }
 .lp-root .wave { line-height: 0; margin-top: -1px; }
 .lp-root .wave svg { display: block; width: 100%; }
+.lp-root .science-wave-top { margin-bottom: -4px; }
+.lp-root .science-wave-bottom,
+.lp-root .footer-wave {
+  margin-top: -4px;
+  margin-bottom: -4px;
+}
+.lp-root .science-wave-top svg,
+.lp-root .science-wave-bottom svg,
+.lp-root .footer-wave svg {
+  height: 64px;
+  transform: translateY(1px);
+}
 
 /* FADE */
 .lp-root .fi { opacity: 0; transform: translateY(20px); transition: opacity 0.5s ease, transform 0.5s ease; }
@@ -512,39 +666,69 @@ html { scroll-behavior: smooth; }
   background: var(--bg);
   overflow: hidden;
 }
-.lp-root .hero-inner {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-.lp-root .hero-content {
-  position: relative;
-  z-index: 2;
-  flex: 1;
-  min-height: 410px;
-}
-.lp-root .hero-visual {
-  position: absolute;
-  top: -44px;
-  right: -34px;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-}
-.lp-root .hero-cta {
-  position: relative;
-  z-index: 2;
-  display: block;
-  text-align: center;
-}
+.lp-root .hero-inner { display: flex; flex-direction: column; gap: 0; }
+.lp-root .hero-content { flex: 1; }
+.lp-root .hero-visual { display: none; }
+.lp-root .hero-cta { display: block; }
 @media (min-width: 900px) {
+  .lp-root .lp-nav {
+    position: relative;
+    top: auto;
+    left: auto;
+    right: auto;
+    height: 88px;
+    padding: 0 max(36px, calc((100% - 1160px) / 2));
+    background: rgba(255,255,255,0.94);
+  }
+  .lp-root .nav-logo {
+    gap: 12px;
+    font-size: 24px;
+  }
+  .lp-root .nav-logo img {
+    width: 34px !important;
+    height: 34px !important;
+  }
   .lp-root .lp-mobile-nav { display: none; }
-  .lp-root .lp-pc-nav { display: flex; align-items: center; gap: 24px; }
-  .lp-root .lp-pc-nav a { font-size: 14px; font-weight: 600; color: var(--text-sub); text-decoration: none; }
+  .lp-root .lp-pc-nav { display: flex; align-items: center; gap: 34px; }
+  .lp-root .lp-pc-nav a {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--text-sub);
+    text-decoration: none;
+    white-space: nowrap;
+  }
   .lp-root .lp-pc-nav a:hover { color: var(--dark); }
+  .lp-root .lp-pc-nav .btn-nav {
+    color: white;
+    padding: 13px 28px;
+    font-size: 16px;
+    font-weight: 900;
+  }
+  .lp-root .nav-socials {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .lp-root .nav-social-icon {
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--dark);
+    flex-shrink: 0;
+    transition: color 0.2s ease, transform 0.2s ease;
+  }
+  .lp-root .nav-social-icon:hover {
+    color: var(--orange);
+    transform: translateY(-1px);
+  }
+  .lp-root .nav-social-icon svg {
+    display: block;
+    width: 24px;
+    height: 24px;
+    fill: currentColor;
+  }
 }
 
 @media (min-width: 900px) {
@@ -557,39 +741,31 @@ html { scroll-behavior: smooth; }
   /* HERO — 2カラム（中央揃え） */
   .lp-root #hero { padding-top: 120px; padding-bottom: 80px; }
   .lp-root .hero-inner {
-    position: relative;
     display: grid;
     grid-template-columns: 1fr 320px;
     grid-template-rows: auto auto;
     gap: 0 64px;
     max-width: 960px; margin: 0 auto; width: 100%;
   }
-  .lp-root .hero-content { grid-column: 1; grid-row: 1; min-height: 0; }
+  .lp-root .hero-content { grid-column: 1; grid-row: 1; }
   .lp-root .hero-run-img { max-width: 400px; }
   .lp-root .hero-sub br { display: none; }
   .lp-root .hero-stickman-inline { display: none; }
   .lp-root .hero-visual {
-    position: static;
-    z-index: auto;
     display: flex;
     grid-column: 2;
     grid-row: 1 / 3;
     align-items: center;
     justify-content: center;
-    pointer-events: auto;
   }
   .lp-root .hero-visual-img { width: 100%; max-width: 175px; object-fit: contain; }
-  .lp-root .hero-cta { grid-column: 1 / -1; grid-row: 2; padding-top: 32px; text-align: center; }
+  .lp-root .hero-cta { grid-column: 1 / -1; grid-row: 2; padding-top: 32px; }
+  .lp-root .btn-primary { width: 100%; display: flex; }
   .lp-root .btn-login { text-align: center; }
 
   /* FEATURES — 横3列 */
   .lp-root .feat-grid { flex-direction: row; gap: 24px; }
   .lp-root .feat-card { flex: 1; }
-
-  /* PRICING — 横2列 */
-  .lp-root .plan-cards { flex-direction: row; align-items: stretch; gap: 20px; }
-  .lp-root .plan { flex: 1; }
-  .lp-root .plan.pro { transform: scale(1.02); }
 
   /* CTA */
   .lp-root .btn-cta { width: auto; padding: 17px 56px; }
@@ -617,136 +793,73 @@ html { scroll-behavior: smooth; }
 }
 .lp-root .hero-h1 .hi { color: var(--orange); }
 .lp-root .hero-sub { font-size: 16px; color: var(--text-sub); line-height: 1.8; margin-bottom: 40px; }
+.lp-root .hero-bg-low { display: none; }
 .lp-root .hero-before-after { display: none; }
 @media (max-width: 899px) {
   .lp-root #hero {
-    min-height: calc(100svh - 96px);
-    padding: 142px 48px 96px;
-    background: #FFFDFC;
+    padding: 96px 24px 56px;
+    background: var(--bg);
   }
-  .lp-root .hero-bg img {
-    width: 430px !important;
-    top: 0 !important;
-    right: -138px !important;
-    opacity: 0.22 !important;
+  .lp-root .hero-bg > img:first-child {
+    width: 280px !important;
+    top: -40px !important;
+    right: -50px !important;
+    opacity: 0.4 !important;
   }
-  .lp-root .hero-bg::before,
-  .lp-root .hero-bg::after {
-    content: "";
+  .lp-root .hero-bg-low {
+    display: block;
     position: absolute;
-    pointer-events: none;
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
-  }
-  .lp-root .hero-bg::before {
-    width: 300px;
-    height: 250px;
-    left: -90px;
-    bottom: 250px;
-    opacity: 0.16;
-    background-image: url("/抽象画像/抽象画像5.png");
-  }
-  .lp-root .hero-bg::after {
-    width: 260px;
-    height: 220px;
-    right: -98px;
-    bottom: -6px;
-    opacity: 0.16;
-    background-image: url("/抽象画像/抽象画像3.png");
-  }
-  .lp-root .hero-inner {
-    min-height: calc(100svh - 334px);
-    justify-content: flex-start;
-  }
-  .lp-root .hero-content {
-    min-height: 518px;
-    flex: 0 0 auto;
-  }
-  .lp-root .hero-visual {
-    display: none;
-  }
-  .lp-root .hero-tag {
-    padding: 9px 31px;
-    margin-bottom: 44px;
-    border-width: 2px;
-    border-color: rgba(249, 115, 22, 0.28);
-    background: rgba(255, 250, 244, 0.9);
-    color: #B85D1D;
-    font-size: 18px;
-    font-weight: 900;
-    letter-spacing: 0.02em;
+    width: 180px;
+    bottom: 40px;
+    left: -20px;
+    opacity: 0.35;
   }
   .lp-root .hero-run-img {
-    width: min(100%, 278px) !important;
-    max-width: none !important;
-    margin-bottom: 30px !important;
-    transform: translateX(-2px);
+    max-width: 280px !important;
+  }
+  .lp-root .hero-sub-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 32px;
   }
   .lp-root .hero-sub {
-    width: 236px;
-    color: rgba(80, 57, 35, 0.9);
-    font-size: 23px;
-    font-weight: 500;
-    line-height: 1.78;
-    letter-spacing: 0;
-    margin-bottom: 34px;
+    flex: 1;
+    margin-bottom: 0;
   }
   .lp-root .hero-before-after {
     display: flex;
     align-items: center;
-    gap: 16px;
-    width: fit-content;
-    position: absolute;
-    right: 4px;
-    top: 440px;
-    padding: 0;
-    color: #F47A2C;
+    gap: 4px;
+    flex-shrink: 0;
   }
   .lp-root .hero-before-after img {
-    width: 76px;
-    height: 76px;
+    width: 66px;
+    height: auto;
     object-fit: contain;
   }
   .lp-root .hero-before-after-arrow {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 40px;
-    border: 2px solid rgba(249, 115, 22, 0.28);
+    width: 22px;
+    height: 22px;
+    border: 2px solid #FFD9B0;
     border-radius: 50%;
-    background: rgba(255, 253, 250, 0.86);
-    color: #F47A2C;
+    color: #F97316;
     flex-shrink: 0;
-  }
-  .lp-root .hero-cta {
-    margin-top: 0;
   }
   .lp-root .hero-cta .btn-primary {
     width: 100%;
-    min-height: 88px;
-    padding-left: 24px;
-    padding-right: 24px;
-    border-radius: 999px;
-    font-size: 25px;
-    box-shadow: 0 18px 35px rgba(249, 115, 22, 0.18);
-  }
-  .lp-root .btn-login {
-    margin-top: 28px;
-    color: rgba(107, 82, 54, 0.58);
-    font-size: 20px;
-    letter-spacing: 0.02em;
   }
 }
 .lp-root .btn-primary {
-  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
   background: var(--orange); color: white;
-  padding: 12px 26px; border-radius: 100px;
-  font-size: 14px; font-weight: 800; text-decoration: none;
-  box-shadow: 0 6px 18px rgba(249,115,22,0.32);
-  width: auto;
-  align-self: center;
+  padding: 17px 32px; border-radius: 100px;
+  font-size: 17px; font-weight: 900; text-decoration: none;
+  box-shadow: 0 8px 28px rgba(249,115,22,0.38);
+  width: 100%;
 }
 .lp-root .btn-login { display: block; text-align: center; margin-top: 14px; font-size: 13px; color: var(--text-light); text-decoration: none; }
 
@@ -776,6 +889,43 @@ html { scroll-behavior: smooth; }
 
 /* FEATURES */
 .lp-root #features { background: var(--bg); }
+.lp-root .feature-steps { display: flex; flex-direction: column; gap: 0; margin-top: 48px; }
+.lp-root .feature-step {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  align-items: center;
+  padding: 40px 0;
+  border-bottom: 1.5px solid var(--border);
+}
+.lp-root .feature-step:last-child { border-bottom: none; }
+.lp-root .feature-step.reverse { direction: rtl; }
+.lp-root .feature-step.reverse > * { direction: ltr; }
+.lp-root .feature-step-img {
+  width: 100%;
+  max-width: 160px;
+  margin: 0 auto;
+  display: block;
+}
+.lp-root .feature-step-text { padding: 0 8px; }
+.lp-root .feature-step-num {
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 3px;
+  color: var(--orange);
+  margin-bottom: 10px;
+}
+.lp-root .feature-step-title {
+  font-size: 20px;
+  font-weight: 900;
+  margin-bottom: 8px;
+  line-height: 1.3;
+}
+.lp-root .feature-step-desc {
+  font-size: 13px;
+  color: var(--text-sub);
+  line-height: 1.8;
+}
 .lp-root .feat-grid { display: flex; flex-direction: column; gap: 20px; margin-top: 48px; }
 .lp-root .feat-card {
   background: var(--white);
@@ -787,36 +937,6 @@ html { scroll-behavior: smooth; }
 .lp-root .feat-icon img { width: 100%; height: 100%; object-fit: contain; }
 .lp-root .feat-catch { font-size: 18px; font-weight: 900; margin-bottom: 8px; line-height: 1.4; }
 .lp-root .feat-desc { font-size: 14px; color: var(--text-sub); line-height: 1.8; }
-
-/* PRICING */
-.lp-root #pricing { background: #FFFFFF; }
-.lp-root .pricing-intro {
-  display: flex; align-items: flex-start; gap: 10px;
-  background: var(--orange-light); border: 1.5px solid var(--orange-mid);
-  border-radius: 14px; padding: 14px 16px; margin: 20px 0 32px;
-}
-.lp-root .pricing-intro p { font-size: 13px; font-weight: 700; color: var(--orange-dark); line-height: 1.6; }
-.lp-root .plan-cards { display: flex; flex-direction: column; gap: 16px; }
-.lp-root .plan { border-radius: 22px; padding: 26px 22px; }
-.lp-root .plan.free { background: #FFFFFF; box-shadow: 0 16px 36px -12px rgba(124, 92, 60, 0.16), 0 4px 12px rgba(124, 92, 60, 0.05); }
-.lp-root .plan.pro { background: var(--dark); color: white; }
-.lp-root .plan-label {
-  font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
-  padding: 4px 12px; border-radius: 100px; display: inline-block; margin-bottom: 16px;
-}
-.lp-root .plan.free .plan-label { background: var(--tan-light); color: var(--tan); }
-.lp-root .plan.pro .plan-label { background: var(--orange); color: white; }
-.lp-root .plan-price { font-size: 48px; font-weight: 900; letter-spacing: -2px; line-height: 1; margin-bottom: 4px; }
-.lp-root .plan-price span { font-size: 18px; }
-.lp-root .plan-period { font-size: 13px; margin-bottom: 22px; }
-.lp-root .plan.free .plan-period { color: var(--text-sub); }
-.lp-root .plan.pro .plan-period { color: rgba(255,255,255,0.5); }
-.lp-root .plan-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
-.lp-root .plan-list li { font-size: 14px; display: flex; gap: 10px; align-items: flex-start; line-height: 1.5; }
-.lp-root .plan.free .plan-list li { color: var(--text-sub); }
-.lp-root .plan.pro .plan-list li { color: rgba(255,255,255,0.75); }
-.lp-root .ck { color: var(--orange); font-weight: 900; flex-shrink: 0; }
-.lp-root .dk { color: var(--text-light); flex-shrink: 0; }
 
 /* FAQ */
 .lp-root #faq { background: #FFFFFF; }
@@ -851,18 +971,18 @@ html { scroll-behavior: smooth; }
 .lp-root .faq-a p { flex: 1; margin: 0; padding-top: 4px; }
 
 /* CTA */
-.lp-root #cta { background: var(--orange); color: white; text-align: center; padding: 80px 24px; }
-.lp-root #cta .s-label { color: rgba(255,255,255,0.7); }
-.lp-root #cta .s-title { color: white; }
-.lp-root .cta-sub { font-size: 16px; opacity: 0.85; line-height: 1.75; margin-bottom: 36px; }
+.lp-root #cta { background: #FFFFFF; color: var(--dark); text-align: center; padding: 80px 24px; }
+.lp-root #cta .s-label { color: var(--orange); }
+.lp-root #cta .s-title { color: var(--dark); }
+.lp-root .cta-sub { font-size: 16px; color: var(--text-sub); line-height: 1.75; margin-bottom: 36px; }
 .lp-root .btn-cta {
   display: inline-flex; align-items: center; justify-content: center;
-  background: white; color: var(--orange);
+  background: var(--orange); color: white;
   padding: 13px 28px; border-radius: 100px;
   font-size: 15px; font-weight: 800; text-decoration: none; width: auto;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.14);
+  box-shadow: 0 8px 24px rgba(249,115,22,0.22);
 }
-.lp-root .cta-fine { font-size: 12px; opacity: 0.6; margin-top: 14px; }
+.lp-root .cta-fine { font-size: 12px; color: var(--text-light); margin-top: 14px; }
 
 /* FOOTER */
 .lp-root .lp-footer { background: var(--dark); padding: 36px 24px; display: flex; flex-direction: column; gap: 18px; }
@@ -1012,6 +1132,64 @@ html { scroll-behavior: smooth; }
 
 /* HOW STEP layout (vertical, phone-first, mezamee-style) */
 .lp-root #how { padding-top: 96px; padding-bottom: 96px; }
+.lp-root .how-text-panel {
+  width: 100%;
+  max-width: 380px;
+  min-height: 178px;
+  margin: 28px auto 28px;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.40s ease, transform 0.14s ease;
+}
+.lp-root .how-text-panel.visible {
+  opacity: 1;
+  transform: none;
+}
+.lp-root .how-slider {
+  overflow: hidden;
+  cursor: grab;
+  touch-action: pan-y;
+  user-select: none;
+}
+.lp-root .how-slider:active { cursor: grabbing; }
+.lp-root .how-track {
+  display: flex;
+  will-change: transform;
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.lp-root .how-track.dragging {
+  transition: none;
+}
+.lp-root .how-slide {
+  flex: 0 0 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+}
+.lp-root .how-slide-dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 24px;
+}
+.lp-root .how-slide-dots button {
+  width: 8px;
+  height: 8px;
+  border: 0;
+  border-radius: 50%;
+  background: #E3DAC9;
+  cursor: pointer;
+  padding: 0;
+  transition: width 0.2s ease, background-color 0.2s ease;
+}
+.lp-root .how-slide-dots button.active {
+  width: 22px;
+  border-radius: 999px;
+  background: var(--orange);
+}
 .lp-root .how-dots {
   display: flex; justify-content: center; gap: 6px;
   margin: 4px 0 28px;
@@ -1029,13 +1207,13 @@ html { scroll-behavior: smooth; }
 .lp-root .how-step-num {
   display: flex; align-items: center; justify-content: center;
   gap: 10px; margin-bottom: 14px;
-  font-size: 16px; font-weight: 800; color: var(--dark);
+  font-size: 16px; font-weight: 800; color: var(--orange-bright);
   letter-spacing: 0;
 }
 .lp-root .how-step-num-badge {
   display: inline-flex; align-items: center; justify-content: center;
   width: 28px; height: 28px; border-radius: 50%;
-  background: var(--orange); color: white;
+  background: var(--orange-bright); color: white;
   font-size: 14px; font-weight: 900; flex-shrink: 0;
 }
 .lp-root .how-step-title {
@@ -1047,8 +1225,27 @@ html { scroll-behavior: smooth; }
   line-height: 1.85; text-align: center; max-width: 360px;
   margin: 0 auto;
 }
+.lp-root .how-desktop-list { display: none; }
 @media (min-width: 900px) {
   .lp-root .phone-mock { max-width: 220px; }
+  .lp-root .how-slider {
+    max-width: 760px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .lp-root .how-slide {
+    flex-direction: row;
+    justify-content: center;
+    gap: 64px;
+  }
+  .lp-root .how-slide .how-step-text {
+    flex: 1;
+    margin-bottom: 0;
+  }
+  .lp-root .how-slide .how-step-visual {
+    flex-shrink: 0;
+    margin-bottom: 0;
+  }
 }
 
 /* TARGET */
@@ -1056,6 +1253,7 @@ html { scroll-behavior: smooth; }
 .lp-root #target .s-title { font-family: var(--font-display, sans-serif); font-style: italic; letter-spacing: 0.01em; }
 .lp-root .target-body { font-size: 16px; color: var(--text-sub); line-height: 1.95; font-weight: 500; }
 .lp-root .target-conclusion { font-size: 19px; font-weight: 900; line-height: 1.7; margin-top: 36px; color: var(--dark); }
+.lp-root .target-phone-col { display: none; }
 @media (min-width: 700px) {
   .lp-root .target-body { font-size: 17px; }
   .lp-root .target-conclusion { font-size: 22px; }
@@ -1063,23 +1261,287 @@ html { scroll-behavior: smooth; }
 
 /* DESKTOP LAYOUT OVERRIDES (must come after default rules to win cascade) */
 @media (min-width: 900px) {
-  /* FEATURES — PCで3カラム横並び */
-  .lp-root .feat-grid { flex-direction: row; gap: 24px; align-items: stretch; }
-  .lp-root .feat-card { flex: 1; }
-
-  /* HOW IT WORKS — PCでスマホと説明を横並び（交互配置） */
-  .lp-root .how-step {
-    flex-direction: row;
+  /* HERO — PCもコピー主役の中央構成 */
+  .lp-root #hero {
+    padding-top: 70px;
+    padding-bottom: 88px;
+  }
+  .lp-root #hero .hero-bg-low {
+    display: block;
+    position: absolute;
+    width: 220px;
+    bottom: 40px;
+    left: 4%;
+    opacity: 0.8;
+  }
+  .lp-root .hero-inner {
+    display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 64px;
-    max-width: 880px;
+    max-width: 760px;
+    margin: 0 auto;
+    text-align: center;
+  }
+  .lp-root .hero-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+  }
+  .lp-root .hero-run-img {
+    max-width: 460px !important;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 22px !important;
+  }
+  .lp-root .hero-sub br {
+    display: inline;
+  }
+  .lp-root .hero-sub-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 28px;
+    margin-bottom: 34px;
+  }
+  .lp-root .hero-sub {
+    margin-bottom: 0;
+    text-align: left;
+  }
+  .lp-root .hero-before-after {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .lp-root .hero-before-after img {
+    width: 78px;
+    height: auto;
+    object-fit: contain;
+  }
+  .lp-root .hero-before-after-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: 2px solid #FFD9B0;
+    border-radius: 50%;
+    color: var(--orange);
+    flex-shrink: 0;
+  }
+  .lp-root .hero-visual {
+    display: none;
+  }
+  .lp-root .hero-cta {
+    width: 100%;
+    max-width: 430px;
+    padding-top: 0;
+  }
+  .lp-root .hero-cta .btn-primary {
+    width: 100%;
+  }
+
+  /* FOR YOU — PCだけ左モック、右本文の2カラム */
+  .lp-root .target-layout {
+    display: grid;
+    grid-template-columns: minmax(240px, 320px) minmax(0, 1fr);
+    align-items: center;
+    gap: 72px;
+    max-width: 920px !important;
+    text-align: left !important;
+  }
+  .lp-root .target-phone-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .lp-root .target-mock-label-viewport {
+    width: 100%;
+    max-width: 300px;
+    margin-bottom: 18px;
+  }
+  .lp-root .target-mock-step-num {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: var(--orange-bright);
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: 0;
+    white-space: nowrap;
+  }
+  .lp-root .target-phone {
+    max-width: 230px;
+  }
+  .lp-root .target-mock-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin-top: 22px;
+  }
+  .lp-root .target-mock-controls > button {
+    width: 34px;
+    height: 34px;
+    border: 1.5px solid var(--border);
+    border-radius: 50%;
+    background: white;
+    color: var(--orange-bright);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 8px 18px rgba(124, 92, 60, 0.08);
+  }
+  .lp-root .target-mock-dots {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .lp-root .target-mock-dots button {
+    width: 8px;
+    height: 8px;
+    border: 0;
+    border-radius: 999px;
+    background: #E3DAC9;
+    padding: 0;
+    cursor: pointer;
+    transition: width 0.2s ease, background-color 0.2s ease;
+  }
+  .lp-root .target-mock-dots button.active {
+    width: 22px;
+    background: var(--orange-bright);
+  }
+  .lp-root .target-copy .target-body {
+    max-width: 520px;
+  }
+
+  /* FEATURES — PCで3つを横並びステップ化 */
+  .lp-root .feature-steps {
+    flex-direction: row;
+    align-items: stretch;
+    gap: 42px;
+    max-width: 1040px;
+    margin: 56px auto 0;
+  }
+  .lp-root .feature-step,
+  .lp-root .feature-step.reverse {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 0;
+    border-bottom: none;
+    direction: ltr;
+    text-align: center;
+  }
+  .lp-root .feature-step.reverse > * {
+    direction: ltr;
+  }
+  .lp-root .feature-step-img {
+    max-width: 150px;
+    margin-bottom: 24px;
+  }
+  .lp-root .feature-step-text {
+    padding: 0;
+  }
+  .lp-root .feature-step-title {
+    font-size: 22px;
+  }
+  .lp-root .feature-step-desc {
+    font-size: 14px;
+    max-width: 250px;
     margin: 0 auto;
   }
-  .lp-root .how-step.d2 { flex-direction: row-reverse; }
-  .lp-root .how-step-visual { margin-bottom: 0; flex-shrink: 0; }
-  .lp-root .how-step-text { flex: 1; }
-  .lp-root .how-step-num { justify-content: flex-start; }
-  .lp-root .how-step-title { text-align: left; font-size: 26px; line-height: 1.3; }
-  .lp-root .how-step-desc { text-align: left; margin-left: 0; max-width: none; }
+
+  /* HOW IT WORKS — PCでスマホと説明を横並び（交互配置） */
+  .lp-root .how-text-panel,
+  .lp-root .how-slider,
+  .lp-root .how-slide-dots {
+    display: none;
+  }
+  .lp-root .how-desktop-list {
+    display: flex;
+    flex-direction: column;
+    gap: 78px;
+    max-width: 980px;
+    margin: 58px auto 0;
+  }
+  .lp-root .how-desktop-step {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 72px;
+  }
+  .lp-root .how-desktop-step.reverse {
+    flex-direction: row-reverse;
+  }
+  .lp-root .how-desktop-step .how-step-visual {
+    margin-bottom: 0;
+    flex: 0 0 340px;
+  }
+  .lp-root .how-desktop-step .how-phone {
+    max-width: 300px;
+  }
+  .lp-root .how-desktop-step .how-step-text {
+    flex: 1;
+  }
+  .lp-root .how-desktop-step .how-step-num {
+    justify-content: flex-start;
+  }
+  .lp-root .how-desktop-step .how-step-title {
+    text-align: left;
+    font-size: 26px;
+    line-height: 1.3;
+  }
+  .lp-root .how-desktop-step .how-step-desc {
+    text-align: left;
+    margin-left: 0;
+    max-width: 420px;
+  }
+
+  /* FAQ — PCで2カラム */
+  .lp-root #faq {
+    padding-top: 110px;
+    padding-bottom: 120px;
+  }
+  .lp-root #faq .s-label,
+  .lp-root #faq .s-title {
+    max-width: 960px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .lp-root #faq .s-title {
+    margin-bottom: 48px;
+  }
+  .lp-root .faq-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 36px;
+    max-width: 960px;
+  }
+  .lp-root .faq-item {
+    border-radius: 0;
+    box-shadow: none;
+    border-bottom: 1.5px solid var(--border);
+  }
+  .lp-root .faq-q {
+    min-height: 78px;
+    padding: 20px 8px;
+    font-size: 15px;
+    font-weight: 800;
+  }
+  .lp-root .faq-a {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .lp-root .faq-item.open .faq-a {
+    padding-bottom: 22px;
+  }
 }
 `;
