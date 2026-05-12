@@ -72,10 +72,7 @@ export default function LpPage() {
       {/* HERO */}
       <section id="hero">
         <div className="hero-bg">
-          <img src="/抽象画像/抽象画像4.png" style={{ position: "absolute", width: 320, top: -60, right: -60, opacity: 0.55 }} alt="" />
-          <img src="/抽象画像/抽象画像1.png" style={{ position: "absolute", width: 220, bottom: -40, left: -60, opacity: 0.45 }} alt="" />
-          <img src="/抽象画像/抽象画像2.png" style={{ position: "absolute", width: 140, top: 240, left: 20, opacity: 0.32 }} alt="" />
-          <img src="/抽象画像/抽象画像5.png" style={{ position: "absolute", width: 110, top: 60, right: 30, opacity: 0.25 }} alt="" />
+          <img src="/抽象画像/抽象画像4.png" style={{ position: "absolute", width: 280, top: -40, right: -50, opacity: 0.4 }} alt="" />
         </div>
 
         <div style={{ position: "relative", zIndex: 1 }} className="hero-inner">
@@ -116,9 +113,7 @@ export default function LpPage() {
 
       {/* TARGET */}
       <section id="target" style={{ background: "#FFFFFF" }}>
-        <img src="/抽象画像/抽象画像3.png" className="abs-bg" style={{ width: 240, top: 40, left: -80, opacity: 0.28 }} alt="" />
-        <img src="/抽象画像/抽象画像5.png" className="abs-bg" style={{ width: 180, bottom: 30, right: -60, opacity: 0.32 }} alt="" />
-        <img src="/抽象画像/抽象画像1.png" className="abs-bg" style={{ width: 120, top: 80, right: 60, opacity: 0.18 }} alt="" />
+        <img src="/抽象画像/抽象画像5.png" className="abs-bg" style={{ width: 200, bottom: 20, right: -70, opacity: 0.25 }} alt="" />
         <div className="rel" style={{ maxWidth: 640, margin: "0 auto", textAlign: "center" }}>
           <div className="s-label fi">FOR YOU</div>
           <h2 className="s-title fi" style={{ marginBottom: 28 }}>こんなあなたへ</h2>
@@ -145,9 +140,7 @@ export default function LpPage() {
 
       {/* FEATURES */}
       <section id="features" style={{ background: "#FEFCFA" }}>
-        <img src="/抽象画像/抽象画像6.png" className="abs-bg" style={{ width: 260, top: 0, right: -90, opacity: 0.32 }} alt="" />
-        <img src="/抽象画像/抽象画像4.png" className="abs-bg" style={{ width: 200, bottom: 40, left: -80, opacity: 0.28 }} alt="" />
-        <img src="/抽象画像/抽象画像2.png" className="abs-bg" style={{ width: 130, top: 200, left: 40, opacity: 0.2 }} alt="" />
+        <img src="/抽象画像/抽象画像6.png" className="abs-bg" style={{ width: 220, top: 0, right: -70, opacity: 0.25 }} alt="" />
         <div className="rel">
           <div className="s-label fi">FEATURES</div>
           <h2 className="s-title fi">3つの特徴</h2>
@@ -194,9 +187,7 @@ export default function LpPage() {
 
       {/* HOW IT WORKS */}
       <section id="how" style={{ background: "#FFFFFF" }}>
-        <img src="/抽象画像/抽象画像2.png" className="abs-bg" style={{ width: 280, top: -20, right: -80, opacity: 0.35 }} alt="" />
-        <img src="/抽象画像/抽象画像3.png" className="abs-bg" style={{ width: 200, top: 360, left: -70, opacity: 0.28 }} alt="" />
-        <img src="/抽象画像/抽象画像6.png" className="abs-bg" style={{ width: 160, bottom: 80, right: -40, opacity: 0.22 }} alt="" />
+        <img src="/抽象画像/抽象画像3.png" className="abs-bg" style={{ width: 220, top: 280, left: -80, opacity: 0.22 }} alt="" />
         <div className="rel">
           <div className="s-label fi">HOW IT WORKS</div>
           <h2 className="s-title fi">使い方</h2>
@@ -297,8 +288,7 @@ export default function LpPage() {
 
       {/* FAQ */}
       <section id="faq" style={{ background: "#FFFFFF" }}>
-        <img src="/抽象画像/抽象画像1.png" className="abs-bg" style={{ width: 220, top: 20, left: -70, opacity: 0.25 }} alt="" />
-        <img src="/抽象画像/抽象画像4.png" className="abs-bg" style={{ width: 180, bottom: 60, right: -60, opacity: 0.22 }} alt="" />
+        <img src="/抽象画像/抽象画像1.png" className="abs-bg" style={{ width: 180, top: 40, left: -60, opacity: 0.18 }} alt="" />
         <div className="s-label fi">FAQ</div>
         <h2 className="s-title fi">よくある質問</h2>
 
@@ -325,9 +315,7 @@ export default function LpPage() {
 
       {/* PRICING */}
       <section id="pricing" style={{ background: "#FFFFFF" }}>
-        <img src="/抽象画像/抽象画像3.png" className="abs-bg" style={{ width: 240, top: -40, right: -70, opacity: 0.3 }} alt="" />
-        <img src="/抽象画像/抽象画像6.png" className="abs-bg" style={{ width: 200, bottom: 80, left: -80, opacity: 0.26 }} alt="" />
-        <img src="/抽象画像/抽象画像2.png" className="abs-bg" style={{ width: 120, top: 280, right: 30, opacity: 0.2 }} alt="" />
+        <img src="/抽象画像/抽象画像3.png" className="abs-bg" style={{ width: 200, top: -30, right: -60, opacity: 0.22 }} alt="" />
         <div className="rel">
           <div className="s-label fi">PRICING</div>
           <h2 className="s-title fi">料金プラン</h2>
@@ -381,9 +369,7 @@ export default function LpPage() {
 
       {/* CTA */}
       <section id="cta" style={{ paddingTop: 0 }}>
-        <img src="/抽象画像/抽象画像3.png" className="abs-bg" style={{ width: 240, top: -40, right: -60, opacity: 0.18 }} alt="" />
-        <img src="/抽象画像/抽象画像5.png" className="abs-bg" style={{ width: 180, bottom: 40, left: -70, opacity: 0.16 }} alt="" />
-        <img src="/抽象画像/抽象画像1.png" className="abs-bg" style={{ width: 130, top: 80, left: 30, opacity: 0.12 }} alt="" />
+        <img src="/抽象画像/抽象画像3.png" className="abs-bg" style={{ width: 200, top: -30, right: -50, opacity: 0.14 }} alt="" />
         <div style={{ position: "relative", zIndex: 1 }}>
           <div style={{ display: "flex", justifyContent: "center", marginBottom: 24 }}>
             <img src="/stickman-assets/stickman-02.png" style={{ width: 160, filter: "brightness(0) invert(1)" }} alt="" />
@@ -497,7 +483,7 @@ html { scroll-behavior: smooth; }
 .lp-root .hero-inner { display: flex; flex-direction: column; gap: 0; }
 .lp-root .hero-content { flex: 1; }
 .lp-root .hero-visual { display: flex; align-items: center; justify-content: center; }
-.lp-root .hero-cta { display: block; }
+.lp-root .hero-cta { display: block; text-align: center; }
 @media (min-width: 700px) {
   .lp-root .lp-mobile-nav { display: none; }
   .lp-root .lp-pc-nav { display: flex; align-items: center; gap: 24px; }
@@ -527,8 +513,7 @@ html { scroll-behavior: smooth; }
   .lp-root .hero-stickman-inline { display: none; }
   .lp-root .hero-visual { display: flex; grid-column: 2; grid-row: 1 / 3; align-items: center; justify-content: center; }
   .lp-root .hero-visual-img { width: 100%; max-width: 175px; object-fit: contain; }
-  .lp-root .hero-cta { grid-column: 1 / -1; grid-row: 2; padding-top: 32px; }
-  .lp-root .btn-primary { width: 100%; display: flex; }
+  .lp-root .hero-cta { grid-column: 1 / -1; grid-row: 2; padding-top: 32px; text-align: center; }
   .lp-root .btn-login { text-align: center; }
 
   /* FEATURES — 横3列 */
@@ -567,12 +552,13 @@ html { scroll-behavior: smooth; }
 .lp-root .hero-h1 .hi { color: var(--orange); }
 .lp-root .hero-sub { font-size: 16px; color: var(--text-sub); line-height: 1.8; margin-bottom: 40px; }
 .lp-root .btn-primary {
-  display: flex; align-items: center; justify-content: center; gap: 8px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
   background: var(--orange); color: white;
-  padding: 17px 32px; border-radius: 100px;
-  font-size: 17px; font-weight: 900; text-decoration: none;
-  box-shadow: 0 8px 28px rgba(249,115,22,0.38);
-  width: 100%;
+  padding: 12px 26px; border-radius: 100px;
+  font-size: 14px; font-weight: 800; text-decoration: none;
+  box-shadow: 0 6px 18px rgba(249,115,22,0.32);
+  width: auto;
+  align-self: center;
 }
 .lp-root .btn-login { display: block; text-align: center; margin-top: 14px; font-size: 13px; color: var(--text-light); text-decoration: none; }
 
@@ -604,9 +590,10 @@ html { scroll-behavior: smooth; }
 .lp-root #features { background: var(--bg); }
 .lp-root .feat-grid { display: flex; flex-direction: column; gap: 20px; margin-top: 48px; }
 .lp-root .feat-card {
-  background: var(--white); border: 1.5px solid var(--border);
+  background: var(--white);
   border-radius: 24px; padding: 32px 24px;
   display: flex; flex-direction: column; align-items: center; text-align: center;
+  box-shadow: 0 14px 32px -10px rgba(124, 92, 60, 0.14), 0 4px 12px rgba(124, 92, 60, 0.05);
 }
 .lp-root .feat-icon { width: 140px; height: 140px; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; }
 .lp-root .feat-icon img { width: 100%; height: 100%; object-fit: contain; }
@@ -623,7 +610,7 @@ html { scroll-behavior: smooth; }
 .lp-root .pricing-intro p { font-size: 13px; font-weight: 700; color: var(--orange-dark); line-height: 1.6; }
 .lp-root .plan-cards { display: flex; flex-direction: column; gap: 16px; }
 .lp-root .plan { border-radius: 22px; padding: 26px 22px; }
-.lp-root .plan.free { background: var(--bg); border: 1.5px solid var(--border); }
+.lp-root .plan.free { background: #FFFFFF; box-shadow: 0 16px 36px -12px rgba(124, 92, 60, 0.16), 0 4px 12px rgba(124, 92, 60, 0.05); }
 .lp-root .plan.pro { background: var(--dark); color: white; }
 .lp-root .plan-label {
   font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
@@ -683,9 +670,9 @@ html { scroll-behavior: smooth; }
 .lp-root .btn-cta {
   display: inline-flex; align-items: center; justify-content: center;
   background: white; color: var(--orange);
-  padding: 17px 36px; border-radius: 100px;
-  font-size: 17px; font-weight: 900; text-decoration: none; width: 100%;
-  box-shadow: 0 10px 32px rgba(0,0,0,0.15);
+  padding: 13px 28px; border-radius: 100px;
+  font-size: 15px; font-weight: 800; text-decoration: none; width: auto;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.14);
 }
 .lp-root .cta-fine { font-size: 12px; opacity: 0.6; margin-top: 14px; }
 
@@ -700,16 +687,28 @@ html { scroll-behavior: smooth; }
 .lp-root .phone-mock {
   position: relative;
   width: 100%;
-  max-width: 240px;
+  max-width: 200px;
   aspect-ratio: 828 / 1792;
   background: linear-gradient(155deg, #1a1a1f 0%, #0a0a0d 50%, #1a1a1f 100%);
-  border-radius: 42px;
-  padding: 9px;
+  border-radius: 38px;
+  padding: 8px;
   box-shadow:
-    0 30px 60px -20px rgba(20, 18, 25, 0.32),
-    0 14px 28px rgba(20, 18, 25, 0.16),
+    0 26px 50px -18px rgba(20, 18, 25, 0.3),
+    0 12px 24px rgba(20, 18, 25, 0.14),
     inset 0 0 0 1.5px rgba(255, 255, 255, 0.06);
-  margin: 24px auto 0;
+  margin: 0 auto;
+}
+.lp-root .hero-phone {
+  margin-top: 8px;
+  margin-right: -10%;
+  transform: rotate(2.5deg);
+}
+@media (min-width: 900px) {
+  .lp-root .hero-phone {
+    margin-top: 0;
+    margin-right: 0;
+    transform: none;
+  }
 }
 .lp-root .phone-mock-screen {
   position: relative;
@@ -862,7 +861,7 @@ html { scroll-behavior: smooth; }
   margin: 0 auto;
 }
 @media (min-width: 900px) {
-  .lp-root .phone-mock { max-width: 260px; }
+  .lp-root .phone-mock { max-width: 220px; }
 }
 
 /* TARGET */
