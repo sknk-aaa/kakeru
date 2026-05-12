@@ -874,4 +874,26 @@ html { scroll-behavior: smooth; }
   .lp-root .target-body { font-size: 17px; }
   .lp-root .target-conclusion { font-size: 22px; }
 }
+
+/* DESKTOP LAYOUT OVERRIDES (must come after default rules to win cascade) */
+@media (min-width: 900px) {
+  /* FEATURES — PCで3カラム横並び */
+  .lp-root .feat-grid { flex-direction: row; gap: 24px; align-items: stretch; }
+  .lp-root .feat-card { flex: 1; }
+
+  /* HOW IT WORKS — PCでスマホと説明を横並び（交互配置） */
+  .lp-root .how-step {
+    flex-direction: row;
+    align-items: center;
+    gap: 64px;
+    max-width: 880px;
+    margin: 0 auto;
+  }
+  .lp-root .how-step.d2 { flex-direction: row-reverse; }
+  .lp-root .how-step-visual { margin-bottom: 0; flex-shrink: 0; }
+  .lp-root .how-step-text { flex: 1; }
+  .lp-root .how-step-num { justify-content: flex-start; }
+  .lp-root .how-step-title { text-align: left; font-size: 26px; line-height: 1.3; }
+  .lp-root .how-step-desc { text-align: left; margin-left: 0; max-width: none; }
+}
 `;
