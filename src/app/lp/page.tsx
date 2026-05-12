@@ -80,22 +80,21 @@ export default function LpPage() {
           <div className="hero-content">
             <h1 className="hero-tag">ランニング習慣化アプリ</h1>
             <img src="/その他素材/走らなければ-transparent.png" className="hero-run-img" style={{ width: "100%", maxWidth: 280, display: "block", marginBottom: 20 }} alt="走らなければ、課金される。" />
-            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 32 }}>
-              <p className="hero-sub" style={{ marginBottom: 0, flex: 1 }}>
-                自分に甘いあなたのための、<br />本気の習慣化アプリ。
-              </p>
-              <div className="hero-stickman-inline" style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
-                <img src="/stickman-assets/stickman-14.png" style={{ width: 66 }} alt="" />
-                <svg width="22" height="22" viewBox="0 0 36 36" fill="none">
-                  <circle cx="18" cy="18" r="17" stroke="#FFD9B0" strokeWidth="2" />
-                  <path d="M13 18h12M20 13l5 5-5 5" stroke="#F97316" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                <img src="/stickman-assets/stickman-02.png" style={{ width: 66 }} alt="" />
-              </div>
-            </div>
+            <p className="hero-sub">
+              自分に甘いあなたのための、<br />本気の習慣化アプリ。
+            </p>
           </div>
           <div className="hero-visual">
-            <img src="/stickman-assets/stickman-06.png" className="hero-visual-img" alt="" />
+            <div className="hero-slider">
+              <div className="hero-slider-track">
+                <img src="/lp-photos/1.jpg" alt="" />
+                <img src="/lp-photos/2.jpg" alt="" />
+                <img src="/lp-photos/3.jpg" alt="" />
+                <img src="/lp-photos/4.jpg" alt="" />
+                <img src="/lp-photos/5.jpg" alt="" />
+                <img src="/lp-photos/1.jpg" alt="" />
+              </div>
+            </div>
           </div>
           <div className="hero-cta">
             <Link href="/auth" className="btn-primary">今すぐ始める（無料） →</Link>
@@ -107,6 +106,78 @@ export default function LpPage() {
       <div className="wave" style={{ background: "#FEFCFA" }}>
         <svg viewBox="0 0 1440 60" preserveAspectRatio="none" height={60}>
           <path d="M0,20 C240,60 480,0 720,35 C960,60 1200,5 1440,25 L1440,60 L0,60 Z" fill="#FFFFFF" />
+        </svg>
+      </div>
+
+      {/* TARGET */}
+      <section id="target" style={{ background: "#FFFFFF" }}>
+        <div className="rel" style={{ maxWidth: 640, margin: "0 auto", textAlign: "center" }}>
+          <div className="s-label fi">FOR YOU</div>
+          <h2 className="s-title fi" style={{ marginBottom: 28 }}>こんなあなたへ</h2>
+          <p className="target-body fi">
+            ほんとうは走りたいのに<br />
+            ジョギングを習慣にしたいのに<br />
+            思うように続かない。
+          </p>
+          <p className="target-body fi d2" style={{ marginTop: 20 }}>
+            走り始めても、3日で挫折してしまう。<br />
+            せっかく続いても、すぐサボってしまう。
+          </p>
+          <p className="target-conclusion fi d3">
+            『Kakeru』を使えば、<br />もうそんなことはできません。
+          </p>
+        </div>
+      </section>
+
+      <div className="wave" style={{ background: "#FFFFFF" }}>
+        <svg viewBox="0 0 1440 60" preserveAspectRatio="none" height={60}>
+          <path d="M0,30 C300,55 700,5 1000,30 C1200,45 1340,15 1440,30 L1440,60 L0,60 Z" fill="#FEFCFA" />
+        </svg>
+      </div>
+
+      {/* FEATURES */}
+      <section id="features" style={{ background: "#FEFCFA" }}>
+        <div className="rel">
+          <div className="s-label fi">FEATURES</div>
+          <h2 className="s-title fi">3つの特徴</h2>
+
+          <div className="feat-grid">
+            <div className="feat-card fi d1">
+              <div className="feat-icon">
+                <img src="/その他素材/ターゲット.png" alt="目標を設定" />
+              </div>
+              <div>
+                <div className="feat-catch">目標を設定する</div>
+                <div className="feat-desc">距離・時間・罰金額を自分で決める。<br />続けやすい設計。</div>
+              </div>
+            </div>
+
+            <div className="feat-card fi d2">
+              <div className="feat-icon">
+                <img src="/stickman-assets/stickman-05.png" alt="走れば無料" />
+              </div>
+              <div>
+                <div className="feat-catch">走れば無料</div>
+                <div className="feat-desc">目標を達成し続ければ、<br />お金は1円もかからない。</div>
+              </div>
+            </div>
+
+            <div className="feat-card fi d3">
+              <div className="feat-icon">
+                <img src="/その他素材/山-transparent.png" alt="記録で振り返る" />
+              </div>
+              <div>
+                <div className="feat-catch">記録で振り返る</div>
+                <div className="feat-desc">達成率・走行距離・コースが<br />一目で確認できる。</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="wave" style={{ background: "#FEFCFA" }}>
+        <svg viewBox="0 0 1440 60" preserveAspectRatio="none" height={60}>
+          <path d="M0,40 C300,0 720,55 1080,20 C1250,5 1380,45 1440,30 L1440,60 L0,60 Z" fill="#FFFFFF" />
         </svg>
       </div>
 
@@ -214,58 +285,6 @@ export default function LpPage() {
           ))}
         </div>
       </section>
-
-      <div className="wave" style={{ background: "#FFFFFF" }}>
-        <svg viewBox="0 0 1440 60" preserveAspectRatio="none" height={60}>
-          <path d="M0,20 C300,55 700,0 1000,40 C1200,60 1340,10 1440,30 L1440,60 L0,60 Z" fill="#FEFCFA" />
-        </svg>
-      </div>
-
-      {/* FEATURES */}
-      <section id="features" style={{ background: "#FEFCFA" }}>
-        <div className="rel">
-          <div className="s-label fi">FEATURES</div>
-          <h2 className="s-title fi">走り続けるための<br />すべてが揃っている</h2>
-
-          <div className="feat-grid">
-            <div className="feat-card fi d1">
-              <div className="feat-icon">
-                <img src="/その他素材/地図っぽい-transparent.png" alt="GPS計測" />
-              </div>
-              <div>
-                <div className="feat-catch">GPS自動計測</div>
-                <div className="feat-desc">距離・ペース・カロリーをリアルタイムで記録</div>
-              </div>
-            </div>
-
-            <div className="feat-card fi d2">
-              <div className="feat-icon">
-                <img src="/stickman-assets/stickman-17.png" alt="雨天スキップ" />
-              </div>
-              <div>
-                <div className="feat-catch">スキップ機能</div>
-                <div className="feat-desc">月1回・雨天は罰金なしで休める</div>
-              </div>
-            </div>
-
-            <div className="feat-card fi d3">
-              <div className="feat-icon">
-                <img src="/その他素材/山-transparent.png" alt="記録・統計" />
-              </div>
-              <div>
-                <div className="feat-catch">記録・統計</div>
-                <div className="feat-desc">達成率・走行距離・罰金履歴を一目で確認</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <div className="wave" style={{ background: "#FEFCFA" }}>
-        <svg viewBox="0 0 1440 60" preserveAspectRatio="none" height={60}>
-          <path d="M0,25 C360,60 720,0 1080,40 C1250,60 1380,15 1440,30 L1440,60 L0,60 Z" fill="#FFFFFF" />
-        </svg>
-      </div>
 
       {/* PRICING */}
       <section id="pricing" style={{ background: "#FFFFFF" }}>
@@ -436,7 +455,7 @@ html { scroll-behavior: smooth; }
 }
 .lp-root .hero-inner { display: flex; flex-direction: column; gap: 0; }
 .lp-root .hero-content { flex: 1; }
-.lp-root .hero-visual { display: none; }
+.lp-root .hero-visual { display: flex; align-items: center; justify-content: center; }
 .lp-root .hero-cta { display: block; }
 @media (min-width: 700px) {
   .lp-root .lp-mobile-nav { display: none; }
@@ -647,4 +666,49 @@ html { scroll-behavior: smooth; }
 .lp-root .footer-links { display: flex; flex-wrap: wrap; gap: 14px; }
 .lp-root .footer-links a { color: rgba(255,255,255,0.4); text-decoration: none; font-size: 13px; }
 .lp-root .footer-copy { font-size: 12px; color: rgba(255,255,255,0.25); }
+
+/* HERO SLIDER */
+.lp-root .hero-slider {
+  position: relative;
+  width: 100%;
+  max-width: 280px;
+  aspect-ratio: 4 / 5;
+  border-radius: 28px;
+  overflow: hidden;
+  box-shadow: 0 18px 40px rgba(0,0,0,0.12);
+  margin: 24px auto 0;
+}
+.lp-root .hero-slider-track {
+  display: flex;
+  width: 600%;
+  height: 100%;
+  animation: hero-slide 30s infinite;
+}
+.lp-root .hero-slider-track img {
+  width: 16.6667%;
+  height: 100%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+@keyframes hero-slide {
+  0%, 13% { transform: translate3d(0, 0, 0); }
+  17%, 30% { transform: translate3d(-16.6667%, 0, 0); }
+  33%, 47% { transform: translate3d(-33.3333%, 0, 0); }
+  50%, 63% { transform: translate3d(-50%, 0, 0); }
+  67%, 80% { transform: translate3d(-66.6667%, 0, 0); }
+  83%, 100% { transform: translate3d(-83.3333%, 0, 0); }
+}
+@media (min-width: 900px) {
+  .lp-root .hero-slider { margin: 0 auto; max-width: 280px; }
+}
+
+/* TARGET */
+.lp-root #target { background: #FFFFFF; padding: 90px 24px; }
+.lp-root #target .s-title { font-family: var(--font-display, sans-serif); font-style: italic; letter-spacing: 0.01em; }
+.lp-root .target-body { font-size: 16px; color: var(--text-sub); line-height: 1.95; font-weight: 500; }
+.lp-root .target-conclusion { font-size: 19px; font-weight: 900; line-height: 1.7; margin-top: 36px; color: var(--dark); }
+@media (min-width: 700px) {
+  .lp-root .target-body { font-size: 17px; }
+  .lp-root .target-conclusion { font-size: 22px; }
+}
 `;
