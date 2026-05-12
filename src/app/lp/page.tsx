@@ -758,6 +758,31 @@ html { scroll-behavior: smooth; }
   box-shadow: 0 70px 0 0 #1a1a1f;
 }
 
+/* HOW PHONE — light illustration style (overrides premium dark default) */
+.lp-root .how-phone {
+  background: #FFFFFF;
+  padding: 12px;
+  border: 1.5px solid #EDE3D0;
+  box-shadow:
+    0 22px 44px -18px rgba(124, 92, 60, 0.18),
+    0 8px 18px rgba(124, 92, 60, 0.07);
+}
+.lp-root .how-phone .phone-mock-screen {
+  border-radius: 30px;
+  box-shadow: inset 0 0 0 1px #F5EBD8;
+}
+.lp-root .how-phone .phone-mock-notch {
+  background: #DECCAE;
+  width: 26%;
+  height: 5px;
+  top: 22px;
+  border-radius: 100px;
+}
+.lp-root .how-phone::before,
+.lp-root .how-phone::after {
+  display: none;
+}
+
 /* HERO PHONE: scrolling screenshot slider inside */
 .lp-root .phone-slider-track {
   display: flex;
