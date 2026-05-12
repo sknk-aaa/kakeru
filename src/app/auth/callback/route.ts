@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 
+const AUTH_HISTORY_KEY = "kakeru_auth_logged_in";
+
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
@@ -9,14 +11,25 @@ export async function GET(request: Request) {
   const next = searchParams.get("next") ?? "/";
 
   const supabase = await createClient();
+  let authenticated = false;
 
   if (code) {
     // Google OAuth フロー
-    await supabase.auth.exchangeCodeForSession(code);
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    authenticated = !error;
   } else if (tokenHash && type) {
     // メール確認リンクのフロー
-    await supabase.auth.verifyOtp({ token_hash: tokenHash, type: type as "email" });
+    const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: type as "email" });
+    authenticated = !error;
   }
 
-  return NextResponse.redirect(`${origin}${next}`);
+  const response = NextResponse.redirect(`${origin}${next}`);
+  if (authenticated) {
+    response.cookies.set(AUTH_HISTORY_KEY, "1", {
+      maxAge: 60 * 60 * 24 * 365,
+      path: "/",
+      sameSite: "lax",
+    });
+  }
+  return response;
 }

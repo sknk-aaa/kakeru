@@ -2,11 +2,12 @@
 
 export const dynamic = "force-dynamic";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { Mail, Lock, Eye, EyeOff, Plus, X } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 const FAQ_ITEMS = [
   {
@@ -40,8 +41,25 @@ const GoogleIcon = () => (
   </svg>
 );
 
+const AUTH_HISTORY_KEY = "kakeru_auth_logged_in";
+
+function hasAuthHistory() {
+  if (typeof window === "undefined") return false;
+  const hasLocalHistory = window.localStorage.getItem(AUTH_HISTORY_KEY) === "1";
+  const hasCookieHistory = document.cookie
+    .split("; ")
+    .some((cookie) => cookie === `${AUTH_HISTORY_KEY}=1`);
+  return hasLocalHistory || hasCookieHistory;
+}
+
+function rememberAuthHistory() {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(AUTH_HISTORY_KEY, "1");
+  document.cookie = `${AUTH_HISTORY_KEY}=1; max-age=31536000; path=/; samesite=lax`;
+}
+
 export default function AuthPage() {
-  const [mode, setMode] = useState<"login" | "signup" | "reset">("login");
+  const [mode, setMode] = useState<"login" | "signup" | "reset">("signup");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -56,6 +74,13 @@ export default function AuthPage() {
 
   const router = useRouter();
   const supabase = createClient();
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      if (hasAuthHistory()) setMode("login");
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   async function handleGoogleLogin() {
     setLoading(true);
@@ -87,12 +112,22 @@ export default function AuthPage() {
         options: { emailRedirectTo: `${location.origin}/auth/callback` },
       });
       if (error) { setError(error.message); }
-      else if (data.session) { router.push("/"); router.refresh(); return; }
+      else if (data.session) {
+        rememberAuthHistory();
+        router.push("/");
+        router.refresh();
+        return;
+      }
       else { setMessage("確認メールを送りました。受信トレイ（迷惑メールフォルダも）をご確認ください。"); }
     } else {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) { setError("メールアドレスかパスワードが違います"); }
-      else { router.push("/"); router.refresh(); return; }
+      else {
+        rememberAuthHistory();
+        router.push("/");
+        router.refresh();
+        return;
+      }
     }
     setLoading(false);
   }
@@ -104,11 +139,11 @@ export default function AuthPage() {
   }
 
   return (
-    <div style={{ background: "#FFF4EE", minHeight: "100vh", display: "flex", justifyContent: "center" }}>
-      <div style={{ width: "100%", maxWidth: "720px", minHeight: "100vh", overflowX: "hidden", background: "#FFF4EE" }}>
+    <div style={{ background: "#FEFCFA", minHeight: "100vh", display: "flex", justifyContent: "center" }}>
+      <div style={{ width: "100%", maxWidth: "720px", minHeight: "100vh", overflowX: "hidden", background: "#FEFCFA" }}>
 
         {/* ── ヒーロー（ヘッダー含む） ── */}
-        <div style={{ position: "relative", overflow: "hidden", paddingBottom: "40px" }}>
+        <div style={{ position: "relative", overflow: "hidden", paddingBottom: "44px" }}>
 
           {/* 抽象画像 背景レイヤー */}
           <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
@@ -122,39 +157,42 @@ export default function AuthPage() {
           </div>
 
           {/* ヘッダー */}
-          <div style={{ position: "relative", padding: "20px 24px 0", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ position: "relative", padding: "20px 18px 0", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <Image src="/stickman-assets/stickman-01.png" alt="" width={28} height={28} style={{ width: 28, height: 28, objectFit: "contain" }} />
               <span style={{ fontFamily: "var(--font-display)", fontSize: "22px", fontWeight: 900, fontStyle: "italic", color: "#FF6B00", letterSpacing: "0.06em" }}>KAKERU</span>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: "4px" }}>
-              {Array.from({ length: 15 }).map((_, i) => (
-                <div key={i} style={{ width: "4px", height: "4px", borderRadius: "50%", background: "#FFCFB0" }} />
-              ))}
+            <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+              <Link href="/lp" style={{ color: "#B85D1D", fontSize: "12px", fontWeight: 700, textDecoration: "none", whiteSpace: "nowrap" }}>
+                このアプリについて
+              </Link>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: "4px" }} aria-hidden="true">
+                {Array.from({ length: 15 }).map((_, i) => (
+                  <div key={i} style={{ width: "4px", height: "4px", borderRadius: "50%", background: "#FFCFB0" }} />
+                ))}
+              </div>
             </div>
           </div>
 
           {/* ヒーローコンテンツ */}
-          <div style={{ position: "relative", padding: "24px 24px 0", display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
-            <div style={{ flex: 1, paddingRight: "8px" }}>
-              <h1 style={{ margin: 0 }}>
-                <Image
-                  src="/その他素材/走らなければ-transparent.png"
-                  alt="走らなければ、課金される。"
-                  width={250}
-                  height={164}
-                  priority
-                  sizes="250px"
-                  style={{ display: "block", maxWidth: "100%", height: "auto" }}
-                />
-              </h1>
-              <p style={{ fontSize: "13px", color: "#666666", lineHeight: 1.7, marginTop: "14px", marginBottom: 0 }}>
-                Kakeruは、あなたの「やる気」を守る<br />ランニング習慣化アプリです。
-              </p>
-            </div>
-            <div style={{ flexShrink: 0, marginTop: "-4px" }}>
-              <Image src="/stickman-assets/stickman-05.png" alt="" width={140} height={175} style={{ width: 140, height: 175, objectFit: "contain" }} />
-            </div>
+          <div style={{ position: "relative", padding: "30px 28px 0", textAlign: "center" }}>
+            <Image
+              src="/favicon.png"
+              alt=""
+              width={72}
+              height={72}
+              priority
+              sizes="72px"
+              style={{ width: 72, height: 72, objectFit: "contain", margin: "0 auto", display: "block" }}
+            />
+            <h1 style={{ fontSize: "26px", lineHeight: 1.35, fontWeight: 900, color: "#1C1008", margin: "12px 0 10px", letterSpacing: 0 }}>
+              未来の自分を、<br />
+              少しだけ走らせる。
+            </h1>
+            <p style={{ fontSize: "13.5px", color: "#6B5236", lineHeight: 1.8, fontWeight: 500, margin: 0 }}>
+              目標を決めて、走れた日は課金なし。<br />
+              まずは無料で始められます。
+            </p>
           </div>
         </div>
 
@@ -181,7 +219,7 @@ export default function AuthPage() {
               <>
                 <p style={{ textAlign: "center", fontSize: "11px", color: "#AAAAAA", letterSpacing: "0.08em", marginBottom: "6px" }}>
                   <span style={{ marginRight: "6px" }}>╲</span>
-                  {mode === "reset" ? "パスワードをリセット" : "さあ、今日から変わろう。"}
+                  {mode === "reset" ? "パスワードをリセット" : mode === "signup" ? "まずは無料でアカウント作成" : "さあ、今日から変わろう。"}
                   <span style={{ marginLeft: "6px" }}>╱</span>
                 </p>
                 {mode === "reset" && (
@@ -204,7 +242,7 @@ export default function AuthPage() {
                       }}
                     >
                       <GoogleIcon />
-                      Googleでログイン
+                      {mode === "signup" ? "Googleでかんたん登録" : "Googleでログイン"}
                     </button>
                     <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
                       <div style={{ flex: 1, height: "1px", background: "#EBEBEB" }} />
