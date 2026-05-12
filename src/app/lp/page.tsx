@@ -760,10 +760,10 @@ html { scroll-behavior: smooth; }
 
 /* HOW PHONE — light illustration mockup, wider proportion for visual balance */
 .lp-root .how-phone {
-  aspect-ratio: 9 / 16;
-  max-width: 240px;
+  aspect-ratio: 1 / 2;
+  max-width: 210px;
   background: #FFFFFF;
-  padding: 12px;
+  padding: 10px;
   border: 1.5px solid #EDE3D0;
   border-radius: 38px;
   box-shadow:
@@ -789,7 +789,7 @@ html { scroll-behavior: smooth; }
   display: none;
 }
 @media (min-width: 900px) {
-  .lp-root .how-phone { max-width: 260px; }
+  .lp-root .how-phone { max-width: 230px; }
 }
 
 /* HERO PHONE: scrolling screenshot slider inside */
