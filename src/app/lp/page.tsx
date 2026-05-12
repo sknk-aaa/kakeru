@@ -71,9 +71,11 @@ export default function LpPage() {
 
       {/* HERO */}
       <section id="hero">
-        <div style={{ position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none", zIndex: 0 }}>
-          <img src="/抽象画像/抽象画像4.png" style={{ position: "absolute", width: 260, top: -30, right: -20, opacity: 0.45 }} alt="" />
-          <img src="/抽象画像/抽象画像1.png" style={{ position: "absolute", width: 180, bottom: 40, left: -20, opacity: 0.35 }} alt="" />
+        <div className="hero-bg">
+          <img src="/抽象画像/抽象画像4.png" style={{ position: "absolute", width: 320, top: -60, right: -60, opacity: 0.55 }} alt="" />
+          <img src="/抽象画像/抽象画像1.png" style={{ position: "absolute", width: 220, bottom: -40, left: -60, opacity: 0.45 }} alt="" />
+          <img src="/抽象画像/抽象画像2.png" style={{ position: "absolute", width: 140, top: 240, left: 20, opacity: 0.32 }} alt="" />
+          <img src="/抽象画像/抽象画像5.png" style={{ position: "absolute", width: 110, top: 60, right: 30, opacity: 0.25 }} alt="" />
         </div>
 
         <div style={{ position: "relative", zIndex: 1 }} className="hero-inner">
@@ -85,14 +87,17 @@ export default function LpPage() {
             </p>
           </div>
           <div className="hero-visual">
-            <div className="hero-slider">
-              <div className="hero-slider-track">
-                <img src="/lp-photos/1.jpg" alt="" />
-                <img src="/lp-photos/2.jpg" alt="" />
-                <img src="/lp-photos/3.jpg" alt="" />
-                <img src="/lp-photos/4.jpg" alt="" />
-                <img src="/lp-photos/5.jpg" alt="" />
-                <img src="/lp-photos/1.jpg" alt="" />
+            <div className="phone-mock hero-phone">
+              <div className="phone-mock-notch" />
+              <div className="phone-mock-screen">
+                <div className="phone-slider-track">
+                  <img src="/スクショ/IMG_3735.PNG" alt="アプリ画面" />
+                  <img src="/スクショ/IMG_3735.PNG" alt="アプリ画面" />
+                  <img src="/スクショ/IMG_3735.PNG" alt="アプリ画面" />
+                  <img src="/スクショ/IMG_3735.PNG" alt="アプリ画面" />
+                  <img src="/スクショ/IMG_3735.PNG" alt="アプリ画面" />
+                  <img src="/スクショ/IMG_3735.PNG" alt="アプリ画面" />
+                </div>
               </div>
             </div>
           </div>
@@ -111,6 +116,9 @@ export default function LpPage() {
 
       {/* TARGET */}
       <section id="target" style={{ background: "#FFFFFF" }}>
+        <img src="/抽象画像/抽象画像3.png" className="abs-bg" style={{ width: 240, top: 40, left: -80, opacity: 0.28 }} alt="" />
+        <img src="/抽象画像/抽象画像5.png" className="abs-bg" style={{ width: 180, bottom: 30, right: -60, opacity: 0.32 }} alt="" />
+        <img src="/抽象画像/抽象画像1.png" className="abs-bg" style={{ width: 120, top: 80, right: 60, opacity: 0.18 }} alt="" />
         <div className="rel" style={{ maxWidth: 640, margin: "0 auto", textAlign: "center" }}>
           <div className="s-label fi">FOR YOU</div>
           <h2 className="s-title fi" style={{ marginBottom: 28 }}>こんなあなたへ</h2>
@@ -137,6 +145,9 @@ export default function LpPage() {
 
       {/* FEATURES */}
       <section id="features" style={{ background: "#FEFCFA" }}>
+        <img src="/抽象画像/抽象画像6.png" className="abs-bg" style={{ width: 260, top: 0, right: -90, opacity: 0.32 }} alt="" />
+        <img src="/抽象画像/抽象画像4.png" className="abs-bg" style={{ width: 200, bottom: 40, left: -80, opacity: 0.28 }} alt="" />
+        <img src="/抽象画像/抽象画像2.png" className="abs-bg" style={{ width: 130, top: 200, left: 40, opacity: 0.2 }} alt="" />
         <div className="rel">
           <div className="s-label fi">FEATURES</div>
           <h2 className="s-title fi">3つの特徴</h2>
@@ -183,36 +194,60 @@ export default function LpPage() {
 
       {/* HOW IT WORKS */}
       <section id="how" style={{ background: "#FFFFFF" }}>
-        <img src="/抽象画像/抽象画像2.png" className="abs-bg" style={{ width: 220, top: 20, right: -60, opacity: 0.22 }} alt="" />
+        <img src="/抽象画像/抽象画像2.png" className="abs-bg" style={{ width: 280, top: -20, right: -80, opacity: 0.35 }} alt="" />
+        <img src="/抽象画像/抽象画像3.png" className="abs-bg" style={{ width: 200, top: 360, left: -70, opacity: 0.28 }} alt="" />
+        <img src="/抽象画像/抽象画像6.png" className="abs-bg" style={{ width: 160, bottom: 80, right: -40, opacity: 0.22 }} alt="" />
         <div className="rel">
           <div className="s-label fi">HOW IT WORKS</div>
-          <h2 className="s-title fi">仕組みはシンプル</h2>
+          <h2 className="s-title fi">使い方</h2>
+          <div className="how-dots fi"><span /><span /><span /></div>
 
           <div className="how-steps">
             <div className="how-step fi d1">
-              <img src="/stickman-assets/stickman-13.png" className="how-step-img" alt="目標を設定" />
+              <div className="how-step-visual">
+                <div className="phone-mock how-phone">
+                  <div className="phone-mock-notch" />
+                  <div className="phone-mock-screen">
+                    <img src="/スクショ/IMG_3735.PNG" alt="目標を設定" />
+                  </div>
+                </div>
+              </div>
               <div className="how-step-text">
-                <div className="how-step-num">STEP 01</div>
-                <div className="how-step-title">目標を設定する</div>
-                <p className="how-step-desc">曜日・距離・時間・罰金額を自分で決める。</p>
+                <div className="how-step-num"><span className="how-step-num-badge">1</span>目標を設定する</div>
+                <div className="how-step-title">距離・時間・<br />罰金額を決める</div>
+                <p className="how-step-desc">曜日ごとに走る目標と、未達成時に課金される金額を設定してください。「サボらない」と覚悟を決めたら、続けやすい習慣の第一歩です。</p>
               </div>
             </div>
 
-            <div className="how-step reverse fi d2">
-              <img src="/stickman-assets/stickman-05.png" className="how-step-img" alt="走って達成" />
+            <div className="how-step fi d2">
+              <div className="how-step-visual">
+                <div className="phone-mock how-phone">
+                  <div className="phone-mock-notch" />
+                  <div className="phone-mock-screen">
+                    <img src="/スクショ/IMG_3735.PNG" alt="走って達成" />
+                  </div>
+                </div>
+              </div>
               <div className="how-step-text">
-                <div className="how-step-num">STEP 02</div>
-                <div className="how-step-title">スマホを持って走る</div>
-                <p className="how-step-desc">GPSが距離・ペースを自動計測。達成すると自動で判定。</p>
+                <div className="how-step-num"><span className="how-step-num-badge">2</span>スマホを持って走る</div>
+                <div className="how-step-title">GPSで自動計測<br />達成判定もおまかせ</div>
+                <p className="how-step-desc">スタートボタンを押して走り出すだけ。距離・ペース・コースが自動で記録され、目標達成も自動で判定されます。</p>
               </div>
             </div>
 
             <div className="how-step fi d3">
-              <img src="/stickman-assets/stickman-12.png" className="how-step-img" alt="課金" />
+              <div className="how-step-visual">
+                <div className="phone-mock how-phone">
+                  <div className="phone-mock-notch" />
+                  <div className="phone-mock-screen">
+                    <img src="/スクショ/IMG_3735.PNG" alt="課金" />
+                  </div>
+                </div>
+              </div>
               <div className="how-step-text">
-                <div className="how-step-num">STEP 03</div>
-                <div className="how-step-title">走らなければ<br />自動で課金</div>
-                <p className="how-step-desc">23:59までに未達成だと、設定した罰金が自動引き落とし。</p>
+                <div className="how-step-num"><span className="how-step-num-badge">3</span>走らなければ自動で課金</div>
+                <div className="how-step-title">達成しなければ<br />設定額を自動引き落とし</div>
+                <p className="how-step-desc">23:59 までに目標を達成できなかった場合、登録カードから設定した罰金額が自動で引き落とされます。逆に走れば、課金は一切ありません。</p>
               </div>
             </div>
           </div>
@@ -262,6 +297,8 @@ export default function LpPage() {
 
       {/* FAQ */}
       <section id="faq" style={{ background: "#FFFFFF" }}>
+        <img src="/抽象画像/抽象画像1.png" className="abs-bg" style={{ width: 220, top: 20, left: -70, opacity: 0.25 }} alt="" />
+        <img src="/抽象画像/抽象画像4.png" className="abs-bg" style={{ width: 180, bottom: 60, right: -60, opacity: 0.22 }} alt="" />
         <div className="s-label fi">FAQ</div>
         <h2 className="s-title fi">よくある質問</h2>
 
@@ -288,7 +325,9 @@ export default function LpPage() {
 
       {/* PRICING */}
       <section id="pricing" style={{ background: "#FFFFFF" }}>
-        <img src="/抽象画像/抽象画像3.png" className="abs-bg" style={{ width: 220, top: -30, right: -50, opacity: 0.28 }} alt="" />
+        <img src="/抽象画像/抽象画像3.png" className="abs-bg" style={{ width: 240, top: -40, right: -70, opacity: 0.3 }} alt="" />
+        <img src="/抽象画像/抽象画像6.png" className="abs-bg" style={{ width: 200, bottom: 80, left: -80, opacity: 0.26 }} alt="" />
+        <img src="/抽象画像/抽象画像2.png" className="abs-bg" style={{ width: 120, top: 280, right: 30, opacity: 0.2 }} alt="" />
         <div className="rel">
           <div className="s-label fi">PRICING</div>
           <h2 className="s-title fi">料金プラン</h2>
@@ -342,7 +381,9 @@ export default function LpPage() {
 
       {/* CTA */}
       <section id="cta" style={{ paddingTop: 0 }}>
-        <img src="/抽象画像/抽象画像3.png" className="abs-bg" style={{ width: 240, top: -40, right: -60, opacity: 0.15 }} alt="" />
+        <img src="/抽象画像/抽象画像3.png" className="abs-bg" style={{ width: 240, top: -40, right: -60, opacity: 0.18 }} alt="" />
+        <img src="/抽象画像/抽象画像5.png" className="abs-bg" style={{ width: 180, bottom: 40, left: -70, opacity: 0.16 }} alt="" />
+        <img src="/抽象画像/抽象画像1.png" className="abs-bg" style={{ width: 130, top: 80, left: 30, opacity: 0.12 }} alt="" />
         <div style={{ position: "relative", zIndex: 1 }}>
           <div style={{ display: "flex", justifyContent: "center", marginBottom: 24 }}>
             <img src="/stickman-assets/stickman-02.png" style={{ width: 160, filter: "brightness(0) invert(1)" }} alt="" />
@@ -537,21 +578,9 @@ html { scroll-behavior: smooth; }
 
 /* HOW IT WORKS */
 .lp-root #how { background: #FFFFFF; }
-.lp-root .how-steps { display: flex; flex-direction: column; gap: 0; margin-top: 48px; }
-.lp-root .how-step {
-  display: grid; grid-template-columns: 1fr 1fr;
-  gap: 0; align-items: center;
-  padding: 40px 0;
-  border-bottom: 1.5px solid var(--border);
-}
-.lp-root .how-step:last-child { border-bottom: none; }
-.lp-root .how-step.reverse { direction: rtl; }
-.lp-root .how-step.reverse > * { direction: ltr; }
-.lp-root .how-step-img { width: 100%; max-width: 160px; margin: 0 auto; display: block; }
-.lp-root .how-step-text { padding: 0 8px; }
-.lp-root .how-step-num { font-size: 11px; font-weight: 900; letter-spacing: 3px; color: var(--orange); margin-bottom: 10px; }
-.lp-root .how-step-title { font-size: 20px; font-weight: 900; margin-bottom: 8px; line-height: 1.3; }
-.lp-root .how-step-desc { font-size: 13px; color: var(--text-sub); line-height: 1.8; }
+.lp-root .how-steps { display: flex; flex-direction: column; gap: 72px; margin-top: 12px; }
+.lp-root .how-step { display: flex; flex-direction: column; align-items: center; }
+.lp-root .how-step-text { width: 100%; }
 
 /* WHY */
 .lp-root #why { background: var(--dark); color: white; }
@@ -667,28 +696,81 @@ html { scroll-behavior: smooth; }
 .lp-root .footer-links a { color: rgba(255,255,255,0.4); text-decoration: none; font-size: 13px; }
 .lp-root .footer-copy { font-size: 12px; color: rgba(255,255,255,0.25); }
 
-/* HERO SLIDER */
-.lp-root .hero-slider {
+/* PHONE MOCK */
+.lp-root .phone-mock {
   position: relative;
   width: 100%;
-  max-width: 280px;
-  aspect-ratio: 4 / 5;
-  border-radius: 28px;
-  overflow: hidden;
-  box-shadow: 0 18px 40px rgba(0,0,0,0.12);
+  max-width: 240px;
+  aspect-ratio: 828 / 1792;
+  background: linear-gradient(155deg, #1a1a1f 0%, #0a0a0d 50%, #1a1a1f 100%);
+  border-radius: 42px;
+  padding: 9px;
+  box-shadow:
+    0 30px 60px -20px rgba(20, 18, 25, 0.32),
+    0 14px 28px rgba(20, 18, 25, 0.16),
+    inset 0 0 0 1.5px rgba(255, 255, 255, 0.06);
   margin: 24px auto 0;
 }
-.lp-root .hero-slider-track {
+.lp-root .phone-mock-screen {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 34px;
+  overflow: hidden;
+  background: #fff;
+}
+.lp-root .phone-mock-screen > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.lp-root .phone-mock-notch {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 38%;
+  height: 18px;
+  background: #06060a;
+  border-radius: 100px;
+  z-index: 3;
+}
+.lp-root .phone-mock::before {
+  content: "";
+  position: absolute;
+  top: 86px;
+  left: -2px;
+  width: 3px;
+  height: 32px;
+  background: linear-gradient(90deg, #2a2a30, #0a0a0d);
+  border-radius: 2px 0 0 2px;
+}
+.lp-root .phone-mock::after {
+  content: "";
+  position: absolute;
+  top: 130px;
+  left: -2px;
+  width: 3px;
+  height: 50px;
+  background: linear-gradient(90deg, #2a2a30, #0a0a0d);
+  border-radius: 2px 0 0 2px;
+  box-shadow: 0 70px 0 0 #1a1a1f;
+}
+
+/* HERO PHONE: scrolling screenshot slider inside */
+.lp-root .phone-slider-track {
   display: flex;
   width: 600%;
   height: 100%;
   animation: hero-slide 30s infinite;
 }
-.lp-root .hero-slider-track img {
+.lp-root .phone-slider-track img {
   width: 16.6667%;
   height: 100%;
   object-fit: cover;
   flex-shrink: 0;
+  display: block;
 }
 @keyframes hero-slide {
   0%, 13% { transform: translate3d(0, 0, 0); }
@@ -698,8 +780,55 @@ html { scroll-behavior: smooth; }
   67%, 80% { transform: translate3d(-66.6667%, 0, 0); }
   83%, 100% { transform: translate3d(-83.3333%, 0, 0); }
 }
+
+/* HERO BG */
+.lp-root .hero-bg {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* HOW STEP layout (vertical, phone-first, mezamee-style) */
+.lp-root #how { padding-top: 96px; padding-bottom: 96px; }
+.lp-root .how-dots {
+  display: flex; justify-content: center; gap: 6px;
+  margin: 4px 0 28px;
+}
+.lp-root .how-dots span {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #E3DAC9;
+}
+.lp-root .how-dots span:nth-child(2) { background: #F9C875; }
+.lp-root .how-dots span:nth-child(3) { background: var(--orange); }
+.lp-root .how-step-visual {
+  display: flex; justify-content: center;
+  margin-bottom: 28px;
+}
+.lp-root .how-step-num {
+  display: flex; align-items: center; justify-content: center;
+  gap: 10px; margin-bottom: 14px;
+  font-size: 16px; font-weight: 800; color: var(--dark);
+  letter-spacing: 0;
+}
+.lp-root .how-step-num-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--orange); color: white;
+  font-size: 14px; font-weight: 900; flex-shrink: 0;
+}
+.lp-root .how-step-title {
+  font-size: 22px; font-weight: 900; line-height: 1.35;
+  margin-bottom: 14px; color: var(--dark); text-align: center;
+}
+.lp-root .how-step-desc {
+  font-size: 14px; color: var(--text-sub);
+  line-height: 1.85; text-align: center; max-width: 360px;
+  margin: 0 auto;
+}
 @media (min-width: 900px) {
-  .lp-root .hero-slider { margin: 0 auto; max-width: 280px; }
+  .lp-root .phone-mock { max-width: 260px; }
 }
 
 /* TARGET */
