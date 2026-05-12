@@ -4,7 +4,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Plus, X } from "lucide-react";
+import { ArrowRight, Plus, X } from "lucide-react";
 import PublicHamburger from "@/components/PublicHamburger";
 
 const FAQ_ITEMS: { q: string; a: string }[] = [
@@ -82,6 +82,13 @@ export default function LpPage() {
             <p className="hero-sub">
               自分に甘いあなたのための、<br />本気の習慣化アプリ。
             </p>
+            <div className="hero-before-after" aria-hidden="true">
+              <img src="/stickman-assets/stickman-14.png" alt="" />
+              <span className="hero-before-after-arrow">
+                <ArrowRight size={18} strokeWidth={2.4} />
+              </span>
+              <img src="/stickman-assets/stickman-02.png" alt="" />
+            </div>
           </div>
           <div className="hero-visual">
             <div className="phone-mock hero-phone">
@@ -148,7 +155,7 @@ export default function LpPage() {
           <div className="feat-grid">
             <div className="feat-card fi d1">
               <div className="feat-icon">
-                <img src="/その他素材/ターゲット.png" alt="目標を設定" />
+                <img src="stickman-assets/stickman-13.png" alt="目標を設定" />
               </div>
               <div>
                 <div className="feat-catch">目標を設定する</div>
@@ -158,7 +165,7 @@ export default function LpPage() {
 
             <div className="feat-card fi d2">
               <div className="feat-icon">
-                <img src="/stickman-assets/stickman-05.png" alt="走れば無料" />
+                <img src="stickman-assets/stickman-02.png" alt="走れば無料" />
               </div>
               <div>
                 <div className="feat-catch">走れば無料</div>
@@ -168,7 +175,7 @@ export default function LpPage() {
 
             <div className="feat-card fi d3">
               <div className="feat-icon">
-                <img src="/その他素材/山-transparent.png" alt="記録で振り返る" />
+                <img src="stickman-assets/stickman-21.png" alt="記録で振り返る" />
               </div>
               <div>
                 <div className="feat-catch">記録で振り返る</div>
@@ -455,6 +462,31 @@ html { scroll-behavior: smooth; }
 }
 .lp-root .lp-mobile-nav { display: flex; }
 .lp-root .lp-pc-nav { display: none; }
+@media (max-width: 899px) {
+  .lp-root .lp-nav {
+    height: 96px;
+    padding: 0 48px;
+    background: rgba(255, 254, 252, 0.96);
+    border-bottom: 1px solid #EDE0CC;
+  }
+  .lp-root .nav-logo {
+    gap: 18px;
+    font-size: 27px;
+    color: #111111;
+  }
+  .lp-root .nav-logo img {
+    width: 34px !important;
+    height: 34px !important;
+  }
+  .lp-root .lp-mobile-nav button {
+    padding: 8px !important;
+  }
+  .lp-root .lp-mobile-nav svg {
+    width: 34px;
+    height: 34px;
+    stroke-width: 2;
+  }
+}
 
 /* SHARED */
 .lp-root section { padding: 80px 24px; position: relative; overflow: hidden; }
@@ -480,11 +512,35 @@ html { scroll-behavior: smooth; }
   background: var(--bg);
   overflow: hidden;
 }
-.lp-root .hero-inner { display: flex; flex-direction: column; gap: 0; }
-.lp-root .hero-content { flex: 1; }
-.lp-root .hero-visual { display: flex; align-items: center; justify-content: center; }
-.lp-root .hero-cta { display: block; text-align: center; }
-@media (min-width: 700px) {
+.lp-root .hero-inner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.lp-root .hero-content {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  min-height: 410px;
+}
+.lp-root .hero-visual {
+  position: absolute;
+  top: -44px;
+  right: -34px;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.lp-root .hero-cta {
+  position: relative;
+  z-index: 2;
+  display: block;
+  text-align: center;
+}
+@media (min-width: 900px) {
   .lp-root .lp-mobile-nav { display: none; }
   .lp-root .lp-pc-nav { display: flex; align-items: center; gap: 24px; }
   .lp-root .lp-pc-nav a { font-size: 14px; font-weight: 600; color: var(--text-sub); text-decoration: none; }
@@ -501,17 +557,27 @@ html { scroll-behavior: smooth; }
   /* HERO — 2カラム（中央揃え） */
   .lp-root #hero { padding-top: 120px; padding-bottom: 80px; }
   .lp-root .hero-inner {
+    position: relative;
     display: grid;
     grid-template-columns: 1fr 320px;
     grid-template-rows: auto auto;
     gap: 0 64px;
     max-width: 960px; margin: 0 auto; width: 100%;
   }
-  .lp-root .hero-content { grid-column: 1; grid-row: 1; }
+  .lp-root .hero-content { grid-column: 1; grid-row: 1; min-height: 0; }
   .lp-root .hero-run-img { max-width: 400px; }
   .lp-root .hero-sub br { display: none; }
   .lp-root .hero-stickman-inline { display: none; }
-  .lp-root .hero-visual { display: flex; grid-column: 2; grid-row: 1 / 3; align-items: center; justify-content: center; }
+  .lp-root .hero-visual {
+    position: static;
+    z-index: auto;
+    display: flex;
+    grid-column: 2;
+    grid-row: 1 / 3;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto;
+  }
   .lp-root .hero-visual-img { width: 100%; max-width: 175px; object-fit: contain; }
   .lp-root .hero-cta { grid-column: 1 / -1; grid-row: 2; padding-top: 32px; text-align: center; }
   .lp-root .btn-login { text-align: center; }
@@ -551,6 +617,128 @@ html { scroll-behavior: smooth; }
 }
 .lp-root .hero-h1 .hi { color: var(--orange); }
 .lp-root .hero-sub { font-size: 16px; color: var(--text-sub); line-height: 1.8; margin-bottom: 40px; }
+.lp-root .hero-before-after { display: none; }
+@media (max-width: 899px) {
+  .lp-root #hero {
+    min-height: calc(100svh - 96px);
+    padding: 142px 48px 96px;
+    background: #FFFDFC;
+  }
+  .lp-root .hero-bg img {
+    width: 430px !important;
+    top: 0 !important;
+    right: -138px !important;
+    opacity: 0.22 !important;
+  }
+  .lp-root .hero-bg::before,
+  .lp-root .hero-bg::after {
+    content: "";
+    position: absolute;
+    pointer-events: none;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+  }
+  .lp-root .hero-bg::before {
+    width: 300px;
+    height: 250px;
+    left: -90px;
+    bottom: 250px;
+    opacity: 0.16;
+    background-image: url("/抽象画像/抽象画像5.png");
+  }
+  .lp-root .hero-bg::after {
+    width: 260px;
+    height: 220px;
+    right: -98px;
+    bottom: -6px;
+    opacity: 0.16;
+    background-image: url("/抽象画像/抽象画像3.png");
+  }
+  .lp-root .hero-inner {
+    min-height: calc(100svh - 334px);
+    justify-content: flex-start;
+  }
+  .lp-root .hero-content {
+    min-height: 518px;
+    flex: 0 0 auto;
+  }
+  .lp-root .hero-visual {
+    display: none;
+  }
+  .lp-root .hero-tag {
+    padding: 9px 31px;
+    margin-bottom: 44px;
+    border-width: 2px;
+    border-color: rgba(249, 115, 22, 0.28);
+    background: rgba(255, 250, 244, 0.9);
+    color: #B85D1D;
+    font-size: 18px;
+    font-weight: 900;
+    letter-spacing: 0.02em;
+  }
+  .lp-root .hero-run-img {
+    width: min(100%, 278px) !important;
+    max-width: none !important;
+    margin-bottom: 30px !important;
+    transform: translateX(-2px);
+  }
+  .lp-root .hero-sub {
+    width: 236px;
+    color: rgba(80, 57, 35, 0.9);
+    font-size: 23px;
+    font-weight: 500;
+    line-height: 1.78;
+    letter-spacing: 0;
+    margin-bottom: 34px;
+  }
+  .lp-root .hero-before-after {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    width: fit-content;
+    position: absolute;
+    right: 4px;
+    top: 440px;
+    padding: 0;
+    color: #F47A2C;
+  }
+  .lp-root .hero-before-after img {
+    width: 76px;
+    height: 76px;
+    object-fit: contain;
+  }
+  .lp-root .hero-before-after-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: 2px solid rgba(249, 115, 22, 0.28);
+    border-radius: 50%;
+    background: rgba(255, 253, 250, 0.86);
+    color: #F47A2C;
+    flex-shrink: 0;
+  }
+  .lp-root .hero-cta {
+    margin-top: 0;
+  }
+  .lp-root .hero-cta .btn-primary {
+    width: 100%;
+    min-height: 88px;
+    padding-left: 24px;
+    padding-right: 24px;
+    border-radius: 999px;
+    font-size: 25px;
+    box-shadow: 0 18px 35px rgba(249, 115, 22, 0.18);
+  }
+  .lp-root .btn-login {
+    margin-top: 28px;
+    color: rgba(107, 82, 54, 0.58);
+    font-size: 20px;
+    letter-spacing: 0.02em;
+  }
+}
 .lp-root .btn-primary {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
   background: var(--orange); color: white;
@@ -756,7 +944,6 @@ html { scroll-behavior: smooth; }
   border-radius: 2px 0 0 2px;
   box-shadow: 0 70px 0 0 #1a1a1f;
 }
-
 /* HOW PHONE — light illustration mockup, wider proportion for visual balance */
 .lp-root .how-phone {
   aspect-ratio: 1 / 2;
