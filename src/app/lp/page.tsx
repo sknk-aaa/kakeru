@@ -125,6 +125,7 @@ export default function LpPage() {
   const howSliderRef = useRef<HTMLDivElement>(null);
   const isHowDraggingRef = useRef(false);
   const howDragStartXRef = useRef(0);
+  const howDragStartTimeRef = useRef(0);
   const howDragOffsetRef = useRef(0);
 
   useEffect(() => {
@@ -167,6 +168,7 @@ export default function LpPage() {
   };
 
   const handleHowPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!e.isPrimary || (e.pointerType === "mouse" && e.button !== 0)) return;
     const slider = howSliderRef.current;
     if (!slider) return;
     isHowDraggingRef.current = true;
@@ -174,11 +176,12 @@ export default function LpPage() {
     setHowDragOffset(0);
     howDragOffsetRef.current = 0;
     howDragStartXRef.current = e.clientX;
+    howDragStartTimeRef.current = window.performance.now();
     slider.setPointerCapture(e.pointerId);
   };
 
   const handleHowPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!isHowDragging) return;
+    if (!isHowDraggingRef.current) return;
     const nextOffset = e.clientX - howDragStartXRef.current;
     howDragOffsetRef.current = nextOffset;
     setHowDragOffset(nextOffset);
@@ -187,10 +190,14 @@ export default function LpPage() {
   const handleHowPointerEnd = (e: React.PointerEvent<HTMLDivElement>) => {
     const slider = howSliderRef.current;
     if (!slider) return;
-    const threshold = Math.min(90, slider.clientWidth * 0.18);
-    if (howDragOffsetRef.current < -threshold) {
+    const dragOffset = howDragOffsetRef.current;
+    const dragTime = Math.max(1, window.performance.now() - howDragStartTimeRef.current);
+    const dragVelocity = dragOffset / dragTime;
+    const threshold = Math.min(52, Math.max(24, slider.clientWidth * 0.1));
+    const isFlick = Math.abs(dragOffset) > 12 && Math.abs(dragVelocity) > 0.28;
+    if (dragOffset < -threshold || (isFlick && dragVelocity < 0)) {
       setActiveHowSlide((current) => Math.min(current + 1, MOBILE_HOW_SLIDES.length - 1));
-    } else if (howDragOffsetRef.current > threshold) {
+    } else if (dragOffset > threshold || (isFlick && dragVelocity > 0)) {
       setActiveHowSlide((current) => Math.max(current - 1, 0));
     }
     isHowDraggingRef.current = false;
@@ -357,7 +364,7 @@ export default function LpPage() {
               <div className="feature-step-text">
                 <div className="feature-step-num">STEP 01</div>
                 <div className="feature-step-title">目標を設定</div>
-                <p className="feature-step-desc">曜日や距離、課金額を自分で決められます。</p>
+                <p className="feature-step-desc">曜日や距離、達成できなかった時の課金額を自分で決められます。</p>
               </div>
             </div>
 
@@ -371,11 +378,11 @@ export default function LpPage() {
             </div>
 
             <div className="feature-step fi d3">
-              <img src="/stickman-assets/stickman-21.png" className="feature-step-img" alt="課金" />
+              <img src="/stickman-assets/stickman-12.png" className="feature-step-img" alt="課金" />
               <div className="feature-step-text">
                 <div className="feature-step-num">STEP 03</div>
-                <div className="feature-step-title">記録で振り返る</div>
-                <p className="feature-step-desc">走った記録を確認し、自分の成長を可視化できます。</p>
+                <div className="feature-step-title">走らなければ課金</div>
+                <p className="feature-step-desc">目標を達成しないと、設定した金額が課金されます。</p>
               </div>
             </div>
           </div>
