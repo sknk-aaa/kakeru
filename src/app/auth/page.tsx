@@ -139,8 +139,8 @@ export default function AuthPage() {
   }
 
   return (
-    <div style={{ background: "#FEFCFA", minHeight: "100vh", display: "flex", justifyContent: "center" }}>
-      <div style={{ width: "100%", maxWidth: "720px", minHeight: "100vh", overflowX: "hidden", background: "#FEFCFA" }}>
+    <div style={{ background: "#FEFAF7", minHeight: "100vh", display: "flex", justifyContent: "center" }}>
+      <div style={{ width: "100%", maxWidth: "720px", minHeight: "100vh", overflowX: "hidden", background: "#FEFAF7" }}>
 
         {/* ── ヒーロー（ヘッダー含む） ── */}
         <div style={{ position: "relative", overflow: "hidden", paddingBottom: "44px" }}>
@@ -179,15 +179,22 @@ export default function AuthPage() {
             <Image
               src="/favicon.png"
               alt=""
-              width={72}
-              height={72}
+              width={102}
+              height={102}
               priority
-              sizes="72px"
-              style={{ width: 72, height: 72, objectFit: "contain", margin: "0 auto", display: "block" }}
+              sizes="102px"
+              style={{ width: 102, height: 102, objectFit: "contain", margin: "0 auto", display: "block" }}
             />
-            <h1 style={{ fontSize: "26px", lineHeight: 1.35, fontWeight: 900, color: "#1C1008", margin: "12px 0 10px", letterSpacing: 0 }}>
-              未来の自分を、<br />
-              少しだけ走らせる。
+            <h1 style={{ margin: "12px 0 10px" }}>
+              <Image
+                src="/その他素材/未来の自分を.png"
+                alt="未来の自分を、少しだけ走らせる。"
+                width={300}
+                height={158}
+                priority
+                sizes="300px"
+                style={{ width: "100%", maxWidth: 300, height: "auto", margin: "0 auto", display: "block" }}
+              />
             </h1>
             <p style={{ fontSize: "13.5px", color: "#6B5236", lineHeight: 1.8, fontWeight: 500, margin: 0 }}>
               目標を決めて、走れた日は課金なし。<br />
