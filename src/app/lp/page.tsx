@@ -122,7 +122,7 @@ export default function LpPage() {
   const [howDragOffset, setHowDragOffset] = useState(0);
   const [isHowDragging, setIsHowDragging] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
-  const howSliderRef = useRef<HTMLDivElement>(null);
+  const howGestureRef = useRef<HTMLDivElement>(null);
   const isHowDraggingRef = useRef(false);
   const howDragStartXRef = useRef(0);
   const howDragStartTimeRef = useRef(0);
@@ -169,15 +169,16 @@ export default function LpPage() {
 
   const handleHowPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!e.isPrimary || (e.pointerType === "mouse" && e.button !== 0)) return;
-    const slider = howSliderRef.current;
-    if (!slider) return;
+    if (e.target instanceof Element && e.target.closest("button, a")) return;
+    const gestureArea = howGestureRef.current;
+    if (!gestureArea) return;
     isHowDraggingRef.current = true;
     setIsHowDragging(true);
     setHowDragOffset(0);
     howDragOffsetRef.current = 0;
     howDragStartXRef.current = e.clientX;
     howDragStartTimeRef.current = window.performance.now();
-    slider.setPointerCapture(e.pointerId);
+    gestureArea.setPointerCapture(e.pointerId);
   };
 
   const handleHowPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -188,13 +189,14 @@ export default function LpPage() {
   };
 
   const handleHowPointerEnd = (e: React.PointerEvent<HTMLDivElement>) => {
-    const slider = howSliderRef.current;
-    if (!slider) return;
+    if (!isHowDraggingRef.current) return;
+    const gestureArea = howGestureRef.current;
+    if (!gestureArea) return;
     const dragOffset = howDragOffsetRef.current;
     const dragTime = Math.max(1, window.performance.now() - howDragStartTimeRef.current);
     const dragVelocity = dragOffset / dragTime;
-    const threshold = Math.min(52, Math.max(24, slider.clientWidth * 0.1));
-    const isFlick = Math.abs(dragOffset) > 12 && Math.abs(dragVelocity) > 0.28;
+    const threshold = Math.min(32, Math.max(14, gestureArea.clientWidth * 0.06));
+    const isFlick = Math.abs(dragOffset) > 6 && Math.abs(dragVelocity) > 0.18;
     if (dragOffset < -threshold || (isFlick && dragVelocity < 0)) {
       setActiveHowSlide((current) => Math.min(current + 1, MOBILE_HOW_SLIDES.length - 1));
     } else if (dragOffset > threshold || (isFlick && dragVelocity > 0)) {
@@ -204,7 +206,7 @@ export default function LpPage() {
     setIsHowDragging(false);
     setHowDragOffset(0);
     howDragOffsetRef.current = 0;
-    if (slider.hasPointerCapture(e.pointerId)) slider.releasePointerCapture(e.pointerId);
+    if (gestureArea.hasPointerCapture(e.pointerId)) gestureArea.releasePointerCapture(e.pointerId);
   };
 
   return (
@@ -402,61 +404,63 @@ export default function LpPage() {
           <div className="s-label fi">HOW IT WORKS</div>
           <h2 className="s-title fi">使い方</h2>
 
-          <div className={`how-text-panel fi${isHowTextVisible ? " visible" : ""}`}>
-            <div className="how-step-num">
-              <span className="how-step-num-badge">{displayedHowTextSlide + 1}</span>
-              {MOBILE_HOW_SLIDES[displayedHowTextSlide].label}
-            </div>
-            <div className="how-step-title">
-              {MOBILE_HOW_SLIDES[displayedHowTextSlide].title.split("\n").map((line, lineIndex, lines) => (
-                <span key={line}>
-                  {line}
-                  {lineIndex < lines.length - 1 && <br />}
-                </span>
-              ))}
-            </div>
-            <p className="how-step-desc">{MOBILE_HOW_SLIDES[displayedHowTextSlide].desc}</p>
-          </div>
-
           <div
-            className="how-slider fi"
-            ref={howSliderRef}
+            className="how-mobile-gesture"
+            ref={howGestureRef}
             onPointerDown={handleHowPointerDown}
             onPointerMove={handleHowPointerMove}
             onPointerUp={handleHowPointerEnd}
             onPointerCancel={handleHowPointerEnd}
             onPointerLeave={handleHowPointerEnd}
           >
-            <div
-              className={`how-track${isHowDragging ? " dragging" : ""}`}
-              style={{ transform: `translateX(calc(${-activeHowSlide * 100}% + ${howDragOffset}px))` }}
-            >
-              {MOBILE_HOW_SLIDES.map((slide) => (
-                <div className="how-slide" key={slide.label}>
-                  <div className="how-step-visual">
-                    <div className="phone-mock how-phone">
-                      <div className="phone-mock-notch" />
-                      <div className="phone-mock-screen">
-                        <img src={slide.image} alt={slide.alt} />
+            <div className={`how-text-panel fi${isHowTextVisible ? " visible" : ""}`}>
+              <div className="how-step-num">
+                <span className="how-step-num-badge">{displayedHowTextSlide + 1}</span>
+                {MOBILE_HOW_SLIDES[displayedHowTextSlide].label}
+              </div>
+              <div className="how-step-title">
+                {MOBILE_HOW_SLIDES[displayedHowTextSlide].title.split("\n").map((line, lineIndex, lines) => (
+                  <span key={line}>
+                    {line}
+                    {lineIndex < lines.length - 1 && <br />}
+                  </span>
+                ))}
+              </div>
+              <p className="how-step-desc">{MOBILE_HOW_SLIDES[displayedHowTextSlide].desc}</p>
+            </div>
+
+            <div className="how-slider fi">
+              <div
+                className={`how-track${isHowDragging ? " dragging" : ""}`}
+                style={{ transform: `translateX(calc(${-activeHowSlide * 100}% + ${howDragOffset}px))` }}
+              >
+                {MOBILE_HOW_SLIDES.map((slide) => (
+                  <div className="how-slide" key={slide.label}>
+                    <div className="how-step-visual">
+                      <div className="phone-mock how-phone">
+                        <div className="phone-mock-notch" />
+                        <div className="phone-mock-screen">
+                          <img src={slide.image} alt={slide.alt} />
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="how-slide-dots fi" aria-label="使い方スライド">
+              {MOBILE_HOW_SLIDES.map((slide, i) => (
+                <button
+                  key={slide.label}
+                  type="button"
+                  className={activeHowSlide === i ? "active" : ""}
+                  onClick={() => scrollToHowSlide(i)}
+                  aria-label={`${i + 1}枚目: ${slide.label}`}
+                  aria-current={activeHowSlide === i ? "true" : undefined}
+                />
               ))}
             </div>
-          </div>
-
-          <div className="how-slide-dots fi" aria-label="使い方スライド">
-            {MOBILE_HOW_SLIDES.map((slide, i) => (
-              <button
-                key={slide.label}
-                type="button"
-                className={activeHowSlide === i ? "active" : ""}
-                onClick={() => scrollToHowSlide(i)}
-                aria-label={`${i + 1}枚目: ${slide.label}`}
-                aria-current={activeHowSlide === i ? "true" : undefined}
-              />
-            ))}
           </div>
 
           <div className="how-desktop-list fi">
@@ -1165,13 +1169,15 @@ html { scroll-behavior: smooth; }
   opacity: 1;
   transform: none;
 }
-.lp-root .how-slider {
-  overflow: hidden;
+.lp-root .how-mobile-gesture {
   cursor: grab;
   touch-action: pan-y;
   user-select: none;
 }
-.lp-root .how-slider:active { cursor: grabbing; }
+.lp-root .how-mobile-gesture:active { cursor: grabbing; }
+.lp-root .how-slider {
+  overflow: hidden;
+}
 .lp-root .how-track {
   display: flex;
   will-change: transform;
@@ -1480,6 +1486,7 @@ html { scroll-behavior: smooth; }
   }
 
   /* HOW IT WORKS — PCでスマホと説明を横並び（交互配置） */
+  .lp-root .how-mobile-gesture,
   .lp-root .how-text-panel,
   .lp-root .how-slider,
   .lp-root .how-slide-dots {
