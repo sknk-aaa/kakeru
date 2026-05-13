@@ -195,8 +195,8 @@ export default function LpPage() {
     const dragOffset = howDragOffsetRef.current;
     const dragTime = Math.max(1, window.performance.now() - howDragStartTimeRef.current);
     const dragVelocity = dragOffset / dragTime;
-    const threshold = Math.min(32, Math.max(14, gestureArea.clientWidth * 0.06));
-    const isFlick = Math.abs(dragOffset) > 6 && Math.abs(dragVelocity) > 0.18;
+    const threshold = Math.min(18, Math.max(8, gestureArea.clientWidth * 0.03));
+    const isFlick = Math.abs(dragOffset) > 3 && Math.abs(dragVelocity) > 0.1;
     if (dragOffset < -threshold || (isFlick && dragVelocity < 0)) {
       setActiveHowSlide((current) => Math.min(current + 1, MOBILE_HOW_SLIDES.length - 1));
     } else if (dragOffset > threshold || (isFlick && dragVelocity > 0)) {
