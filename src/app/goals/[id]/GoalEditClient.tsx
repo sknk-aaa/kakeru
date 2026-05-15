@@ -287,14 +287,18 @@ export default function GoalEditClient({ goal }: { goal: Goal }) {
           目標・罰金
         </p>
         <div style={{ background: "white", borderRadius: "16px", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", marginBottom: "20px" }}>
-          <ListRow label="距離 (km)">
-            <input type="number" inputMode="decimal" placeholder="例: 5" min="0.1" step="0.1"
-              value={distanceKm} onChange={(e) => setDistanceKm(e.target.value)} style={inputStyle} disabled={isInputLocked} />
-          </ListRow>
-          <ListRow label="時間 (分)">
-            <input type="number" inputMode="numeric" placeholder="例: 30" min="1"
-              value={durationMinutes} onChange={(e) => setDurationMinutes(e.target.value)} style={inputStyle} disabled={isInputLocked} />
-          </ListRow>
+          {(!isChallenge || goal.distance_km !== null) && (
+            <ListRow label="距離 (km)">
+              <input type="number" inputMode="decimal" placeholder="例: 5" min="0.1" step="0.1"
+                value={distanceKm} onChange={(e) => setDistanceKm(e.target.value)} style={inputStyle} disabled={isInputLocked} />
+            </ListRow>
+          )}
+          {(!isChallenge || goal.duration_minutes !== null) && (
+            <ListRow label="時間 (分)">
+              <input type="number" inputMode="numeric" placeholder="例: 30" min="1"
+                value={durationMinutes} onChange={(e) => setDurationMinutes(e.target.value)} style={inputStyle} disabled={isInputLocked} />
+            </ListRow>
+          )}
           <ListRow label="罰金 (円)" last>
             <input type="number" inputMode="numeric" placeholder="500" min="100" step="100"
               value={penaltyAmount} onChange={(e) => setPenaltyAmount(e.target.value)}
