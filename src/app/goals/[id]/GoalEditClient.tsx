@@ -299,7 +299,7 @@ export default function GoalEditClient({ goal }: { goal: Goal }) {
                 value={durationMinutes} onChange={(e) => setDurationMinutes(e.target.value)} style={inputStyle} disabled={isInputLocked} />
             </ListRow>
           )}
-          <ListRow label="罰金 (円)" last>
+          <ListRow label="ペナルティ額 (円)" last>
             <input type="number" inputMode="numeric" placeholder="500" min="100" step="100"
               value={penaltyAmount} onChange={(e) => setPenaltyAmount(e.target.value)}
               style={{ ...inputStyle, color: "#EF4444" }} disabled={isInputLocked} />
