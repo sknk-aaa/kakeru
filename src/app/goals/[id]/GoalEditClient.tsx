@@ -28,7 +28,7 @@ function ListRow({ label, children, last }: { label: string; children: React.Rea
   return (
     <>
       <div style={{ display: "flex", alignItems: "center", padding: "14px 16px", gap: "12px" }}>
-        <span style={{ fontSize: "15px", color: "#111111", fontWeight: 500, width: "80px", flexShrink: 0 }}>{label}</span>
+        <span style={{ fontSize: "15px", color: "#111111", fontWeight: 500, flexShrink: 0, whiteSpace: "nowrap" }}>{label}</span>
         <div style={{ flex: 1 }}>{children}</div>
       </div>
       {!last && <div style={{ height: "1px", background: "#F2F2F2", marginLeft: "16px" }} />}
