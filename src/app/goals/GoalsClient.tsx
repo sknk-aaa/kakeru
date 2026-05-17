@@ -348,12 +348,24 @@ export default function GoalsClient({
 
   const recurringGoals = goals.filter((g) => g.type === "recurring");
   const challengeGoals = goals.filter((g) => g.type === "challenge");
-  const activeOneoffGoals = goals.filter(
-    (g) => g.type === "oneoff" && (!g.scheduled_date || g.scheduled_date >= todayStr)
-  );
-  const pastOneoffGoals = goals.filter(
-    (g) => g.type === "oneoff" && g.scheduled_date && g.scheduled_date < todayStr
-  );
+  const activeOneoffGoals = goals.filter((g) => {
+    if (g.type !== "oneoff") return false;
+    if (!g.scheduled_date || g.scheduled_date > todayStr) return true;
+    if (g.scheduled_date === todayStr) {
+      const inst = instances.find((i) => i.goal_id === g.id && i.scheduled_date === todayStr);
+      return !inst || inst.status === "pending";
+    }
+    return false;
+  });
+  const pastOneoffGoals = goals.filter((g) => {
+    if (g.type !== "oneoff" || !g.scheduled_date) return false;
+    if (g.scheduled_date < todayStr) return true;
+    if (g.scheduled_date === todayStr) {
+      const inst = instances.find((i) => i.goal_id === g.id && i.scheduled_date === todayStr);
+      return !!inst && inst.status !== "pending";
+    }
+    return false;
+  });
 
   function getTodayPendingInstance(goalId: string): Instance | undefined {
     return instances.find(
@@ -559,7 +571,8 @@ export default function GoalsClient({
             }}>
               {[...pastOneoffGoals, ...pastRecurringGoals].map((goal, idx) => {
                 const isPastRecurring = "achievedCount" in goal;
-                const instance = pastOneoffInstances.find((i) => i.goal_id === goal.id);
+                const instance = pastOneoffInstances.find((i) => i.goal_id === goal.id)
+                  ?? instances.find((i) => i.goal_id === goal.id && i.scheduled_date === todayStr);
                 const statusLabel = instance?.status === "achieved" ? "達成" : instance?.status === "failed" ? "失敗" : null;
                 const statusColor = instance?.status === "achieved" ? "#22C55E" : "#EF4444";
                 return (
