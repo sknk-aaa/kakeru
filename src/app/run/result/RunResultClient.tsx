@@ -23,6 +23,7 @@ export default function RunResultClient() {
   const goalReached = params.get("goalReached") === "true";
   const goalDistKm = params.get("goalDistKm") ? parseFloat(params.get("goalDistKm")!) : null;
   const goalDurMin = params.get("goalDurMin") ? parseInt(params.get("goalDurMin")!) : null;
+  const penaltyAmount = params.get("penaltyAmount") ? parseInt(params.get("penaltyAmount")!) : null;
   const rawInstall = params.get("installPrompt");
   const installTrigger: 1 | 3 | null = rawInstall === "1" ? 1 : rawInstall === "3" ? 3 : null;
   const [showInstallModal, setShowInstallModal] = useState(installTrigger !== null);
@@ -84,7 +85,23 @@ export default function RunResultClient() {
               <p style={{ fontSize: "10px", color: "#22C55E", fontWeight: 800, letterSpacing: "0.2em", marginBottom: "10px" }}>
                 TODAY&apos;S MISSION CLEAR
               </p>
-              <p style={{ fontSize: "26px", fontWeight: 800, color: "#111111" }}>{achievementLabel}</p>
+              <p style={{ fontSize: "26px", fontWeight: 800, color: "#111111", marginBottom: penaltyAmount ? "14px" : "0" }}>{achievementLabel}</p>
+              {penaltyAmount && (
+                <div style={{
+                  background: "linear-gradient(135deg, #22C55E, #16A34A)",
+                  borderRadius: "16px",
+                  padding: "14px 24px",
+                  textAlign: "center",
+                  boxShadow: "0 4px 16px rgba(34,197,94,0.35)",
+                }}>
+                  <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.85)", fontWeight: 700, letterSpacing: "0.1em", marginBottom: "4px" }}>
+                    課金回避！
+                  </p>
+                  <p style={{ fontSize: "32px", fontWeight: 900, color: "white", letterSpacing: "-0.02em" }}>
+                    ¥{penaltyAmount.toLocaleString()}
+                  </p>
+                </div>
+              )}
             </>
           ) : (
             <>

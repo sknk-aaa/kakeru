@@ -299,10 +299,11 @@ function RunPageInner() {
 
     const goalDistParam = goalInstance?.distance_km ? `&goalDistKm=${goalInstance.distance_km}` : "";
     const goalDurParam = goalInstance?.duration_minutes ? `&goalDurMin=${goalInstance.duration_minutes}` : "";
+    const penaltyParam = goalInstance?.penalty_amount ? `&penaltyAmount=${goalInstance.penalty_amount}` : "";
 
     // DB 書き込みを待たずに即遷移
     router.push(
-      `/run/result?distanceKm=${distanceKm.toFixed(2)}&durationSec=${elapsedSec}&pace=${Math.round(avgPace)}&calories=${calories}&goalReached=${cumulativeGoalReached}${goalDistParam}${goalDurParam}${installPrompt ? `&installPrompt=${installPrompt}` : ""}`
+      `/run/result?distanceKm=${distanceKm.toFixed(2)}&durationSec=${elapsedSec}&pace=${Math.round(avgPace)}&calories=${calories}&goalReached=${cumulativeGoalReached}${goalDistParam}${goalDurParam}${penaltyParam}${installPrompt ? `&installPrompt=${installPrompt}` : ""}`
     );
 
     // DB 書き込みをバックグラウンドで実行
