@@ -173,7 +173,7 @@ export default function NewGoalPage() {
 
     const { data: existingGoals } = await supabase
       .from("goals")
-      .select("type, days_of_week, scheduled_date")
+      .select("id, type, days_of_week, scheduled_date")
       .eq("user_id", user.id)
       .eq("is_active", true);
 
@@ -189,7 +189,15 @@ export default function NewGoalPage() {
     } else {
       const targetDayOfWeek = new Date(scheduledDate + "T00:00:00").getDay();
       for (const g of existingGoals ?? []) {
-        if (g.type === "oneoff" && g.scheduled_date === scheduledDate) { overlaps.push(scheduledDate); break; }
+        if (g.type === "oneoff" && g.scheduled_date === scheduledDate) {
+          const { data: inst } = await supabase
+            .from("goal_instances")
+            .select("status")
+            .eq("goal_id", g.id)
+            .eq("scheduled_date", scheduledDate)
+            .maybeSingle();
+          if (!inst || inst.status === "pending") { overlaps.push(scheduledDate); break; }
+        }
         if (g.type === "recurring" && Array.isArray(g.days_of_week)) {
           if ((g.days_of_week as number[]).includes(targetDayOfWeek)) { overlaps.push(DAYS[targetDayOfWeek]); break; }
         }
