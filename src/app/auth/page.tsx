@@ -99,6 +99,33 @@ export default function AuthPage() {
 
   async function handleAppleLogin() {
     setLoading(true);
+    const cap = (window as { Capacitor?: { isNativePlatform?: () => boolean; getPlatform?: () => string } }).Capacitor;
+    const isIOSNative = !!cap?.isNativePlatform?.() && cap?.getPlatform?.() === "ios";
+
+    if (isIOSNative) {
+      try {
+        const { SignInWithApple } = await import("@capacitor-community/apple-sign-in");
+        const result = await SignInWithApple.authorize({
+          clientId: "com.kakeru.app",
+          redirectURI: `${location.origin}/auth/callback`,
+          scopes: "email name",
+        });
+        const idToken = result.response.identityToken;
+        if (!idToken) { setError("Apple認証に失敗しました"); setLoading(false); return; }
+        const { error } = await supabase.auth.signInWithIdToken({
+          provider: "apple",
+          token: idToken,
+        });
+        if (error) { setError(error.message); setLoading(false); return; }
+        window.location.href = "/";
+      } catch (e) {
+        const message = e instanceof Error ? e.message : "Apple認証がキャンセルされました";
+        if (!message.toLowerCase().includes("cancel")) setError(message);
+        setLoading(false);
+      }
+      return;
+    }
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "apple",
       options: { redirectTo: `${location.origin}/auth/callback` },

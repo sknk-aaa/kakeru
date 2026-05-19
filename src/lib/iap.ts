@@ -23,6 +23,18 @@ export async function ensureRevenueCatConfigured(userId: string) {
   }
 }
 
+async function syncSubscriptionToBackend(): Promise<boolean> {
+  try {
+    const res = await fetch("/api/iap/sync", { method: "POST" });
+    if (!res.ok) return false;
+    const data = (await res.json()) as { is_subscribed?: boolean };
+    return !!data.is_subscribed;
+  } catch (e) {
+    console.error("[IAP] sync failed", e);
+    return false;
+  }
+}
+
 export async function purchaseProMonthly(userId: string): Promise<"success" | "cancelled" | "error"> {
   if (!isCapacitorIOS()) return "error";
   try {
@@ -31,8 +43,11 @@ export async function purchaseProMonthly(userId: string): Promise<"success" | "c
     const { products } = await Purchases.getProducts({ productIdentifiers: [PRO_PRODUCT_ID] });
     if (!products.length) return "error";
     try {
-      await Purchases.purchaseStoreProduct({ product: products[0] });
-      return "success";
+      const result = await Purchases.purchaseStoreProduct({ product: products[0] });
+      const proActive = !!result.customerInfo.entitlements.active["pro"];
+      if (!proActive) return "error";
+      const synced = await syncSubscriptionToBackend();
+      return synced ? "success" : "error";
     } catch (err) {
       const code = (err as { code?: string })?.code;
       if (code === PURCHASES_ERROR_CODE.PURCHASE_CANCELLED_ERROR) return "cancelled";
@@ -50,7 +65,9 @@ export async function restoreProPurchases(userId: string): Promise<boolean> {
     const { Purchases } = await import("@revenuecat/purchases-capacitor");
     await ensureRevenueCatConfigured(userId);
     const customerInfo = await Purchases.restorePurchases();
-    return !!customerInfo.customerInfo.entitlements.active["pro"];
+    const proActive = !!customerInfo.customerInfo.entitlements.active["pro"];
+    if (!proActive) return false;
+    return await syncSubscriptionToBackend();
   } catch (e) {
     console.error("[IAP] restore failed", e);
     return false;
