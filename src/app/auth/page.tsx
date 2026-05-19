@@ -41,6 +41,12 @@ const GoogleIcon = () => (
   </svg>
 );
 
+const AppleIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 20 20" style={{ flexShrink: 0 }} fill="white">
+    <path d="M14.94 10.6c-.02-2.16 1.76-3.2 1.84-3.25-1-1.46-2.56-1.66-3.12-1.68-1.33-.13-2.59.78-3.27.78-.68 0-1.72-.76-2.83-.74-1.46.02-2.8.85-3.55 2.15-1.51 2.62-.39 6.5 1.09 8.62.72 1.04 1.59 2.21 2.7 2.17 1.08-.04 1.49-.7 2.79-.7 1.3 0 1.67.7 2.81.68 1.16-.02 1.9-1.06 2.61-2.1.82-1.2 1.16-2.37 1.18-2.43-.03-.01-2.25-.86-2.27-3.41zM12.8 4.3c.59-.71.99-1.7.88-2.69-.85.04-1.89.57-2.5 1.27-.55.63-1.03 1.64-.9 2.61.95.07 1.92-.48 2.52-1.19z"/>
+  </svg>
+);
+
 const AUTH_HISTORY_KEY = "kakeru_auth_logged_in";
 
 function hasAuthHistory() {
@@ -86,6 +92,15 @@ export default function AuthPage() {
     setLoading(true);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
+      options: { redirectTo: `${location.origin}/auth/callback` },
+    });
+    if (error) { setError(error.message); setLoading(false); }
+  }
+
+  async function handleAppleLogin() {
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "apple",
       options: { redirectTo: `${location.origin}/auth/callback` },
     });
     if (error) { setError(error.message); setLoading(false); }
@@ -230,6 +245,20 @@ export default function AuthPage() {
 
                 {mode !== "reset" && (
                   <>
+                    <button
+                      onClick={handleAppleLogin}
+                      disabled={loading}
+                      style={{
+                        width: "100%", minHeight: "52px",
+                        display: "flex", alignItems: "center", justifyContent: "center", gap: "10px",
+                        background: "#000000", border: "none", borderRadius: "12px",
+                        fontSize: "15px", fontWeight: 600, color: "white", cursor: "pointer",
+                        marginBottom: "10px",
+                      }}
+                    >
+                      <AppleIcon />
+                      {mode === "signup" ? "Appleでかんたん登録" : "Appleでログイン"}
+                    </button>
                     <button
                       onClick={handleGoogleLogin}
                       disabled={loading}
