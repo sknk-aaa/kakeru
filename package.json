@@ -10,6 +10,8 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@capacitor/core": "^8.3.4",
+    "@revenuecat/purchases-capacitor": "^13.1.1",
     "@stripe/stripe-js": "^9.2.0",
     "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.104.0",

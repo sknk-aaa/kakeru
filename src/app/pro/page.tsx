@@ -8,6 +8,7 @@ import Image from "next/image";
 import AppShell from "@/components/AppShell";
 import { createClient } from "@/lib/supabase/client";
 import { ChevronLeft, ChevronDown, ChevronUp } from "lucide-react";
+import { isCapacitorIOS, purchaseProMonthly, restoreProPurchases } from "@/lib/iap";
 
 const PRO_FEATURES = [
   {
@@ -78,15 +79,20 @@ export default function ProPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [cardInfo, setCardInfo] = useState<{ brand: string; last4: string } | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [isIOS, setIsIOS] = useState(false);
 
   useEffect(() => {
+    setIsIOS(isCapacitorIOS());
     const supabase = createClient();
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) { setChecking(false); return; }
+      setUserId(user.id);
       supabase.from("users").select("is_subscribed").eq("id", user.id).single()
         .then(({ data }) => {
           if (data?.is_subscribed) { setIsSubscribed(true); setChecking(false); return; }
           setChecking(false);
+          if (isCapacitorIOS()) return;
           fetch("/api/stripe/payment-method")
             .then((r) => r.json())
             .then((d: { card?: { brand: string; last4: string } }) => {
@@ -96,6 +102,33 @@ export default function ProPage() {
         });
     });
   }, [router]);
+
+  useEffect(() => {
+    if (isIOS) setPlan("monthly");
+  }, [isIOS]);
+
+  async function handleIOSPurchase() {
+    if (!userId) return;
+    setLoading(true);
+    const result = await purchaseProMonthly(userId);
+    if (result === "success") {
+      window.location.href = "/pro/success";
+    } else {
+      setLoading(false);
+    }
+  }
+
+  async function handleIOSRestore() {
+    if (!userId) return;
+    setLoading(true);
+    const ok = await restoreProPurchases(userId);
+    if (ok) {
+      window.location.href = "/pro/success";
+    } else {
+      setLoading(false);
+      alert("有効な購入が見つかりませんでした");
+    }
+  }
 
   async function handleDirectSubscribe() {
     setLoading(true);
@@ -218,12 +251,14 @@ export default function ProPage() {
               }}>
                 <p style={{ fontSize: "11px", color: "#AAAAAA", marginBottom: "4px", fontWeight: 600 }}>月額わずか</p>
                 <div style={{ display: "flex", alignItems: "baseline", gap: "4px" }}>
-                  <span className="metric-value" style={{ fontSize: "38px", color: "#111111", lineHeight: 1 }}>¥480</span>
+                  <span className="metric-value" style={{ fontSize: "38px", color: "#111111", lineHeight: 1 }}>¥{isIOS ? 500 : 480}</span>
                   <span style={{ fontSize: "14px", color: "#888888" }}>/月</span>
                 </div>
-                <p style={{ fontSize: "12px", color: "#FF6B00", fontWeight: 600, marginTop: "5px" }}>
-                  年額なら ¥4,800（2ヶ月分お得）
-                </p>
+                {!isIOS && (
+                  <p style={{ fontSize: "12px", color: "#FF6B00", fontWeight: 600, marginTop: "5px" }}>
+                    年額なら ¥4,800（2ヶ月分お得）
+                  </p>
+                )}
               </div>
             )}
           </div>
@@ -308,7 +343,7 @@ export default function ProPage() {
         {isSubscribed ? (
           <div style={{ padding: "32px 16px 0" }}>
             <a
-              href="/pro/manage"
+              href={isIOS ? "https://apps.apple.com/account/subscriptions" : "/pro/manage"}
               style={{
                 display: "flex", alignItems: "center", justifyContent: "center",
                 minHeight: "52px", borderRadius: "14px",
@@ -318,7 +353,7 @@ export default function ProPage() {
                 boxShadow: "0 6px 20px rgba(255,107,0,0.35)",
               }}
             >
-              プランを管理する
+              {isIOS ? "App Storeで管理する" : "プランを管理する"}
             </a>
           </div>
         ) : (
@@ -327,31 +362,33 @@ export default function ProPage() {
               PRICING
             </p>
 
-            {/* 月額/年額 トグル */}
-            <div style={{ display: "flex", background: "#EFEFEF", borderRadius: "12px", padding: "4px", marginBottom: "16px" }}>
-              {(["monthly", "yearly"] as const).map((p) => (
-                <button
-                  key={p}
-                  onClick={() => setPlan(p)}
-                  style={{
-                    flex: 1, minHeight: "42px", borderRadius: "9px", border: "none", cursor: "pointer",
-                    background: plan === p ? "white" : "transparent",
-                    boxShadow: plan === p ? "0 1px 4px rgba(0,0,0,0.12)" : "none",
-                    transition: "all 0.18s",
-                    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "1px",
-                  }}
-                >
-                  <span style={{ fontSize: "13px", fontWeight: plan === p ? 700 : 500, color: plan === p ? "#111111" : "#888888" }}>
-                    {p === "monthly" ? "月額" : "年額"}
-                  </span>
-                  {p === "yearly" && (
-                    <span style={{ fontSize: "9px", fontWeight: 700, color: plan === "yearly" ? "#FF6B00" : "#BBBBBB", letterSpacing: "0.04em" }}>
-                      2ヶ月分お得
+            {/* 月額/年額 トグル（iOSでは月額のみ） */}
+            {!isIOS && (
+              <div style={{ display: "flex", background: "#EFEFEF", borderRadius: "12px", padding: "4px", marginBottom: "16px" }}>
+                {(["monthly", "yearly"] as const).map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => setPlan(p)}
+                    style={{
+                      flex: 1, minHeight: "42px", borderRadius: "9px", border: "none", cursor: "pointer",
+                      background: plan === p ? "white" : "transparent",
+                      boxShadow: plan === p ? "0 1px 4px rgba(0,0,0,0.12)" : "none",
+                      transition: "all 0.18s",
+                      display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "1px",
+                    }}
+                  >
+                    <span style={{ fontSize: "13px", fontWeight: plan === p ? 700 : 500, color: plan === p ? "#111111" : "#888888" }}>
+                      {p === "monthly" ? "月額" : "年額"}
                     </span>
-                  )}
-                </button>
-              ))}
-            </div>
+                    {p === "yearly" && (
+                      <span style={{ fontSize: "9px", fontWeight: 700, color: plan === "yearly" ? "#FF6B00" : "#BBBBBB", letterSpacing: "0.04em" }}>
+                        2ヶ月分お得
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
 
             {/* 価格カード */}
             <div style={{
@@ -380,11 +417,11 @@ export default function ProPage() {
               </p>
               <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: "2px", marginBottom: "8px" }}>
                 <span className="metric-value" style={{ fontSize: "54px", color: "#111111", lineHeight: 1, letterSpacing: "-0.02em" }}>
-                  ¥{plan === "monthly" ? "480" : "400"}
+                  ¥{isIOS ? "500" : (plan === "monthly" ? "480" : "400")}
                 </span>
                 <span style={{ fontSize: "16px", color: "#AAAAAA", fontWeight: 500 }}>/月</span>
               </div>
-              {plan === "yearly" ? (
+              {!isIOS && plan === "yearly" ? (
                 <p style={{ fontSize: "13px", color: "#FF6B00", fontWeight: 700 }}>
                   年間 ¥4,800（¥960 お得）
                 </p>
@@ -393,7 +430,32 @@ export default function ProPage() {
               )}
             </div>
 
-            {cardInfo ? (
+            {isIOS ? (
+              <>
+                <button
+                  onClick={handleIOSPurchase}
+                  disabled={loading || !userId}
+                  style={{
+                    width: "100%", minHeight: "56px",
+                    background: loading ? "#E0E0E0" : "linear-gradient(135deg, #FF6B00 0%, #FF9500 100%)",
+                    border: "none", borderRadius: "16px",
+                    color: "white", fontSize: "16px", fontWeight: 800,
+                    cursor: loading ? "not-allowed" : "pointer",
+                    boxShadow: loading ? "none" : "0 6px 24px rgba(255,107,0,0.45)",
+                    transition: "all 0.2s", marginBottom: "10px",
+                  }}
+                >
+                  {loading ? "処理中..." : "PRO を始める — ¥500/月"}
+                </button>
+                <button
+                  onClick={handleIOSRestore}
+                  disabled={loading}
+                  style={{ width: "100%", background: "none", border: "none", fontSize: "13px", color: "#AAAAAA", cursor: "pointer", padding: "4px" }}
+                >
+                  購入を復元する
+                </button>
+              </>
+            ) : cardInfo ? (
               <>
                 {/* 登録済みカードで1タップ加入 */}
                 <div style={{
