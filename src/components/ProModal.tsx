@@ -1,8 +1,10 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { X } from "lucide-react";
+import { isCapacitorIOS } from "@/lib/iap";
 
 interface Props {
   featureName: string;
@@ -12,6 +14,8 @@ interface Props {
 
 export default function ProModal({ featureName, description, onClose }: Props) {
   const router = useRouter();
+  const [isIOS, setIsIOS] = useState(false);
+  useEffect(() => { setIsIOS(isCapacitorIOS()); }, []);
 
   return (
     <div
@@ -63,7 +67,7 @@ export default function ProModal({ featureName, description, onClose }: Props) {
           onClick={() => router.push("/pro")}
           style={{ width: "100%", minHeight: "52px", background: "linear-gradient(135deg, #FF6B00, #FF9500)", border: "none", borderRadius: "14px", color: "white", fontSize: "16px", fontWeight: 800, cursor: "pointer", marginBottom: "14px", boxShadow: "0 4px 16px rgba(255,107,0,0.35)" }}
         >
-          PRO にする — ¥480/月〜
+          PRO にする — ¥{isIOS ? "500" : "480"}/月{isIOS ? "" : "〜"}
         </button>
 
         <button

@@ -35,19 +35,33 @@ async function syncSubscriptionToBackend(): Promise<boolean> {
   }
 }
 
+async function pollSyncUntilActive(maxAttempts = 5, intervalMs = 1500): Promise<boolean> {
+  for (let i = 0; i < maxAttempts; i++) {
+    const ok = await syncSubscriptionToBackend();
+    if (ok) return true;
+    if (i < maxAttempts - 1) await new Promise(r => setTimeout(r, intervalMs));
+  }
+  return false;
+}
+
 export async function purchaseProMonthly(userId: string): Promise<"success" | "cancelled" | "error"> {
   if (!isCapacitorIOS()) return "error";
   try {
     const { Purchases, PURCHASES_ERROR_CODE } = await import("@revenuecat/purchases-capacitor");
     await ensureRevenueCatConfigured(userId);
     const { products } = await Purchases.getProducts({ productIdentifiers: [PRO_PRODUCT_ID] });
-    if (!products.length) return "error";
+    if (!products.length) {
+      alert("[KAKERU] サブスクリプション商品が取得できません");
+      return "error";
+    }
     try {
-      const result = await Purchases.purchaseStoreProduct({ product: products[0] });
-      const proActive = !!result.customerInfo.entitlements.active["pro"];
-      if (!proActive) return "error";
-      const synced = await syncSubscriptionToBackend();
-      return synced ? "success" : "error";
+      await Purchases.purchaseStoreProduct({ product: products[0] });
+      const synced = await pollSyncUntilActive();
+      if (!synced) {
+        alert("[KAKERU] 購入は成功しましたがサーバー反映に失敗しました。アプリを再起動して「購入を復元する」を押してください。");
+        return "error";
+      }
+      return "success";
     } catch (err) {
       const code = (err as { code?: string })?.code;
       if (code === PURCHASES_ERROR_CODE.PURCHASE_CANCELLED_ERROR) return "cancelled";
@@ -55,6 +69,7 @@ export async function purchaseProMonthly(userId: string): Promise<"success" | "c
     }
   } catch (e) {
     console.error("[IAP] purchase failed", e);
+    alert(`[KAKERU] 購入処理に失敗: ${(e as Error)?.message ?? e}`);
     return "error";
   }
 }
@@ -64,10 +79,8 @@ export async function restoreProPurchases(userId: string): Promise<boolean> {
   try {
     const { Purchases } = await import("@revenuecat/purchases-capacitor");
     await ensureRevenueCatConfigured(userId);
-    const customerInfo = await Purchases.restorePurchases();
-    const proActive = !!customerInfo.customerInfo.entitlements.active["pro"];
-    if (!proActive) return false;
-    return await syncSubscriptionToBackend();
+    await Purchases.restorePurchases();
+    return await pollSyncUntilActive();
   } catch (e) {
     console.error("[IAP] restore failed", e);
     return false;

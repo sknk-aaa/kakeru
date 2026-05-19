@@ -91,7 +91,7 @@ function ProSuccessContent() {
         <>
           <h1 style={{ fontSize: "22px", fontWeight: 900, color: "#111111", marginBottom: "12px" }}>加入処理中です</h1>
           <p style={{ fontSize: "14px", color: "#888888", lineHeight: 1.75, marginBottom: "32px" }}>
-            Stripe での決済は完了しています。<br />
+            決済は完了しています。<br />
             反映まで少し時間がかかる場合があります。<br />
             しばらく経ってからアプリを開き直してください。
           </p>
