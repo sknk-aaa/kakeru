@@ -32,7 +32,7 @@ export async function POST() {
     };
   };
 
-  const proEntitlement = body.subscriber?.entitlements?.pro;
+  const proEntitlement = body.subscriber?.entitlements?.["KAKERU Pro"];
   const now = Date.now();
   const isActive = !!proEntitlement && (
     proEntitlement.expires_date === null ||

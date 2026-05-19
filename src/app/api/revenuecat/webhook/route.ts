@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
   if (!event) return NextResponse.json({ error: "no event" }, { status: 400 });
 
   const entitlements = event.entitlement_ids ?? (event.entitlement_id ? [event.entitlement_id] : []);
-  if (!entitlements.includes("pro")) {
+  if (!entitlements.includes("KAKERU Pro")) {
     return NextResponse.json({ ignored: true });
   }
 
